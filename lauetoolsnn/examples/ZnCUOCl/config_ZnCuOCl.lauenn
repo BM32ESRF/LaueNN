@@ -1,0 +1,72 @@
+### config file for LaueNeuralNetwork
+## comments
+[CPU]
+n_cpu = 8
+
+[GLOBAL_DIRECTORY]
+prefix = 
+main_directory = default
+
+
+[MATERIAL]
+material = ZnCuOCl
+symmetry = hexagonal
+space_group = 166
+general_diffraction_rules = false
+
+[DETECTOR]
+detectorfile = ZnCuOCl
+emax = 22
+emin = 5
+
+[TRAINING]
+classes_with_frequency_to_remove = 100
+desired_classes_output = all
+max_HKL_index = 5
+max_nb_grains = 2
+max_simulations = 500
+include_small_misorientation = false
+angular_distance = 120
+step_size = 0.1
+batch_size = 50
+epochs = 5
+
+[PREDICTION]
+UB_matrix_to_detect = 1
+matrix_tolerance = 0.6
+mode_spotCycle = graphmode
+use_previous = false
+softmax_threshold_global = 0.80
+cap_matchrate = 0.01
+coeff = 0.15
+coeff_overlap = 0.15
+
+[EXPERIMENT]
+experiment_directory = ZnCuOCl
+experiment_file_prefix = ZnCuOCl
+image_grid_x = 1
+image_grid_y = 1
+
+[PEAKSEARCH]
+boxsize = 8
+FitPixelDev = 15
+intensity_threshold = 60
+fit_peaks_gaussian = 1
+
+[STRAINCALCULATION]
+strain_compute = true
+tolerance_strain_refinement = 0.5,0.45,0.4,0.35,0.3,0.25,0.2,0.15,0.1,0.1
+free_parameters = b,c,alpha,beta,gamma
+additional_expression = none
+
+[DEVELOPMENT]
+write_MTEX_file = true
+
+[CALLER]
+residues_threshold = 0.5
+nb_spots_global_threshold = 8
+option_global = v2
+nb_spots_consider = 50
+use_om_user = false
+path_user_OM = none
+

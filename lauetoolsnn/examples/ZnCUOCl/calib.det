@@ -1,0 +1,19 @@
+79.55100, 979.3600, 932.4300, 0.3750000, 0.4470000, 0.07340000, 2018, 2016
+Sample-Detector distance(IM), xO, yO, angle1, angle2, pixelsize, dim1, dim2
+Calibration done with Ge at Wed Sep 22 14:31:38 2021 with LaueToolsGUI.py
+Experimental Data file: G:\bm32\SH1\Ge_0001_LT_2.dat
+Orientation Matrix:
+[[0.0969250,0.6153840,-0.7822455],[-0.9616391,0.2605486,0.0858177],[0.2566238,0.7439200,0.6170310]]
+# Material : Ge
+# dd : 79.551
+# xcen : 979.36
+# ycen : 932.43
+# xbet : 0.375
+# xgam : 0.447
+# pixelsize : 0.0734
+# xpixelsize : 0.0734
+# ypixelsize : 0.0734
+# CCDLabel : sCMOS
+# framedim : (2018, 2016)
+# detectordiameter : 162.93332000000004
+# kf_direction : Z>0

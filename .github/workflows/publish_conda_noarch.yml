@@ -1,0 +1,16 @@
+name: publish_conda_noarch
+
+on:
+  release:
+    types: [published]
+    
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: publish-to-conda
+      uses: ravipurohit1991/conda-package-publish-action@v1.4
+      with:
+        subDir: 'conda.noarch'
+        AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}

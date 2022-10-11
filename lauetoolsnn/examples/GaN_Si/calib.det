@@ -1,0 +1,19 @@
+79.61200, 977.8100, 932.1700, 0.4770000, 0.4470000, 0.07340000, 2018, 2016
+Sample-Detector distance(IM), xO, yO, angle1, angle2, pixelsize, dim1, dim2
+Calibration done with Si at Wed Sep 15 12:01:40 2021 with LaueToolsGUI.py
+Experimental Data file: /users/opd32/data/laue/BLC12834/NW1/nw1_0000_LT_1.dat
+Orientation Matrix:
+[[0.6504412,0.5025610,0.5695250],[-0.0269536,0.7646121,-0.6439269],[-0.7590783,0.4034858,0.5108810]]
+# Material : Si
+# dd : 79.612
+# xcen : 977.81
+# ycen : 932.17
+# xbet : 0.477
+# xgam : 0.447
+# pixelsize : 0.0734
+# xpixelsize : 0.0734
+# ypixelsize : 0.0734
+# CCDLabel : sCMOS
+# framedim : (2018, 2016)
+# detectordiameter : 162.93332000000004
+# kf_direction : Z>0

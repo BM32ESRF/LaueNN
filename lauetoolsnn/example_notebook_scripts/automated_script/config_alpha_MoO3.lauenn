@@ -1,0 +1,40 @@
+
+### config file for LaueNeuralNetwork 
+[CPU]
+n_cpu = 8
+
+[GLOBAL_DIRECTORY]
+prefix =
+main_directory = C:\Users\purushot\Desktop\github_version_simple\lauetoolsnn\example_notebook_scripts\automated_script
+
+[MATERIAL]
+material = alpha_MoO3
+symmetry = orthorhombic
+space_group = 62
+general_diffraction_rules = false
+
+material1 = PMNPT
+symmetry1 = tetragonal
+space_group1 = 99
+general_diffraction_rules1 = false
+
+[PREDICTION]
+UB_matrix_to_detect = 2
+matrix_tolerance = 0.6
+material0_limit = 1
+material1_limit = 1
+cap_matchrate = 0.01
+
+[DETECTOR]
+detectorfile = user_input
+params = 79.26200,972.2800,937.7200,0.4160000,0.4960000,0.0734,2018,2016,sCMOS
+emax = 22
+emin = 5
+
+[EXPERIMENT]
+## MODIFY HERE
+experiment_directory = C:\Users\purushot\Desktop\github_version_simple\lauetoolsnn\example_notebook_scripts\automated_script\alpha_MoO3_PMNPT\exp_data
+experiment_file_prefix = img_
+image_grid_x = 5
+image_grid_y = 5
+

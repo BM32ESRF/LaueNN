@@ -1,0 +1,27 @@
+# Conda environment for lauetoolsnn development
+#
+# Install:    conda env create -f environment-dev.yml
+# Update:     conda env update -f environment-dev.yml
+# Activate:   conda activate lauenn_dev
+# Deactivate: conda deactivate
+
+name: lauetoolsnn
+channels:
+  - defaults
+  - conda-forge
+  - bm32esrf
+dependencies:
+  - python
+  - matplotlib-base
+  - keras
+  - scipy
+  - numpy
+  - h5py
+  - tensorflow
+  - pyqt
+  - scikit-learn
+  - fabio
+  - networkx
+  - scikit-image
+  - tqdm
+  - pip

@@ -1,0 +1,41 @@
+https://github.com/conda/conda-build
+temp_build : lauetoolsnn
+tmp_2022 : lauetools
+
+PIP installation
+python setup.py sdist bdist_wheel
+twine upload dist/*
+
+CONDA installation
+conda install -n base conda-build
+conda install anaconda-client
+anaconda login
+
+user_name: bm32esrf
+pwd: tonic32
+
+conda config --add channels https://conda.anaconda.org/bm32esrf
+conda config --add channels https://conda.anaconda.org/conda-forge
+conda config --set anaconda_upload yes
+
+be sure to be in python >=3.7
+pip install grayskull
+
+grayskull pypi package_name
+
+got to the directory where .yaml file is created, and modify it
+
+then do 
+conda build .
+
+Once finished
+
+anaconda upload /users/esrf/purushot/anaconda3/conda-bld/noarch/lauetoolsnn-3.0.58-pyh7b7c402_0.tar.bz2
+
+
+###faster way with mamba
+conda install -y -c conda-forge mamba
+mamba install -y -c conda-forge anaconda-client conda-build conda-verify numpy boa=0.11.0
+conda config --set anaconda_upload yes
+mkdir temp_build
+conda mambabuild . --output-folder temp_build
