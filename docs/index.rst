@@ -131,4 +131,4 @@ Table of contents
    :maxdepth: 2
    :caption: Contact:
    
-   authors.rst
+   AUTHORS.rst
