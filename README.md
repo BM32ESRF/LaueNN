@@ -4,7 +4,7 @@
 
 
 [![Conda](https://img.shields.io/conda/pn/bm32esrf/lauetoolsnn?color=green&label=supported%20platform)](https://anaconda.org/bm32esrf/lauetoolsnn)
-[![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/ravipurohit1991/lauetoolsnn?color=blue&label=Github%20tag)](https://github.com/ravipurohit1991/lauetoolsnn/)
+[![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/BM32ESRF/LaueNN?color=blue&label=Github%20tag)](https://github.com/BM32ESRF/LaueNN)
 [![Doc-build-deployment](https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/pages/pages-build-deployment)
 
 [![Python package](https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/python-package.yml/badge.svg)](https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/python-package.yml)
