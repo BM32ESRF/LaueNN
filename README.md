@@ -75,8 +75,8 @@ This project is also hosted on sourceforge.net https://lauetoolsnn.sourceforge.i
 
 ### Documentation
 ------------------------------
-Documentation (under construction) for lauetoolsnn/lauenn is found on the following webpage
-https://lauetoolsnn.readthedocs.io/index.html
+Documentation (under construction) for lauetoolsnn/lauenn is on the following webpage
+https://lauenn.readthedocs.io/en/latest/
 
 
 ### Example case
