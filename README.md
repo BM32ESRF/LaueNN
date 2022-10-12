@@ -1,33 +1,31 @@
 <p align="center">
-  <img width="1000" height="350" src="https://github.com/ravipurohit1991/lauetoolsnn/blob/main/icon.png">
+  <img width="1000" height="350" src="https://github.com/BM32ESRF/LaueNN/blob/main/icon.png">
 </p>
 
 
 [![Conda](https://img.shields.io/conda/pn/bm32esrf/lauetoolsnn?color=green&label=supported%20platform)](https://anaconda.org/bm32esrf/lauetoolsnn)
 [![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/BM32ESRF/LaueNN?color=blue&label=Github%20tag)](https://github.com/BM32ESRF/LaueNN)
-[![Doc-build-deployment](https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/pages/pages-build-deployment)
+[![Doc-build-deployment](https://github.com/BM32ESRF/LaueNN/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/BM32ESRF/LaueNN/actions/workflows/pages/pages-build-deployment)
 
-[![Python package](https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/python-package.yml/badge.svg)](https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/python-package.yml)
-[![Publish_PYPI](https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/publish_PYPI.yml/badge.svg)](https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/publish_PYPI.yml)
+[![Python package](https://github.com/BM32ESRF/LaueNN/actions/workflows/python-package.yml/badge.svg)](https://github.com/BM32ESRF/LaueNN/actions/workflows/python-package.yml)
+[![Publish_PYPI](https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_PYPI.yml/badge.svg)](https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_PYPI.yml)
 [![PyPI](https://img.shields.io/pypi/v/lauetoolsnn)](https://pypi.python.org/pypi/lauetoolsnn/)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/lauetoolsnn.svg)](https://pypi.python.org/pypi/lauetoolsnn/)
 
 
-[![Publish_Conda](https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/publish_conda.yml/badge.svg)](https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/publish_conda.yml)
+[![Publish_Conda](https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_conda.yml/badge.svg)](https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_conda.yml)
 [![Anaconda-Server Badge](https://anaconda.org/bm32esrf/lauetoolsnn/badges/license.svg)](https://anaconda.org/bm32esrf/lauetoolsnn)
 [![Conda](https://img.shields.io/conda/v/bm32esrf/lauetoolsnn?style=flat-square)](https://conda.anaconda.org/bm32esrf/lauetoolsnn)
 [![Anaconda-Server Badge](https://anaconda.org/bm32esrf/lauetoolsnn/badges/installer/conda.svg)](https://conda.anaconda.org/bm32esrf/lauetoolsnn)
 
 
-[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/ravipurohit1991/lauetoolsnn/issues)
-[![HitCount](https://hits.dwyl.com/ravipurohit1991/lauetoolsnn.svg?style=flat-square&show=unique)](http://hits.dwyl.com/ravipurohit1991/lauetoolsnn)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ravipurohit1991/lauetoolsnn/main)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/BM32ESRF/LaueNN/issues)
 
 
 # lauetoolsnn
 An autonomous feed-forward neural network (FFNN) model to predict the HKL in single/multi-grain/multi-phase Laue patterns with high efficiency and accuracy is introduced. 
 
-Laue diffraction indexation (especially Laue images comprising of diffraction signal from several polycrystals/multi phase materials) can be a very tedious and CPU intensive process. To takle this, LaueNN or LauetoolsNN was developed employing the power of neural network to speed up a part of the indexation process. In the LaueNN_presentation (https://github.com/ravipurohit1991/lauetoolsnn/blob/main/presentations/LaueNN_presentation.pdf), several steps of Laue pattern indexation with classical approach is described. We have replaced the most CPU intensive step with the Neural Networks. The step where the Laue indices hkl of each spot os now determined with the Neural networks, alongside the spot hkl index, the neural network also predicts the Material that spot belongs to. This can be useful incase of Laue images comprising of diffraction signal from multi-phases. 
+Laue diffraction indexation (especially Laue images comprising of diffraction signal from several polycrystals/multi phase materials) can be a very tedious and CPU intensive process. To takle this, LaueNN or LauetoolsNN was developed employing the power of neural network to speed up a part of the indexation process. In the LaueNN_presentation (https://github.com/BM32ESRF/LaueNN/tree/main/presentations/LaueNN_presentation.pdf), several steps of Laue pattern indexation with classical approach is described. We have replaced the most CPU intensive step with the Neural Networks. The step where the Laue indices hkl of each spot os now determined with the Neural networks, alongside the spot hkl index, the neural network also predicts the Material that spot belongs to. This can be useful incase of Laue images comprising of diffraction signal from multi-phases. 
 LaueNN uses the existing modules of Lauetools to generate simulated Laue patterns. The whole workflow and the application of this tool is illustrated in this article (https://onlinelibrary.wiley.com/iucr/doi/10.1107/S1600576722004198)
 
   
