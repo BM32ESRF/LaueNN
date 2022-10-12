@@ -1,7 +1,7 @@
 .. image:: ./images/icon.png
 
 
-|Supported Platforms| |GitHub tag| |Doc-build-deployment|
+|Supported Platforms| |GitHub tag|
 |Python package| |Publish_PYPI| |PyPI| |PyPI pyversions|
 |Publish_Conda| |Anaconda-Server Badge| |Conda| |Anaconda-Server Badge1|
 |contributions welcome| |HitCount| |Binder|
@@ -9,17 +9,14 @@
 .. |Supported Platforms| image:: https://img.shields.io/conda/pn/bm32esrf/lauetoolsnn?color=green&label=supported%20platform
    :target: https://anaconda.org/bm32esrf/lauetoolsnn
 
-.. |GitHub tag| image:: https://img.shields.io/github/v/tag/ravipurohit1991/lauetoolsnn?color=blue&label=Github%20tag
-   :target: https://github.com/ravipurohit1991/lauetoolsnn/
-
-.. |Doc-build-deployment| image:: https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/pages/pages-build-deployment/badge.svg
-   :target: https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/pages/pages-build-deployment
+.. |GitHub tag| image:: https://img.shields.io/github/v/tag/BM32ESRF/LaueNN?color=blue&label=Github%20tag
+   :target: https://github.com/BM32ESRF/LaueNN
    
-.. |Python package| image:: https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/python-package.yml/badge.svg
-   :target: https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/python-package.yml
+.. |Python package| image:: https://github.com/BM32ESRF/LaueNN/actions/workflows/python-package.yml/badge.svg
+   :target: https://github.com/BM32ESRF/LaueNN/actions/workflows/python-package.yml
    
-.. |Publish_PYPI| image:: https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/publish_PYPI.yml/badge.svg
-   :target: https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/publish_PYPI.yml
+.. |Publish_PYPI| image:: https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_PYPI.yml/badge.svg
+   :target: https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_PYPI.yml
 
 .. |PyPI| image:: https://img.shields.io/pypi/v/lauetoolsnn
    :target: https://pypi.python.org/pypi/lauetoolsnn/
@@ -27,8 +24,8 @@
 .. |PyPI pyversions| image:: https://img.shields.io/pypi/pyversions/lauetoolsnn.svg
    :target: https://pypi.python.org/pypi/lauetoolsnn/
 
-.. |Publish_Conda| image:: https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/publish_conda.yml/badge.svg
-   :target: https://github.com/ravipurohit1991/lauetoolsnn/actions/workflows/publish_conda.yml
+.. |Publish_Conda| image:: https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_conda.yml/badge.svg
+   :target: https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_conda.yml
 
 .. |Anaconda-Server Badge| image:: https://anaconda.org/bm32esrf/lauetoolsnn/badges/license.svg
    :target: https://anaconda.org/bm32esrf/lauetoolsnn
@@ -40,13 +37,7 @@
    :target: https://conda.anaconda.org/bm32esrf/lauetoolsnn
 
 .. |contributions welcome| image:: https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat
-   :target: https://github.com/ravipurohit1991/lauetoolsnn/issues
-
-.. |HitCount| image:: https://hits.dwyl.com/ravipurohit1991/lauetoolsnn.svg?style=flat-square&show=unique
-   :target: http://hits.dwyl.com/ravipurohit1991/lauetoolsnn
-
-.. |Binder| image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/ravipurohit1991/lauetoolsnn/main
+   :target: https://github.com/BM32ESRF/LaueNN/issues
 
 .. include:: README.rst
 
