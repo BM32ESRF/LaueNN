@@ -14,8 +14,8 @@
 
 [![Publish_Conda](https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_conda.yml/badge.svg)](https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_conda.yml)
 [![Anaconda-Server Badge](https://anaconda.org/bm32esrf/lauetoolsnn/badges/license.svg)](https://anaconda.org/bm32esrf/lauetoolsnn)
-[![Conda](https://img.shields.io/conda/v/bm32esrf/lauetoolsnn?style=flat-square)](https://conda.anaconda.org/bm32esrf/lauetoolsnn)
-[![Anaconda-Server Badge](https://anaconda.org/bm32esrf/lauetoolsnn/badges/installer/conda.svg)](https://conda.anaconda.org/bm32esrf/lauetoolsnn)
+[![Conda](https://img.shields.io/conda/v/bm32esrf/lauetoolsnn?style=flat-square)](https://anaconda.org/bm32esrf/lauetoolsnn)
+[![Anaconda-Server Badge](https://anaconda.org/bm32esrf/lauetoolsnn/badges/installer/conda.svg)](https://anaconda.org/bm32esrf/lauetoolsnn)
 
 
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/BM32ESRF/LaueNN/issues)
