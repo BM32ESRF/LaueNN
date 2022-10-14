@@ -153,13 +153,29 @@ try:
 except:
     print("adjustText library not installed")
     plot_images = False
-    
+
+##Default Global Parameters
+residues_threshold = 0.5
+nb_spots_global_threshold = 8
+option_global = "v2"
+use_om_user = False
+nb_spots_consider = 500
+path_user_OM = ""
+intensity_threshold = 150
+boxsize = 15
+FitPixelDev_global123 = 15
+softmax_threshold_global123 = 0.8
+cap_matchrate123 = 0.01*100
+strain_free_parameters = ["rotx", "roty", "rotz", "alpha", "beta", "gamma", "b", "c"]
+additional_expression = ["none"]
+mode_peaksearch = "LaueTools"
+        
 
 def call_global():
     global residues_threshold, nb_spots_global_threshold, option_global, \
             use_om_user, nb_spots_consider, path_user_OM, intensity_threshold, \
             FitPixelDev_global123, boxsize, softmax_threshold_global123, cap_matchrate123,\
-            strain_free_parameters, additional_expression
+            strain_free_parameters, additional_expression, mode_peaksearch
     ## read a test config file and update the variables.
     config_setting = configparser.ConfigParser()
     filepath = resource_path('settings.ini')
@@ -177,6 +193,7 @@ def call_global():
     cap_matchrate123 = float(config_setting.get('CALLER', 'cap_mr'))
     strain_free_parameters = config_setting.get('CALLER', 'strain_free_parameters').split(",")
     additional_expression = config_setting.get('CALLER', 'additional_expression').split(",")
+    mode_peaksearch = str(config_setting.get('CALLER', 'mode_peaksearch'))    
     if cap_matchrate123 < 1:
         cap_matchrate123 = cap_matchrate123 *100.0
     
@@ -1595,7 +1612,7 @@ def worker(inputs_queue, outputs_queue, proc_id, run_flag):#, mp_rotation_matrix
                     NumberMaxofFits123,fit_peaks_gaussian_global123,\
                     FitPixelDev_global123,coeff123,coeff_overlap,\
                     material0_limit, material1_limit, use_previous_UBmatrix_name1,\
-                        material_phase_always_present1, crystal, crystal1, strain_free_parameters = num1[ijk]
+                        material_phase_always_present1, crystal, crystal1, strain_free_parameters, mode_peaksearch = num1[ijk]
                     
                     if np.all(check[cnt,:]) == 1:
                         continue
@@ -1632,7 +1649,7 @@ def worker(inputs_queue, outputs_queue, proc_id, run_flag):#, mp_rotation_matrix
                                                                    material0_limit,material1_limit,
                                                                    use_previous_UBmatrix_name1,
                                                                    material_phase_always_present1,
-                                                                   crystal, crystal1, strain_free_parameters)
+                                                                   crystal, crystal1, strain_free_parameters,mode_peaksearch)
                         files_worked.append(ijk)
                         meta['proc_id'] = proc_id
                         r_message = (strain_matrix12, strain_matrixs12, rotation_matrix12, col12, \
@@ -1843,7 +1860,8 @@ def predict_preprocessMP(files, cnt,
                        NumberMaxofFits123=None,fit_peaks_gaussian_global123=None,
                        FitPixelDev_global123=None,coeff123=None, coeff_overlap=None,
                        material0_limit=None, material1_limit=None, use_previous_UBmatrix_name=None,
-                       material_phase_always_present=None, crystal=None, crystal1=None, strain_free_parameters=None):
+                       material_phase_always_present=None, crystal=None, crystal1=None, \
+                       strain_free_parameters=None, mode_peaksearch=None):
     
     if files in files_treated:
         return strain_matrix, strain_matrixs, rotation_matrix, col, colx, coly, \
@@ -1852,7 +1870,7 @@ def predict_preprocessMP(files, cnt,
     print("# Predicting for "+ files)
     
     call_global()
-
+    
     if files.split(".")[-1] != "cor":
         CCDLabel=ccd_label
         seednumber = "Experimental "+CCDLabel+" file"    
@@ -1894,7 +1912,7 @@ def predict_preprocessMP(files, cnt,
                                         reject_negative_baseline=True,
                                         Fit_with_Data_for_localMaxima=False,
                                         maxPixelDistanceRejection=15.0,
-                                        )
+                                        mode = mode_peaksearch)
             peak_XY = peak_XY[0]#[:,:2] ##[2] Integer peak lists
         except:
             print("Error in Peak detection for "+ files)
@@ -4203,16 +4221,16 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
         if input_params["mat"] == 1:
             list_ = np.where(np.abs(tab_angulardist_temp-dist123) < input_params["tolerance"])
             final_crystal=crystal
-            
+
         elif input_params["mat"] == 2:
             list_ = np.where(np.abs(tab_angulardist_temp-dist123) < input_params["tolerance1"])
             final_crystal=crystal1
-        
+
         if final_crystal != None:
             symm_operator = final_crystal._hklsym
         else:
             symm_operator = np.eye(3)
-        
+
         if len(list_[0]) == 0:
             return None, True, 0, 0
 
@@ -8529,9 +8547,9 @@ mr_threshold_global = 0.80\n\
 cap_matchrate = 0.01\n\
 coeff = 0.3\n\
 coeff_overlap = 0.3\n\
-mode_spotCycle = slow\n\
+mode_spotCycle = graphmode\n\
 ##true for few crystal and prefered texture case, otherwise time consuming; advised for single phase alone\n\
-use_previous = true\n\
+use_previous = false\n\
 \n\
 [EXPERIMENT]\n\
 experiment_directory = C:\\Users\\purushot\\Desktop\\In_JSM\\ech875_ROI01\n\
@@ -8545,16 +8563,13 @@ boxsize = 15\n\
 fit_peaks_gaussian = 1\n\
 FitPixelDev = 15\n\
 NumberMaxofFits = 3000\n\
+mode=skimage\n\
 \n\
 [STRAINCALCULATION]\n\
 strain_compute = true\n\
 tolerance_strain_refinement = 0.7,0.6,0.5,0.4,0.3,0.2\n\
 tolerance_strain_refinement1 = 0.7,0.6,0.5,0.4,0.3,0.2\n\
 free_parameters = b,c,alpha,beta,gamma\n\
-\n\
-[POSTPROCESS]\n\
-hkls_subsets = [1,1,0],[1,0,0],[1,1,1]\n\
-\n\
 \n\
 [CALLER]\n\
 residues_threshold=0.15\n\
@@ -10487,7 +10502,7 @@ def predict_preprocessMultiProcess(files, cnt,
                                         position_definition=1,
                                         verbose=0,
                                         fit_peaks_gaussian=fit_peaks_gaussian_global123,
-                                        xtol=0.001,                
+                                        xtol=0.001,
                                         FitPixelDev=FitPixelDev_global123,
                                         return_histo=0,
                                         # Saturation_value=1e10,  # to be merged in CCDLabel
@@ -10501,7 +10516,7 @@ def predict_preprocessMultiProcess(files, cnt,
                                         reject_negative_baseline=True,
                                         Fit_with_Data_for_localMaxima=False,
                                         maxPixelDistanceRejection=15.0,
-                                        )
+                                        mode = mode_peaksearch)
             peak_XY = peak_XY[0]#[:,:2] ##[2] Integer peak lists
         except:
             print("Error in Peak detection for "+ files)
@@ -11684,7 +11699,7 @@ def predict_preprocessMultiMatProcess(files, cnt,
                                         reject_negative_baseline=True,
                                         Fit_with_Data_for_localMaxima=False,
                                         maxPixelDistanceRejection=15.0,
-                                        )
+                                        mode = mode_peaksearch)
             peak_XY = peak_XY[0]#[:,:2] ##[2] Integer peak lists
         except:
             print("Error in Peak detection 1 for "+ files)

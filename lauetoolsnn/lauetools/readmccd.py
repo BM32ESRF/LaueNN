@@ -797,6 +797,132 @@ def fitoneimage_manypeaks(filename, peaklist, boxsize, stackimageindex=-1,
 
     return tabIsorted, par, peaklist
 
+# =============================================================================
+# SKIMAGE CURVE FITTING
+# =============================================================================
+from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
+import scipy.ndimage as ndi
+from skimage.feature import peak_local_max
+
+def twoD_Gaussian(imgSize, amp0, center_x, center_y, theta, sigma_x, sigma_y):
+    theta = np.deg2rad(theta)
+    x = np.arange(0, imgSize, 1, float)
+    y = np.arange(0, imgSize, 1, float)
+    y = y[:,np.newaxis]
+    a=np.cos(theta)*x -np.sin(theta)*y
+    b=np.sin(theta)*x +np.cos(theta)*y
+    a0=np.cos(theta)*center_x -np.sin(theta)*center_y
+    b0=np.sin(theta)*center_x +np.cos(theta)*center_y
+    g = amp0 * np.exp(-(((a-a0)**2)/(2*(sigma_x**2)) + ((b-b0)**2) /(2*(sigma_y**2))))
+    return g
+
+def twoD_GaussianCF(imgSize, amp0, center_x, center_y, theta, sigma_x, sigma_y):
+    theta = np.deg2rad(theta)
+    x = np.arange(0, imgSize, 1, float)
+    y = np.arange(0, imgSize, 1, float)
+    y = y[:,np.newaxis]
+    a=np.cos(theta)*x -np.sin(theta)*y
+    b=np.sin(theta)*x +np.cos(theta)*y
+    a0=np.cos(theta)*center_x -np.sin(theta)*center_y
+    b0=np.sin(theta)*center_x +np.cos(theta)*center_y
+    g = amp0 * np.exp(-(((a-a0)**2)/(2*(sigma_x**2)) + ((b-b0)**2) /(2*(sigma_y**2))))
+    return g.ravel()
+
+def peaksearch_skimage(filename, min_dist, pkid_threshold, bs, fit_peaks_gaussian, ccd_label):
+    # start_time = time.time()
+    data_raw = plt.imread(filename)
+    ##BackGround correction with LaueTools
+    backgroundimage = ImProc.compute_autobackground_image(data_raw, boxsizefilter=10)
+    data_raw = ImProc.computefilteredimage(data_raw, backgroundimage, ccd_label, usemask=True, formulaexpression="A-B")
+    # Small median filter to remove any persistent noise
+    img = ndi.median_filter(data_raw, size=2)
+    # Set the parameters for the peak-finding
+    threshold = np.std(img) * pkid_threshold
+    # Find the peaks using skimage.feature.peak_local_max
+    peak_coords = peak_local_max(img, min_distance=min_dist, threshold_abs=threshold, exclude_border=10)
+    peak_coords = np.fliplr(peak_coords)  # This is so that they go more nicely into the following functions
+    intensity = []
+    boxsize = []
+    for i in range(len(peak_coords)):
+        px, py = peak_coords[i]
+        px, py = int(px), int(py)
+        img = data_raw[py-bs:py+bs, px-bs:px+bs]
+        if img.shape[0] != 2*bs+1 or img.shape[1] != 2*bs+1:
+            boxsize.append(5) #safe box size
+        else:
+            boxsize.append(bs)
+        intensity.append(data_raw[peak_coords[i,1], peak_coords[i,0]])
+    intensity = np.array(intensity)
+    boxsize = np.array(boxsize)
+    intensity = intensity.reshape((len(intensity), 1))
+    boxsize = boxsize.reshape((len(boxsize), 1))
+    peak_coords = np.hstack((peak_coords, intensity, boxsize))
+    
+    if fit_peaks_gaussian == 0:
+        # all peaks list building
+        tabpeak = np.zeros((len(peak_coords),10))
+        for ii in range(len(peak_coords)):
+            tabpeak[ii,0] = peak_coords[ii,0]#+1
+            tabpeak[ii,1] = peak_coords[ii,1]#+1
+            tabpeak[ii,2] = peak_coords[ii,2]
+            tabpeak[ii,3] = 0
+            tabpeak[ii,4] = 0
+            tabpeak[ii,5] = 0
+            tabpeak[ii,6] = 0
+            tabpeak[ii,7] = 0
+            tabpeak[ii,8] = 0
+            tabpeak[ii,9] = 0
+    
+    else:
+        poptimized = []
+        for ii in range(len(peak_coords)):
+            # Create data indices
+            px, py, Amp, bs = peak_coords[ii]
+            px, py, bs = int(px), int(py), int(bs)
+            img = data_raw[py-bs:py+bs, px-bs:px+bs]
+            px0, py0 = bs, bs
+            Amp = np.max(img[py0-1:py0+1, px0-1:px0+1])
+            sigmax, sigmay = 1, 1
+            theta = 0
+            imgSize = img.shape[0]
+            p = np.asarray(img).astype('float')
+            initial_guess_sum = (Amp, px0, py0, theta, sigmax, sigmay)
+            if fit_peaks_gaussian == 1:
+                popt, pcov = curve_fit(twoD_GaussianCF, imgSize, np.ravel(p), p0=initial_guess_sum)
+            elif fit_peaks_gaussian == 2:
+                popt, pcov = curve_fit(twoD_GaussianCF, imgSize, np.ravel(p), p0=initial_guess_sum,
+                           bounds=((10, 1, 1, -90, 0.5, 0.5), (1e6, imgSize-1, imgSize-1, 90, 5, 5)))
+            elif fit_peaks_gaussian == 3:
+                popt, pcov = curve_fit(twoD_GaussianCF, imgSize, np.ravel(p), p0=initial_guess_sum,
+                            bounds=((10, bs-1.5, bs-1.5, -90, 0.5, 0.5), (1e6, bs+1.5, bs+1.5, 90, 3, 3)))
+            poptimized.append(popt)
+    
+    
+        assert(len(poptimized)==len(peak_coords))
+        # all peaks list building
+        poptimized = np.array(poptimized)
+        tabpeak = np.zeros((len(poptimized),10))
+        for ii in range(len(poptimized)):
+            px0, py0, _, bs = peak_coords[ii]
+            tabpeak[ii,0] = poptimized[ii,1]+px0-bs#+1
+            tabpeak[ii,1] = poptimized[ii,2]+py0-bs#+1
+            tabpeak[ii,2] = poptimized[ii,0]
+            tabpeak[ii,3] = poptimized[ii,4]
+            tabpeak[ii,4] = poptimized[ii,5]
+            tabpeak[ii,5] = poptimized[ii,3]
+            tabpeak[ii,6] = 0
+            tabpeak[ii,7] = 0
+            tabpeak[ii,8] = 0
+            tabpeak[ii,9] = 0
+
+    if len(tabpeak.shape) > 1:  # several peaks
+        intense_rank = np.argsort(tabpeak[:, 2])[::-1]  # sort by decreasing intensity-bkg
+        tabIsorted = tabpeak[intense_rank]
+    # print("Time:", time.time()-start_time)
+    
+    return tabIsorted, peak_coords
+
 
 def PeakSearch(filename, stackimageindex=-1, CCDLabel="PRINCETON", center=None,
                                                 boxsizeROI=(200, 200),  # use only if center != None
@@ -827,7 +953,8 @@ def PeakSearch(filename, stackimageindex=-1, CCDLabel="PRINCETON", center=None,
                                                 reject_negative_baseline=True,
                                                 formulaexpression="A-1.1*B",
                                                 listrois=None,
-                                                outputIpixmax=True):
+                                                outputIpixmax=True,
+                                                mode="skimage"):
     r"""
     Find local intensity maxima as starting position for fittinng and return peaklist.
 
@@ -929,7 +1056,13 @@ def PeakSearch(filename, stackimageindex=-1, CCDLabel="PRINCETON", center=None,
 
     .. warning:: nb of output elements depends on 'return_histo' argument
     """
-
+    ## New method replacing the old PeakSearch;
+    if mode == "skimage":
+        print("Skimage mode of PeakSearch is used for the PeakSearch")
+        return peaksearch_skimage(filename, 3, IntensityThreshold, boxsize, 3, CCDLabel)
+    else:
+        print("LaueTools mode of PeakSearch is used for the PeakSearch")
+        
     if return_histo in (0, 1):
         return_nb_raw_blobs = 0
     if return_histo in (2,):

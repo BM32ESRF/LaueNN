@@ -170,13 +170,13 @@ if default_initialization:
     ccd_label_global = "sCMOS" #"MARCCD165" #"Cor"#
     dim1_global = 2018 #2048 #
     dim2_global = 2016 #2048 #
-    emax_global = 23
+    emax_global = 22
     emin_global = 5
     UB_matrix_global = 1
     image_grid_globalx = 10
     image_grid_globaly = 10
-    intensity_threshold_global = 500 #75 800
-    boxsize_global = 15
+    intensity_threshold_global = 5 #75 800
+    boxsize_global = 10
     fit_peaks_gaussian_global = 1
     FitPixelDev_global = 15
     strain_label_global = "YES" ## compute and plot strains
@@ -234,6 +234,7 @@ if default_initialization:
     cpu_count_user = -1
     strain_free_parameters = ["rotx", "roty", "rotz", "alpha", "beta", "gamma", "b", "c"]
     additional_expression = ["none"]
+    mode_peaksearch = "skimage"
     
     try:
         if symmetry_global =="cubic":
@@ -374,6 +375,7 @@ class Window(QMainWindow):
         config_setting.set('CALLER', 'cap_mr', str(0.01))
         config_setting.set('CALLER', 'strain_free_parameters', ",".join(strain_free_parameters))
         config_setting.set('CALLER', 'additional_expression', ",".join(additional_expression))
+        config_setting.set('CALLER', 'mode_peaksearch', str(mode_peaksearch))
         with open(filepath, 'w') as configfile:
             config_setting.write(configfile)
     
@@ -429,7 +431,8 @@ class Window(QMainWindow):
         global softmax_threshold_global, mr_threshold_global, cap_matchrate, coeff, cpu_count_user
         global coeff_overlap1212, mode_spotCycle, NumberMaxofFits, use_previous_UBmatrix
         global write_mtex_file, material0_lauegroup, material1_lauegroup, misorientation_angle1
-
+        global mode_peaksearch
+        
         config = configparser.ConfigParser()
         
         try:
@@ -936,6 +939,12 @@ class Window(QMainWindow):
             self.write_to_console("path_user_OM not defined, by default None")
             path_user_OM_global = ""
         
+        try:
+            mode_peaksearch = config.get('PEAKSEARCH', 'mode')
+        except:
+            self.write_to_console("mode_peaksearch not defined, by default skimage method of peak search")
+            mode_peaksearch = "skimage"
+        
         config_setting = configparser.ConfigParser()
         filepath = resource_path('settings.ini')
         self.write_to_console("Settings path is "+filepath)
@@ -953,6 +962,7 @@ class Window(QMainWindow):
         config_setting.set('CALLER', 'cap_mr', str(cap_matchrate/100.))
         config_setting.set('CALLER', 'strain_free_parameters', ",".join(strain_free_parameters))
         config_setting.set('CALLER', 'additional_expression', ",".join(additional_expression))
+        config_setting.set('CALLER', 'mode_peaksearch', str(mode_peaksearch))
         with open(filepath, 'w') as configfile:
             config_setting.write(configfile)
         self.write_to_console("Config file loaded successfully.")
@@ -2635,7 +2645,7 @@ class MyPopup_image_v1(QWidget):
         self.bkg_treatment.setText("A-B")
         
         self.peak_params = QLineEdit()
-        self.peak_params.setText("500,15,15")
+        self.peak_params.setText("500,15,15,lauetools")
         
         self.predict_params = QLineEdit()
         self.predict_params.setText("0.85, 0.20, v2, 8, 0.2, 50")
@@ -2655,10 +2665,9 @@ class MyPopup_image_v1(QWidget):
             cap_matchrate123 = float(config_setting.get('CALLER', 'cap_mr'))
             strain_free_parameters = config_setting.get('CALLER', 'strain_free_parameters').split(",")
             additional_expression = config_setting.get('CALLER', 'additional_expression').split(",")
-            
+            mode_peaksearch = str(config_setting.get('CALLER', 'mode_peaksearch'))
             if intensity_threshold != None and boxsize != None and FitPixelDev_global123!=None:
-                self.peak_params.setText(str(intensity_threshold)+","+str(boxsize)+","+str(FitPixelDev_global123))
-                
+                self.peak_params.setText(str(intensity_threshold)+","+str(boxsize)+","+str(FitPixelDev_global123)+","+str(mode_peaksearch))
             self.predict_params.setText(str(float(softmax_threshold_global123))+","+str(float(cap_matchrate123))+
                                         ","+option_global+","+
                                         str(nb_spots_global_threshold)+","+str(residues_threshold)+
@@ -2674,6 +2683,7 @@ class MyPopup_image_v1(QWidget):
             self.cap_matchrate123 = cap_matchrate123
             self.strain_free_parameters = strain_free_parameters
             self.additional_expression = additional_expression
+            self.mode_peaksearch = mode_peaksearch
         except:
             self.residues_threshold = 0.5
             self.nb_spots_global_threshold = 8
@@ -2686,6 +2696,7 @@ class MyPopup_image_v1(QWidget):
             self.cap_matchrate123 = 0.2
             self.strain_free_parameters = ["rotx", "roty", "rotz", "alpha", "beta", "gamma", "b", "c"]
             self.additional_expression = ["none"]
+            self.mode_peaksearch = "LaueTools"
             print("error with setting config file, returning the settings to default values")
             
         self.corrected_data = None
@@ -2719,7 +2730,7 @@ class MyPopup_image_v1(QWidget):
         ## send the data back to update the main variables
         formLayout = QFormLayout()
         formLayout.addRow('Background treatment expression', self.bkg_treatment)
-        formLayout.addRow('Intensity; box size; pix dev', self.peak_params)
+        formLayout.addRow('Intensity; box size; pix dev; mode_PeakSearch', self.peak_params)
         formLayout.addRow('Image mode', self.image_mode)
         formLayout.addRow('Peak search mode', self.peaksearch_mode)
         formLayout.addRow('softmax acc.; Mr threshold; 4hyperparams', self.predict_params)
@@ -2758,6 +2769,7 @@ class MyPopup_image_v1(QWidget):
         config_setting1.set('CALLER', 'cap_mr', str(self.cap_matchrate123))
         config_setting1.set('CALLER', 'strain_free_parameters', ",".join(self.strain_free_parameters))
         config_setting1.set('CALLER', 'additional_expression', ",".join(self.additional_expression))
+        config_setting1.set('CALLER', 'mode_peaksearch', self.mode_peaksearch)
         with open(filepath, 'w') as configfile:
             config_setting1.write(configfile)
         print("Config settings updated")
@@ -2814,6 +2826,7 @@ class MyPopup_image_v1(QWidget):
         intens = int(float(self.peak_params.text().split(",")[0]))
         bs = int(float(self.peak_params.text().split(",")[1]))
         pixdev = int(float(self.peak_params.text().split(",")[2]))
+        mode_peaksearch = str((self.peak_params.text().split(",")[3]))
         bkg_treatment = self.bkg_treatment.text()
         
         if self.peaksearch_mode.currentText() == "lauetools":
@@ -2843,6 +2856,7 @@ class MyPopup_image_v1(QWidget):
                                             reject_negative_baseline=True,
                                             Fit_with_Data_for_localMaxima=False,
                                             maxPixelDistanceRejection=15.0,
+                                            mode = mode_peaksearch
                                             )
                 peak_XY = peak_XY[0]
                 self.pix_x, self.pix_y = peak_XY[:,0], peak_XY[:,1]
@@ -2937,7 +2951,6 @@ class MyPopup_image_v1(QWidget):
                                                             use_data_corrected=None,
                                                             reject_negative_baseline=True)
                 peak_XY = peak_dataarray[0]
-    
                 self.pix_x, self.pix_y = peak_XY[:,0], peak_XY[:,1]
                 self.peakXY = peak_XY
             except:
@@ -2953,6 +2966,7 @@ class MyPopup_image_v1(QWidget):
             intens = int(float(self.peak_params.text().split(",")[0]))
             bs = int(float(self.peak_params.text().split(",")[1]))
             pixdev = int(float(self.peak_params.text().split(",")[2]))
+            mode_peaksearch = str((self.peak_params.text().split(",")[3]))
             smt = float(self.predict_params.text().split(",")[0])
             mrt = float(self.predict_params.text().split(",")[1])
             nb_spots_consider_global123 = int(float(self.predict_params.text().split(",")[5]))
@@ -2968,10 +2982,10 @@ class MyPopup_image_v1(QWidget):
             self.FitPixelDev_global123 = pixdev
             self.softmax_threshold_global123 = smt
             self.cap_matchrate123 = mrt
-            
+            self.mode_peaksearch = mode_peaksearch
             self.function_predict(self.file, intens, bs, pixdev, smt, mrt, self.image_no, nb_spots_consider_global123,
                                   residues_threshold123, option_global123, nb_spots_global_threshold123, self.peakXY,
-                                  self.strain_free_parameters,self.additional_expression)
+                                  self.strain_free_parameters,self.additional_expression, self.mode_peaksearch)
             self.propagate_button.setEnabled(True)
         except:
             print("Error during prediction; reinitialize the optimize window again, most probably this will fix it")
@@ -4088,6 +4102,9 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
         self.intensity_threshold = QLineEdit()
         self.intensity_threshold.setText("500")
         
+        self.mode_peaksearch = QLineEdit()
+        self.mode_peaksearch.setText("LaueTools")
+        
         self.experimental_prefix = QLineEdit()
         self.experimental_prefix.setText("")
         
@@ -4146,7 +4163,8 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
             self.analysis_plot_tech.setCurrentText(mode_spotCycle)
         if hkls_list_global != None:
             self.hkl_plot.setText(hkls_list_global) 
-            
+        if mode_peaksearch != None:
+            self.mode_peaksearch.setText(mode_peaksearch)
         # button to continue training
         self.btn_config = QPushButton('Predict and Plot')
         self.btn_config.clicked.connect(self.plot_pc)
@@ -4537,7 +4555,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                                      cap_matchrate_123, cnt,
                                      nb_spots_consider_global123, residues_threshold123,
                                      option_global123, nb_spots_global_threshold123, peakXY,
-                                     strain_free_parameters,additional_expression):
+                                     strain_free_parameters,additional_expression,mode_peaksearch):
         self.modify_array()
         ## update the main config ini file
         config_setting = configparser.ConfigParser()
@@ -4562,6 +4580,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
         config_setting1.set('CALLER', 'cap_mr', str(cap_matchrate_123))
         config_setting1.set('CALLER', 'strain_free_parameters', ",".join(strain_free_parameters))
         config_setting1.set('CALLER', 'additional_expression', ",".join(additional_expression))
+        config_setting1.set('CALLER', 'mode_peaksearch', str(mode_peaksearch))
         
         with open(filepath, 'w') as configfile:
             config_setting1.write(configfile)
@@ -4766,6 +4785,29 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
         self.popups.append(w)
         
     def predict_single_file(self,):
+        
+        ## getting settings from settings.ini file
+        try:
+            config_setting = configparser.ConfigParser()
+            filepath = resource_path('settings.ini')
+            config_setting.read(filepath)
+            residues_threshold = float(config_setting.get('CALLER', 'residues_threshold'))
+            nb_spots_global_threshold = int(config_setting.get('CALLER', 'nb_spots_global_threshold'))
+            option_global = config_setting.get('CALLER', 'option_global')
+            nb_spots_consider = int(config_setting.get('CALLER', 'nb_spots_consider'))
+            intensity_threshold = int(float(config_setting.get('CALLER', 'intensity')))
+            boxsize = int(float(config_setting.get('CALLER', 'boxsize')))
+            FitPixelDev_global123 = int(float(config_setting.get('CALLER', 'pixdev')))
+            softmax_threshold_global123 = float(config_setting.get('CALLER', 'cap_softmax'))
+            cap_matchrate123 = float(config_setting.get('CALLER', 'cap_mr'))
+            strain_free_parameters = config_setting.get('CALLER', 'strain_free_parameters').split(",")
+            additional_expression = config_setting.get('CALLER', 'additional_expression').split(",")
+            mode_peaksearch = str(config_setting.get('CALLER', 'mode_peaksearch'))
+            try_settings_param = True
+        except:
+            try_settings_param = False
+            print("error reading the setting file, sing Default values")
+        
         ## Provide path to a single tiff or cor file to predict and write a pickle object
         filenameSingleExp = QFileDialog.getOpenFileName(self, 'Select a single experimental file',
                                                         resource_path("examples"))
@@ -4855,46 +4897,89 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
             fR_pix[i].append(np.zeros((lim_x*lim_y,1)))
             mat_global[i].append(np.zeros((lim_x*lim_y,1)))
             best_match[i].append([[] for jk in range(lim_x*lim_y)])
-            
-        strain_matrix12, strain_matrixs12, \
-        rotation_matrix12, col12, \
-        colx12, coly12,\
-        match_rate12, mat_global12, cnt12,\
-        files_treated12, spots_len12, \
-        iR_pix12, fR_pix12, check12, \
-            best_match12, pred_hkl = predict_preprocessMP(filenameSingleExp, 0, 
-                                                   rotation_matrix,strain_matrix,strain_matrixs,
-                                                   col,colx,coly,match_rate,spots_len,iR_pix,fR_pix,best_match,
-                                                   mat_global,
-                                                   check,self.detectorparameters,self.pixelsize,angbins,
-                                                   classhkl, self.hkl_all_class0, self.hkl_all_class1, self.emin, self.emax,
-                                                   self.material_, self.material1_, self.symmetry, self.symmetry1,lim_x,lim_y,
-                                                   self.strain_calculation, ind_mat, ind_mat1,
-                                                   model_direc, float(self.tolerance.text()), float(self.tolerance1.text()),
-                                                   int(self.ubmat.text()), self.ccd_label.currentText(),
-                                                   None,float(self.intensity_threshold.text()),
-                                                   int(self.boxsize.text()),self.bkg_treatment.text(),
-                                                   self.filenameDirec, self.experimental_prefix.text(),
-                                                   blacklist, None, 
-                                                   [],False,
-                                                   wb, temp_key, cor_file_directory, mode_analysis,
-                                                    self.softmax_threshold_global,
-                                                    self.mr_threshold_global,
-                                                    self.cap_matchrate,
-                                                    self.tolerance_strain,
-                                                    self.tolerance_strain1,
-                                                    self.NumberMaxofFits,
-                                                    self.fit_peaks_gaussian_global,
-                                                    self.FitPixelDev_global,
-                                                    self.coeff,
-                                                    self.coeff_overlap,
-                                                    self.material0_limit,
-                                                    self.material1_limit,
-                                                    False,
-                                                    self.material_phase_always_present,
-                                                    self.crystal,
-                                                    self.crystal1,
-                                                    self.strain_free_parameters)
+        
+        if try_settings_param:
+            strain_matrix12, strain_matrixs12, \
+            rotation_matrix12, col12, \
+            colx12, coly12,\
+            match_rate12, mat_global12, cnt12,\
+            files_treated12, spots_len12, \
+            iR_pix12, fR_pix12, check12, \
+                best_match12, pred_hkl = predict_preprocessMP(filenameSingleExp, 0, 
+                                                       rotation_matrix,strain_matrix,strain_matrixs,
+                                                       col,colx,coly,match_rate,spots_len,iR_pix,fR_pix,best_match,
+                                                       mat_global,
+                                                       check,self.detectorparameters,self.pixelsize,angbins,
+                                                       classhkl, self.hkl_all_class0, self.hkl_all_class1, self.emin, self.emax,
+                                                       self.material_, self.material1_, self.symmetry, self.symmetry1,lim_x,lim_y,
+                                                       self.strain_calculation, ind_mat, ind_mat1,
+                                                       model_direc, float(self.tolerance.text()), float(self.tolerance1.text()),
+                                                       int(self.ubmat.text()), self.ccd_label.currentText(),
+                                                       None,float(intensity_threshold),
+                                                       int(boxsize),self.bkg_treatment.text(),
+                                                       self.filenameDirec, self.experimental_prefix.text(),
+                                                       blacklist, None, 
+                                                       [],False,
+                                                       wb, temp_key, cor_file_directory, mode_analysis,
+                                                        softmax_threshold_global123,
+                                                        self.mr_threshold_global,
+                                                        cap_matchrate123,
+                                                        self.tolerance_strain,
+                                                        self.tolerance_strain1,
+                                                        self.NumberMaxofFits,
+                                                        self.fit_peaks_gaussian_global,
+                                                        FitPixelDev_global123,
+                                                        self.coeff,
+                                                        self.coeff_overlap,
+                                                        self.material0_limit,
+                                                        self.material1_limit,
+                                                        False,
+                                                        self.material_phase_always_present,
+                                                        self.crystal,
+                                                        self.crystal1,
+                                                        strain_free_parameters,
+                                                        mode_peaksearch)
+        else:
+            strain_matrix12, strain_matrixs12, \
+            rotation_matrix12, col12, \
+            colx12, coly12,\
+            match_rate12, mat_global12, cnt12,\
+            files_treated12, spots_len12, \
+            iR_pix12, fR_pix12, check12, \
+                best_match12, pred_hkl = predict_preprocessMP(filenameSingleExp, 0, 
+                                                       rotation_matrix,strain_matrix,strain_matrixs,
+                                                       col,colx,coly,match_rate,spots_len,iR_pix,fR_pix,best_match,
+                                                       mat_global,
+                                                       check,self.detectorparameters,self.pixelsize,angbins,
+                                                       classhkl, self.hkl_all_class0, self.hkl_all_class1, self.emin, self.emax,
+                                                       self.material_, self.material1_, self.symmetry, self.symmetry1,lim_x,lim_y,
+                                                       self.strain_calculation, ind_mat, ind_mat1,
+                                                       model_direc, float(self.tolerance.text()), float(self.tolerance1.text()),
+                                                       int(self.ubmat.text()), self.ccd_label.currentText(),
+                                                       None,float(self.intensity_threshold.text()),
+                                                       int(self.boxsize.text()),self.bkg_treatment.text(),
+                                                       self.filenameDirec, self.experimental_prefix.text(),
+                                                       blacklist, None, 
+                                                       [],False,
+                                                       wb, temp_key, cor_file_directory, mode_analysis,
+                                                        self.softmax_threshold_global,
+                                                        self.mr_threshold_global,
+                                                        self.cap_matchrate,
+                                                        self.tolerance_strain,
+                                                        self.tolerance_strain1,
+                                                        self.NumberMaxofFits,
+                                                        self.fit_peaks_gaussian_global,
+                                                        self.FitPixelDev_global,
+                                                        self.coeff,
+                                                        self.coeff_overlap,
+                                                        self.material0_limit,
+                                                        self.material1_limit,
+                                                        False,
+                                                        self.material_phase_always_present,
+                                                        self.crystal,
+                                                        self.crystal1,
+                                                        self.strain_free_parameters,
+                                                        self.mode_peaksearch.text())
         end_time = time.time() - start_time
         print("Total time to process one file in "+mode_analysis+" mode (in seconds): "+str(end_time))
         
@@ -5834,7 +5919,8 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                                       material_phase_always_present = self.material_phase_always_present,
                                       crystal=self.crystal,
                                       crystal1=self.crystal1,
-                                      strain_free_parameters=self.strain_free_parameters)
+                                      strain_free_parameters=self.strain_free_parameters,
+                                      mode_peaksearch=self.mode_peaksearch.text())
             
         elif cond_mode == "MultiProcessing":
             try_prevs = False
@@ -5903,7 +5989,8 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                         self.material_phase_always_present,
                         self.crystal,
                         self.crystal1,
-                        self.strain_free_parameters] for ii in range(count_global)]
+                        self.strain_free_parameters,
+                        self.mode_peaksearch.text()] for ii in range(count_global)]
             
             chunks = chunker_list(valu12, self.ncpu)
             chunks_mp = list(chunks)
@@ -5958,7 +6045,8 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                            tolerance_strain123=None,tolerance_strain1231=None,NumberMaxofFits123=None,fit_peaks_gaussian_global123=None,
                            FitPixelDev_global123=None, coeff123=None,coeff_overlap=None,
                            material0_limit=None, material1_limit=None, use_previous_UBmatrix_name=None,
-                           material_phase_always_present=None, crystal=None, crystal1=None, strain_free_parameters=None):
+                           material_phase_always_present=None, crystal=None, crystal1=None, strain_free_parameters=None,
+                           mode_peaksearch=None):
         
         
         if ccd_label in ["Cor", "cor"]:
@@ -6027,6 +6115,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                                                 reject_negative_baseline=True,
                                                 Fit_with_Data_for_localMaxima=False,
                                                 maxPixelDistanceRejection=15.0,
+                                                mode = mode_peaksearch
                                                 )
                     peak_XY = peak_XY[0]#[:,:2] ##[2] Integer peak lists
                 except:
