@@ -7,7 +7,7 @@ Run the GUI by either launching directly from the terminal using the 'lauetoolsn
 
 First step is to load the config.txt from the example folder, it sets all the values of the GUI to the case study.
 In the GUI: 
-- Step1: File --> load config . Select the config file from the example directory. \n
+- Step1: File --> load config . Select the config file from the example directory. \n\
 - Step1a: If config file is not available, one can set parameters in the configure parameters window directly. \n
 - Step2: Press the configure parameters button and press Accept button at the end (the values are loaded from the config file). \n
 - Step3: Press Generate Training dataset button. This will generate the training and validation dataset for neural network. \n
