@@ -136,15 +136,6 @@ hklcond_group = re.compile(r'([-hkil0-9\(\)]+): ([-+hklnor1-8=\s,]+)(?:, |$)')
 DEG = np.pi / 180.0
 dist_threshold = 50 ## For hough transform
 
-# residues_threshold=0.5
-# nb_spots_global_threshold=8
-# option_global = "v2"
-# use_om_user = True
-# nb_spots_consider = 100
-##v1 same as strains
-##v2 ambigious spots all
-##v3 ambigious spots with uniqueness
-
 # if you wish to plot the training and testing dataset images
 plot_images = False
 try:
@@ -154,21 +145,24 @@ except:
     print("adjustText library not installed")
     plot_images = False
 
-##Default Global Parameters
-residues_threshold = 0.5
-nb_spots_global_threshold = 8
-option_global = "v2"
-use_om_user = False
-nb_spots_consider = 500
-path_user_OM = ""
-intensity_threshold = 150
-boxsize = 15
-FitPixelDev_global123 = 15
-softmax_threshold_global123 = 0.8
-cap_matchrate123 = 0.01*100
-strain_free_parameters = ["rotx", "roty", "rotz", "alpha", "beta", "gamma", "b", "c"]
-additional_expression = ["none"]
-mode_peaksearch = "LaueTools"
+
+default_initialization = True
+if default_initialization:
+    ##Default Global Parameters
+    residues_threshold = 0.5
+    nb_spots_global_threshold = 8
+    option_global = "v2"
+    use_om_user = False
+    nb_spots_consider = 500
+    path_user_OM = ""
+    intensity_threshold = 150
+    boxsize = 15
+    FitPixelDev_global123 = 15
+    softmax_threshold_global123 = 0.8
+    cap_matchrate123 = 0.01*100
+    strain_free_parameters = ["rotx", "roty", "rotz", "alpha", "beta", "gamma", "b", "c"]
+    additional_expression = ["none"]
+    mode_peaksearch = "LaueTools"
         
 
 def call_global():

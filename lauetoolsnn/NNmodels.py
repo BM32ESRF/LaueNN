@@ -153,51 +153,6 @@ def model_arch_general(n_bins, n_outputs, kernel_coeff = 0.0005, bias_coeff = 0.
             write_to_console(short_model_summary)
     return model
 
-# def model_arch_general_compnp(n_bins, n_outputs, lr=0.001, verbose=1, write_to_console=None):
-#     """
-#     Very simple and straight forward Neural Network with few hyperparameters
-#     straighforward RELU activation strategy with cross entropy to identify the HKL
-#     Tried BatchNormalization --> no significant impact
-#     Tried weighted approach --> not better for HCP
-#     Trying Regularaization 
-#     l2(0.001) means that every coefficient in the weight matrix of the layer 
-#     will add 0.001 * weight_coefficient_value**2 to the total loss of the network
-#     """
-#     if n_outputs >= n_bins:
-#         param = n_bins
-#         if param*15 < (2*n_outputs): ## quick hack; make Proper implementation
-#             param = (n_bins + n_outputs)//2
-#     else:
-#         param = n_outputs ## More reasonable ???
-#         # param = n_outputs*2 ## More reasonable ???
-#         # param = n_bins//2
-        
-#     model = Sequential()
-#     model.add(keras.Input(shape=(n_bins,)))
-#     ## Hidden layer 1
-#     model.add(Dense(n_bins,))
-#     model.add(Activation('relu'))
-#     ## Hidden layer 2
-#     model.add(Dense(((param)*15 + n_bins)//2,))
-#     model.add(Activation('relu'))
-#     ## Hidden layer 3
-#     model.add(Dense((param)*15,))
-#     model.add(Activation('relu'))
-#     ## Output layer 
-#     model.add(Dense(n_outputs, activation='softmax'))
-#     ## Compile model
-#     otp = tf.keras.optimizers.Adam(learning_rate=lr)
-#     model.compile(loss='categorical_crossentropy', optimizer=otp, metrics=[metricsNN])
-
-#     if verbose == 1:
-#         model.summary()
-#         stringlist = []
-#         model.summary(print_fn=lambda x: stringlist.append(x))
-#         short_model_summary = "\n".join(stringlist)
-#         if write_to_console!=None:
-#             write_to_console(short_model_summary)
-#     return model
-
 def model_arch_CNN_DNN_optimized(shape, 
                                  layer_activation="relu", 
                                  output_activation="softmax",
