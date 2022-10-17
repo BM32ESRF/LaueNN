@@ -1,0 +1,2 @@
+# Collection of lauetools scripts
+A good part of the code employs the LaueTools source code to simulate Laue patterns. THe project in its entirety is not used, but a selected few functions to have compatibility between the two softwares. Check out LaueTools project with user friendly GUI at https://github.com/BM32ESRF/lauetools.
