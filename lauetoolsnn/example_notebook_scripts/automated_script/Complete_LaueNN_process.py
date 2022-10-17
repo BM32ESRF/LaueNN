@@ -1,59 +1,85 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Notebook script for Prediction of Laue spot hkl using the Trained model from step 2 (supports single and two phase material)
-# # This notebook also includes complete indexation process from the predicted spot hkl
+# # Notebook script for generation of training dataset (supports single and two phase material)
 # 
-# ## Different steps of loading model to predicting the hkl of spots is outlined in this notebook (LaueToolsNN GUI does the same thing)
+# ## For case of more than two phase, the code below can be adapted
 # 
-# ### Define material of interest and path to experimental data; the path to trained model will be extracted automatically by default
-# ### Load the trained model 
-# ### Prediction of Laue spots hkl 
-# ### Constructing orientation matrix from the predicted hkl (i.e. index Laue Patterns)
+# ## Different steps of data generation is outlined in this notebook (LaueToolsNN GUI does the same thing)
+# 
+# ### Define material of interest
+# ### Generate class hkl data for Neural Network model (these are the output neurons)
+# ### Clean up generated dataset
 
 # In[1]:
-if __name__ == "__main__":    
+
+if __name__ == '__main__':     #enclosing required because of multiprocessing
+    ##get installation path of LaueNN
+    from lauetoolsnn.utils_lauenn import resource_path
+    base_path_LaueNN = resource_path("")
+
+    ## If material key does not exist in Lauetoolsnn dictionary
+    ## you can modify its JSON materials file before import or starting analysis
+    import json
+    ## Load the json of material and extinctions
+    with open(base_path_LaueNN + '\\'+'lauetools\material.json','r') as f:
+        dict_Materials = json.load(f)
+    with open(base_path_LaueNN + '\\'+'lauetools\extinction.json','r') as f:
+        extinction_json = json.load(f)
+        
+    ## Modify the dictionary values to add new entries
+    dict_Materials["alpha_MoO3"] = ["alpha_MoO3", [3.76,3.97,14.432,90,90,90], "SG62"]
+    dict_Materials["PMNPT"] = ["PMNPT", [3.9969,3.9969,4.0457, 90, 90, 90], "SG99"]
+    
+    extinction_json["SG62"] = "SG62"
+    extinction_json["SG99"] = "SG99"
+    
+    ## dump the json back with new values
+    with open(base_path_LaueNN + '\\'+'lauetools\material.json', 'w') as fp:
+        json.dump(dict_Materials, fp)
+    with open(base_path_LaueNN + '\\'+'lauetools\extinction.json', 'w') as fp:
+        json.dump(extinction_json, fp)
+
 
     ## Import modules used for this Notebook
-    import numpy as np
     import os
-    import multiprocessing
-    from multiprocessing import cpu_count
-    import time, datetime
-    import configparser
-    import glob, re
     ## if LaueToolsNN is properly installed
     try:
-        from lauetoolsnn.utils_lauenn import  get_material_detail, read_hdf5, new_MP_function, resource_path, global_plots
-        from lauetoolsnn.lauetools import dict_LaueTools as dictLT
+        from lauetoolsnn.utils_lauenn import generate_classHKL, generate_dataset, rmv_freq_class, get_material_detail
     except:
         # else import from a path where LaueToolsNN files are
         import sys
-        sys.path.append(r"C:\Users\purushot\Desktop\github_version_simple\lauetoolsnn")
-        from utils_lauenn import  get_material_detail, read_hdf5, new_MP_function, resource_path, global_plots
-        sys.path.append(r"C:\Users\purushot\Desktop\github_version_simple\lauetoolsnn\lauetools")
-        import dict_LaueTools as dictLT
+        sys.path.append(r"project_forked_local_path")
+        from utils_lauenn import generate_classHKL, generate_dataset, rmv_freq_class, get_material_detail
     
-    from keras.models import model_from_json
-    import _pickle as cPickle
-    from tqdm import tqdm
     
-    ncpu = cpu_count()
-    print("Number of CPUs available : ", ncpu)
+    # ## step 1: define material and other parameters for simulating Laue patterns
+        
+    # In[2]:
     
-    # ## step 1: define material and path to data and trained model
+    
     # =============================================================================
     ## User Input dictionary with parameters
     ## In case of only one phase/material, keep same value for material_ and material1_ key
     # =============================================================================
     input_params = {
-                    "material_": "alpha_MoO3",             ## same key as used in dict_LaueTools
-                    "material1_": "PMNPT",            ## same key as used in dict_LaueTools
                     "prefix" : "",                 ## prefix for the folder to be created for training dataset
+                    
+                    "material_": "alpha_MoO3",             ## same key as used in dict_LaueTools
                     "symmetry": "orthorhombic",           ## crystal symmetry of material_
-                    "symmetry1": "tetragonal",          ## crystal symmetry of material1_
                     "SG": 62,                     ## Space group of material_ (None if not known)
+                    "hkl_max_identify" : 5,        ## Maximum hkl index to classify in a Laue pattern
+
+                    "material1_": "PMNPT",            ## same key as used in dict_LaueTools
+                    "symmetry1": "tetragonal",          ## crystal symmetry of material1_
                     "SG1": 99,                    ## Space group of material1_ (None if not known)
+                    "hkl_max_identify1" : 5,        ## Maximum hkl index to classify in a Laue pattern
+                    
+                    "maximum_angle_to_search":120, ## Angle of radial distribution to reconstruct the histogram (in deg)
+                    "step_for_binning" : 0.1,      ## bin widht of angular radial distribution in degree
+                    "nb_grains_per_lp_mat0" : 2,        ## max grains to be generated in a Laue Image
+                    "nb_grains_per_lp_mat1" : 2,        ## max grains to be generated in a Laue Image
+                    "grains_nb_simulate" : 1000,    ## Number of orientations to generate (takes advantage of crystal symmetry)
                     ## Detector parameters (roughly) of the Experimental setup
                     ## Sample-detector distance, X center, Y center, two detector angles
                     "detectorparameters" :  [79.26200, 972.2800, 937.7200, 0.4160000, 0.4960000], 
@@ -62,6 +88,294 @@ if __name__ == "__main__":
                     "dim2":2016,
                     "emin" : 5,                    ## Minimum and maximum energy to use for simulating Laue Patterns
                     "emax" : 22,
+                    }
+    
+    
+    # ## Step 2: Get material parameters 
+    # ### Generates a folder with material name and gets material unit cell parameters and symmetry object from the get_material_detail function
+    
+    # In[3]:    
+    material_= input_params["material_"]
+    material1_= input_params["material1_"]
+    n = input_params["hkl_max_identify"]
+    n1 = input_params["hkl_max_identify"]
+    maximum_angle_to_search = input_params["maximum_angle_to_search"]
+    step_for_binning = input_params["step_for_binning"]
+    nb_grains_per_lp0 = input_params["nb_grains_per_lp_mat0"]
+    nb_grains_per_lp1 = input_params["nb_grains_per_lp_mat1"]
+    grains_nb_simulate = input_params["grains_nb_simulate"]
+    detectorparameters = input_params["detectorparameters"]
+    pixelsize = input_params["pixelsize"]
+    emax = input_params["emax"]
+    emin = input_params["emin"]
+    symm_ = input_params["symmetry"]
+    symm1_ = input_params["symmetry1"]
+    SG = input_params["SG"]
+    SG1 = input_params["SG1"]
+    
+    ## read hkl information from a fit file in case too large HKLs
+    manual_hkl_list=False
+    if manual_hkl_list:
+        import numpy as np
+        temp = np.loadtxt(r"fit_file_path")
+        hkl_array = temp[:,2:5]
+        hkl_array1 = None #temp[:,2:5]
+    else:
+        hkl_array = None
+        hkl_array1 = None
+    
+    if material_ != material1_:
+        save_directory = os.getcwd()+"//"+material_+"_"+material1_+input_params["prefix"]
+    else:
+        save_directory = os.getcwd()+"//"+material_+input_params["prefix"]
+    print("save directory is : "+save_directory)
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
+    
+    ## get unit cell parameters and other details required for simulating Laue patterns
+    rules, symmetry, lattice_material, crystal, SG, rules1, symmetry1,\
+        lattice_material1, crystal1, SG1 = get_material_detail(material_, SG, symm_,
+                                                               material1_, SG1, symm1_)
+    
+    
+    # ## Step 3: Generate Neural network output classes (Laue spot hkls) using the generate_classHKL function
+    
+    # In[4]:
+    
+    
+    ## procedure for generation of GROUND TRUTH classes
+    # general_diff_cond = True will eliminate the hkl index that does not satisfy the general reflection conditions
+    generate_classHKL(n, rules, lattice_material, symmetry, material_, crystal=crystal, SG=SG, general_diff_cond=False,
+              save_directory=save_directory, write_to_console=print, ang_maxx = maximum_angle_to_search, 
+              step = step_for_binning, mat_listHKl=hkl_array)
+    
+    if material_ != material1_:
+        generate_classHKL(n1, rules1, lattice_material1, symmetry1, material1_, crystal=crystal1, SG=SG1, general_diff_cond=False,
+                  save_directory=save_directory, write_to_console=print, ang_maxx = maximum_angle_to_search, 
+                  step = step_for_binning, mat_listHKl=hkl_array1)
+    
+    
+    # ## Step 4: Generate Training and Testing dataset only for the output classes (Laue spot hkls) calculated in the Step 3
+    # ### Uses multiprocessing library
+    
+    # In[5]:
+
+
+    ############ GENERATING TRAINING DATA ##############
+    # data_realism =True ; will introduce noise and partial Laue patterns in the training dataset
+    # modelp can have either "random" for random orientation generation or "uniform" for uniform orientation generation
+    # include_scm (if True; misorientation_angle parameter need to be defined): this parameter introduces misoriented crystal of specific angle along a crystal axis in the training dataset
+    generate_dataset(material_=material_, material1_=material1_, ang_maxx=maximum_angle_to_search,
+                         step=step_for_binning, mode=0, 
+                         nb_grains=nb_grains_per_lp0, nb_grains1=nb_grains_per_lp1, 
+                         grains_nb_simulate=grains_nb_simulate, data_realism = True, 
+                         detectorparameters=detectorparameters, pixelsize=pixelsize, type_="training_data",
+                         var0 = 1, dim1=input_params["dim1"], dim2=input_params["dim2"], 
+                         removeharmonics=1, save_directory=save_directory,
+                        write_to_console=print, emin=emin, emax=emax, modelp = "random",
+                        misorientation_angle = 1, general_diff_rules = False, 
+                        crystal = crystal, crystal1 = crystal1, include_scm=False,
+                        mat_listHKl=hkl_array, mat_listHKl1=hkl_array1)
+    
+    ############ GENERATING TESTING DATA ##############
+    factor = 5 # validation split for the training dataset  --> corresponds to 20% of total training dataset
+    generate_dataset(material_=material_, material1_=material1_, ang_maxx=maximum_angle_to_search,
+                         step=step_for_binning, mode=0, 
+                         nb_grains=nb_grains_per_lp0, nb_grains1=nb_grains_per_lp1, 
+                         grains_nb_simulate=grains_nb_simulate//factor, data_realism = True, 
+                         detectorparameters=detectorparameters, pixelsize=pixelsize, type_="testing_data",
+                         var0 = 1, dim1=input_params["dim1"], dim2=input_params["dim2"], 
+                         removeharmonics=1, save_directory=save_directory,
+                        write_to_console=print, emin=emin, emax=emax, modelp = "random",
+                        misorientation_angle = 1, general_diff_rules = False, 
+                        crystal = crystal, crystal1 = crystal1, include_scm=False,
+                        mat_listHKl=hkl_array, mat_listHKl1=hkl_array1)
+    
+    ## Updating the ClassHKL list by removing the non-common HKL or less frequent HKL from the list
+    ## The non-common HKL can occur as a result of the detector position and energy used
+    # freq_rmv: remove output hkl if the training dataset has less tha 100 occurances of the considered hkl (freq_rmv1 for second phase)
+    # Weights (penalty during training) are also calculated based on the occurance
+    rmv_freq_class(freq_rmv = 1, freq_rmv1 = 1,
+                        save_directory=save_directory, material_=material_, 
+                        material1_=material1_, write_to_console=print)
+    
+    ## End of data generation for Neural network training: all files are saved in the same folder to be later used for training and prediction
+
+
+
+    # =============================================================================
+    #      # ## Training stage
+    # =============================================================================
+     # ### Loading the Output class and ground truth
+    import numpy as np
+    import os
+    import _pickle as cPickle
+    import itertools
+    from keras.callbacks import EarlyStopping, ModelCheckpoint
+    import matplotlib.pyplot as plt
+    from lauetoolsnn.utils_lauenn import array_generator, array_generator_verify, vali_array
+    from lauetoolsnn.NNmodels import model_arch_general
+
+     # In[3]:
+     
+    classhkl = np.load(save_directory+"//MOD_grain_classhkl_angbin.npz")["arr_0"]
+    angbins = np.load(save_directory+"//MOD_grain_classhkl_angbin.npz")["arr_1"]
+    loc_new = np.load(save_directory+"//MOD_grain_classhkl_angbin.npz")["arr_2"]
+    with open(save_directory+"//class_weights.pickle", "rb") as input_file:
+        class_weights = cPickle.load(input_file)
+    class_weights = class_weights[0]
+    
+    # ## Step 3: Defining a neural network architecture
+    
+    ###from NNmodel.py script or define here
+    
+    
+    # ## Step 4: Training  
+    
+    # In[5]:
+    
+    
+    # load model and train
+    #neurons_multiplier is a list with number of neurons per layer, the first value is input shape and last value is output shape, inbetween are the number of neurons per hidden layers
+    model = model_arch_general(  len(angbins)-1, len(classhkl),
+                                           kernel_coeff = 1e-5,
+                                           bias_coeff = 1e-6,
+                                           lr = 1e-3,
+                                            )
+    ## temp function to quantify the spots and classes present in a batch
+    batch_size = input_params["batch_size"] 
+    trainy_inbatch = array_generator_verify(save_directory+"//training_data", batch_size, 
+                                            len(classhkl), loc_new, print)
+    print("Number of spots in a batch of %i files : %i" %(batch_size, len(trainy_inbatch)))
+    print("Min, Max class ID is %i, %i" %(np.min(trainy_inbatch), np.max(trainy_inbatch)))
+    
+    epochs = input_params["epochs"] 
+    
+    ## Batch loading for numpy grain files (Keep low value to avoid overcharging the RAM)
+    if material_ != material1_:
+        nb_grains_list = list(range(nb_grains_per_lp0+1))
+        nb_grains1_list = list(range(nb_grains_per_lp1+1))
+        list_permute = list(itertools.product(nb_grains_list, nb_grains1_list))
+        list_permute.pop(0)
+        steps_per_epoch = (len(list_permute) * grains_nb_simulate)//batch_size
+    else:
+        steps_per_epoch = int((nb_grains_per_lp0 * grains_nb_simulate) / batch_size)
+    
+    val_steps_per_epoch = int(steps_per_epoch / 5)
+    if steps_per_epoch == 0:
+        steps_per_epoch = 1
+    if val_steps_per_epoch == 0:
+        val_steps_per_epoch = 1 
+        
+    ## Load generator objects from filepaths (iterators for Training and Testing datasets)
+    training_data_generator = array_generator(save_directory+"//training_data", batch_size,                                           len(classhkl), loc_new, print)
+    testing_data_generator = array_generator(save_directory+"//testing_data", batch_size,                                           len(classhkl), loc_new, print)
+    
+    ######### TRAIN THE DATA
+    es = EarlyStopping(monitor='val_accuracy', mode='max', patience=2)
+    ms = ModelCheckpoint(save_directory+"//best_val_acc_model.h5", monitor='val_accuracy', 
+                          mode='max', save_best_only=True)
+    
+    # model save directory and filename
+    if material_ != material1_:
+        model_name = save_directory+"//model_"+material_+"_"+material1_
+    else:
+        model_name = save_directory+"//model_"+material_
+    
+    ## Fitting function
+    stats_model = model.fit(
+                            training_data_generator, 
+                            epochs=epochs, 
+                            steps_per_epoch=steps_per_epoch,
+                            validation_data=testing_data_generator,
+                            validation_steps=val_steps_per_epoch,
+                            verbose=1,
+                            class_weight=class_weights,
+                            callbacks=[es, ms]
+                            )
+    
+    # Save model config and weights
+    model_json = model.to_json()
+    with open(model_name+".json", "w") as json_file:
+        json_file.write(model_json)            
+    # serialize weights to HDF5
+    model.save_weights(model_name+".h5")
+    print("Saved model to disk")
+    
+    print( "Training Accuracy: "+str( stats_model.history['accuracy'][-1]))
+    print( "Training Loss: "+str( stats_model.history['loss'][-1]))
+    print( "Validation Accuracy: "+str( stats_model.history['val_accuracy'][-1]))
+    print( "Validation Loss: "+str( stats_model.history['val_loss'][-1]))
+    
+    # Plot the accuracy/loss v Epochs
+    epochs = range(1, len(model.history.history['loss']) + 1)
+    fig, ax = plt.subplots(1,2)
+    ax[0].plot(epochs, model.history.history['loss'], 'r', label='Training loss')
+    ax[0].plot(epochs, model.history.history['val_loss'], 'r', ls="dashed", label='Validation loss')
+    ax[0].legend()
+    ax[1].plot(epochs, model.history.history['accuracy'], 'g', label='Training Accuracy')
+    ax[1].plot(epochs, model.history.history['val_accuracy'], 'g', ls="dashed", label='Validation Accuracy')
+    ax[1].legend()
+    if material_ != material1_:
+        plt.savefig(save_directory+"//loss_accuracy_"+material_+"_"+material1_+".png", bbox_inches='tight',format='png', dpi=1000)
+    else:
+        plt.savefig(save_directory+"//loss_accuracy_"+material_+".png", bbox_inches='tight',format='png', dpi=1000)
+    plt.close()
+    
+    if material_ != material1_:
+        text_file = open(save_directory+"//loss_accuracy_logger_"+material_+"_"+material1_+".txt", "w")
+    else:
+        text_file = open(save_directory+"//loss_accuracy_logger_"+material_+".txt", "w")
+    
+    text_file.write("# EPOCH, LOSS, VAL_LOSS, ACCURACY, VAL_ACCURACY" + "\n")
+    for inj in range(len(epochs)):
+        string1 = str(epochs[inj]) + ","+ str(model.history.history['loss'][inj])+            ","+str(model.history.history['val_loss'][inj])+","+str(model.history.history['accuracy'][inj])+            ","+str(model.history.history['val_accuracy'][inj])+" \n"  
+        text_file.write(string1)
+    text_file.close() 
+    
+    
+    # ## Stats on the trained model with sklearn metrics
+    
+    # In[6]:
+    
+    
+    from sklearn.metrics import classification_report
+    
+    ## verify the 
+    x_test, y_test = vali_array(save_directory+"//testing_data", 50, len(classhkl), loc_new, print)
+    y_test = np.argmax(y_test, axis=-1)
+    y_pred = np.argmax(model.predict(x_test), axis=-1)
+    print(classification_report(y_test, y_pred))
+
+    # In[7]:
+
+    # =============================================================================
+    #     Prediction STEP
+    # =============================================================================
+    ## Import modules used for this Notebook
+    import numpy as np
+    import os
+    import multiprocessing
+    from multiprocessing import cpu_count
+    import time, datetime
+    import configparser
+    import glob, re
+
+    from lauetoolsnn.utils_lauenn import  get_material_detail, read_hdf5, new_MP_function, resource_path, global_plots
+    from lauetoolsnn.lauetools import dict_LaueTools as dictLT
+    
+    from keras.models import model_from_json
+    import _pickle as cPickle
+    from tqdm import tqdm
+    
+    ncpu = cpu_count()
+    print("Number of CPUs available : ", ncpu)
+    # ## step 1: define material and path to data and trained model
+    # =============================================================================
+    ## User Input dictionary with parameters
+    ## In case of only one phase/material, keep same value for material_ and material1_ key
+    # =============================================================================
+    input_params = {
                     "experimental_directory": r"C:\Users\purushot\Desktop\github_version_simple\lauetoolsnn\example_notebook_scripts\automated_script\alpha_MoO3_PMNPT\exp_data",
                     "experimental_prefix": r"img_",
                     "use_simulated_dataset": False,  ## Use simulated dataset (generated at step 3a) incase no experimental data to verify the trained model
@@ -72,21 +386,7 @@ if __name__ == "__main__":
     
     # ## Step 2: Get material parameters 
     # ### Get model and data paths from the input
-    # ### User input parameters for various algorithms to compute the orientation matrix
-
-    material_= input_params["material_"]
-    material1_= input_params["material1_"]
-    detectorparameters = input_params["detectorparameters"]
-    pixelsize = input_params["pixelsize"]
-    emax = input_params["emax"]
-    emin = input_params["emin"]
-    dim1 = input_params["dim1"]
-    dim2 = input_params["dim2"]
-    symm_ = input_params["symmetry"]
-    symm1_ = input_params["symmetry1"]
-    SG = input_params["SG"]
-    SG1 = input_params["SG1"]
-    
+    # ### User input parameters for various algorithms to compute the orientation matrix    
     if material_ != material1_:
         model_direc = os.getcwd()+"//"+material_+"_"+material1_+input_params["prefix"]
     else:
@@ -102,6 +402,9 @@ if __name__ == "__main__":
     else:
         prefix1 = material_
     
+    # ## Step 2: Get material parameters 
+    # ### Get model and data paths from the input
+    # ### User input parameters for various algorithms to compute the orientation matrix    
     filenameDirec = input_params["experimental_directory"]
     experimental_prefix = input_params["experimental_prefix"]
     lim_x, lim_y = input_params["grid_size_x"], input_params["grid_size_y"] 
@@ -119,11 +422,6 @@ if __name__ == "__main__":
         crystal, SG, rules1, symmetry1,\
             lattice_material1, crystal1, SG1 = get_material_detail(material_, SG, symm_,
                                                                material1_, SG1, symm1_)
-    
-    ## get proper Laue group to compute the inverse pole figure colors and write MTEX output file for orientation analysis
-    material0_lauegroup = "3"
-    ## incase of same material
-    material1_lauegroup = "5"
     
     ## Requirements
     ubmat = 2 # How many orientation matrix to detect per Laue pattern
@@ -455,7 +753,3 @@ if __name__ == "__main__":
     #             iR_pix[intmat_mpdata][0][cnt_mpdata] = iR_pixel_mpdata[intmat_mpdata][0][cnt_mpdata]
     #             fR_pix[intmat_mpdata][0][cnt_mpdata] = fR_pixel_mpdata[intmat_mpdata][0][cnt_mpdata]
     #             best_match[intmat_mpdata][0][cnt_mpdata] = best_match_mpdata[intmat_mpdata][0][cnt_mpdata]
-
-
-
-
