@@ -13588,7 +13588,7 @@ def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist12
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkl1_list[ii], tth_chi_spot1, \
                                                         hkl2_list[jj], tth_chi_spot2,
                                                         B)
-                # rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
+                rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
             except:
                 continue                    
             
@@ -13631,7 +13631,7 @@ def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist12
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkls[ii][0], tth_chi_spot1, \
                                                         hkls[ii][1], tth_chi_spot2,
                                                         B)
-                # rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
+                rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
             except:
                 continue                    
             

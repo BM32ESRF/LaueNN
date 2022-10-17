@@ -2666,12 +2666,16 @@ class MyPopup_image_v1(QWidget):
             strain_free_parameters = config_setting.get('CALLER', 'strain_free_parameters').split(",")
             additional_expression = config_setting.get('CALLER', 'additional_expression').split(",")
             mode_peaksearch = str(config_setting.get('CALLER', 'mode_peaksearch'))
+            use_om_user = config_setting.get('CALLER', 'use_om_user')
+            path_user_OM = config_setting.get('CALLER', 'path_user_OM')
             if intensity_threshold != None and boxsize != None and FitPixelDev_global123!=None:
                 self.peak_params.setText(str(intensity_threshold)+","+str(boxsize)+","+str(FitPixelDev_global123)+","+str(mode_peaksearch))
             self.predict_params.setText(str(float(softmax_threshold_global123))+","+str(float(cap_matchrate123))+
                                         ","+option_global+","+
                                         str(nb_spots_global_threshold)+","+str(residues_threshold)+
                                         ","+str(nb_spots_consider))
+            self.use_om_user = use_om_user
+            self.path_user_OM = path_user_OM
             self.residues_threshold = residues_threshold
             self.nb_spots_global_threshold = nb_spots_global_threshold
             self.option_global = option_global
@@ -2685,6 +2689,8 @@ class MyPopup_image_v1(QWidget):
             self.additional_expression = additional_expression
             self.mode_peaksearch = mode_peaksearch
         except:
+            self.use_om_user = "false"
+            self.path_user_OM = ""
             self.residues_threshold = 0.5
             self.nb_spots_global_threshold = 8
             self.option_global = "v2"
@@ -2752,16 +2758,16 @@ class MyPopup_image_v1(QWidget):
                                                             formulaexpression=self.bkg_treatment.text())
     
     def propagate(self):
-        config_setting1 = configparser.ConfigParser()
         filepath = resource_path('settings.ini')
         print("Settings path is "+filepath)
+        config_setting1 = configparser.ConfigParser()
         config_setting1.read(filepath)
         config_setting1.set('CALLER', 'residues_threshold',str(self.residues_threshold))
         config_setting1.set('CALLER', 'nb_spots_global_threshold',str(self.nb_spots_global_threshold))
         config_setting1.set('CALLER', 'option_global',self.option_global)
-        config_setting1.set('CALLER', 'use_om_user',"false")
+        config_setting1.set('CALLER', 'use_om_user',self.use_om_user)
         config_setting1.set('CALLER', 'nb_spots_consider',str(self.nb_spots_consider))
-        config_setting1.set('CALLER', 'path_user_OM',"")
+        config_setting1.set('CALLER', 'path_user_OM',self.path_user_OM)
         config_setting1.set('CALLER', 'intensity', str(self.intensity_threshold))
         config_setting1.set('CALLER', 'boxsize', str(self.boxsize))
         config_setting1.set('CALLER', 'pixdev', str(self.FitPixelDev_global123))
@@ -4791,17 +4797,17 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
             config_setting = configparser.ConfigParser()
             filepath = resource_path('settings.ini')
             config_setting.read(filepath)
-            # residues_threshold = float(config_setting.get('CALLER', 'residues_threshold'))
-            # nb_spots_global_threshold = int(config_setting.get('CALLER', 'nb_spots_global_threshold'))
-            # option_global = config_setting.get('CALLER', 'option_global')
-            # nb_spots_consider = int(config_setting.get('CALLER', 'nb_spots_consider'))
+            residues_threshold = float(config_setting.get('CALLER', 'residues_threshold'))
+            nb_spots_global_threshold = int(config_setting.get('CALLER', 'nb_spots_global_threshold'))
+            option_global = config_setting.get('CALLER', 'option_global')
+            nb_spots_consider = int(config_setting.get('CALLER', 'nb_spots_consider'))
             intensity_threshold = int(float(config_setting.get('CALLER', 'intensity')))
             boxsize = int(float(config_setting.get('CALLER', 'boxsize')))
             FitPixelDev_global123 = int(float(config_setting.get('CALLER', 'pixdev')))
             softmax_threshold_global123 = float(config_setting.get('CALLER', 'cap_softmax'))
             cap_matchrate123 = float(config_setting.get('CALLER', 'cap_mr'))
             strain_free_parameters = config_setting.get('CALLER', 'strain_free_parameters').split(",")
-            # additional_expression = config_setting.get('CALLER', 'additional_expression').split(",")
+            additional_expression = config_setting.get('CALLER', 'additional_expression').split(",")
             mode_peaksearch = str(config_setting.get('CALLER', 'mode_peaksearch'))
             try_settings_param = True
         except:
