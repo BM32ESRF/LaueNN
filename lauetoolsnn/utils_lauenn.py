@@ -146,7 +146,7 @@ except:
     plot_images = False
 
 
-default_initialization = True
+default_initialization = False
 if default_initialization:
     ##Default Global Parameters
     residues_threshold = 0.5
