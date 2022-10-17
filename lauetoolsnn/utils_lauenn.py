@@ -114,11 +114,11 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 try:
     from lauetoolsnn.lauetools.wyckpos_lauetools import wp, eqhkl_default, eqhkl_custom, sgrp_sym, sgrp_name,\
                             sgrp_params, testhklcond_generalrules_array
-    from lauetoolsnn.NNmodels import predict_DNN, predict_DNN_onelayer, predict_CNN_DNN, predict_with_file, read_hdf5
+    from lauetoolsnn.NNmodels import predict_DNN, predict_DNN_onelayer, predict_CNN_DNN, predict_with_file#, read_hdf5
 except:
     from lauetools.wyckpos_lauetools import wp, eqhkl_default, eqhkl_custom, sgrp_sym, sgrp_name,\
                             sgrp_params, testhklcond_generalrules_array
-    from NNmodels import predict_DNN, predict_DNN_onelayer, predict_CNN_DNN, predict_with_file, read_hdf5
+    from NNmodels import predict_DNN, predict_DNN_onelayer, predict_CNN_DNN, predict_with_file#, read_hdf5
     
 def resource_path(relative_path, verbose=0):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -4244,7 +4244,7 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkl1_list[ii], tth_chi_spot1, \
                                                         hkl2_list[jj], tth_chi_spot2,
                                                         B)
-                # rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
+                rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
             except:
                 continue                    
             
@@ -4290,7 +4290,7 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkls[ii][0], tth_chi_spot1, \
                                                         hkls[ii][1], tth_chi_spot2,
                                                         B)
-                # rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
+                rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
             except:
                 continue                    
             

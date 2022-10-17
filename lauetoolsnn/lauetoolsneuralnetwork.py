@@ -1149,7 +1149,7 @@ class Window(QMainWindow):
         ## get the architecture of the model
         self.architecture = self.input_params["architecture"]
         self.write_to_console("Only FFNN model is optimized for the current indexation problem, other architecture works, but their efficieny is not well tested yet!")
-        self.write_to_console("Prediction routines for other architecture is not well tested, please verify them, falling back to the default FFNN model")
+        # self.write_to_console("Prediction routines for other architecture is not well tested, please verify them, falling back to the default FFNN model")
         if self.input_params["architecture"] == "FFNN":
             self.write_to_console("Using the classical inbuilt FFNN Feed Forward Neural Network model, for user defined model, please define a model in the NNmodels.py file (found in LauetoolsNN installation folder)")
         elif self.input_params["architecture"] == "1D_CNN":
@@ -4791,17 +4791,17 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
             config_setting = configparser.ConfigParser()
             filepath = resource_path('settings.ini')
             config_setting.read(filepath)
-            residues_threshold = float(config_setting.get('CALLER', 'residues_threshold'))
-            nb_spots_global_threshold = int(config_setting.get('CALLER', 'nb_spots_global_threshold'))
-            option_global = config_setting.get('CALLER', 'option_global')
-            nb_spots_consider = int(config_setting.get('CALLER', 'nb_spots_consider'))
+            # residues_threshold = float(config_setting.get('CALLER', 'residues_threshold'))
+            # nb_spots_global_threshold = int(config_setting.get('CALLER', 'nb_spots_global_threshold'))
+            # option_global = config_setting.get('CALLER', 'option_global')
+            # nb_spots_consider = int(config_setting.get('CALLER', 'nb_spots_consider'))
             intensity_threshold = int(float(config_setting.get('CALLER', 'intensity')))
             boxsize = int(float(config_setting.get('CALLER', 'boxsize')))
             FitPixelDev_global123 = int(float(config_setting.get('CALLER', 'pixdev')))
             softmax_threshold_global123 = float(config_setting.get('CALLER', 'cap_softmax'))
             cap_matchrate123 = float(config_setting.get('CALLER', 'cap_mr'))
             strain_free_parameters = config_setting.get('CALLER', 'strain_free_parameters').split(",")
-            additional_expression = config_setting.get('CALLER', 'additional_expression').split(",")
+            # additional_expression = config_setting.get('CALLER', 'additional_expression').split(",")
             mode_peaksearch = str(config_setting.get('CALLER', 'mode_peaksearch'))
             try_settings_param = True
         except:
