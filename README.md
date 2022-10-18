@@ -20,29 +20,30 @@
 
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/BM32ESRF/LaueNN/issues)
 
+This is a useless test change
 
 # lauetoolsnn/LaueNN
-An autonomous feed-forward neural network (FFNN) model to predict the HKL in single/multi-grain/multi-phase Laue patterns with high efficiency and accuracy is introduced. 
+An autonomous feed-forward neural network (FFNN) model to predict the HKL in single/multi-grain/multi-phase Laue patterns with high efficiency and accuracy is introduced.
 
-Laue diffraction indexation (especially Laue images comprising of diffraction signal from several polycrystals/multi phase materials) can be a very tedious and CPU intensive process. To takle this, LaueNN or LauetoolsNN was developed employing the power of neural network to speed up a part of the indexation process. In the LaueNN_presentation (https://github.com/BM32ESRF/LaueNN/tree/main/presentations/LaueNN_presentation.pdf), several steps of Laue pattern indexation with classical approach is described. We have replaced the most CPU intensive step with the Neural Networks. The step where the Laue indices hkl of each spot os now determined with the Neural networks, alongside the spot hkl index, the neural network also predicts the Material that spot belongs to. This can be useful incase of Laue images comprising of diffraction signal from multi-phases. 
+Laue diffraction indexation (especially Laue images comprising of diffraction signal from several polycrystals/multi phase materials) can be a very tedious and CPU intensive process. To takle this, LaueNN or LauetoolsNN was developed employing the power of neural network to speed up a part of the indexation process. In the LaueNN_presentation (https://github.com/BM32ESRF/LaueNN/tree/main/presentations/LaueNN_presentation.pdf), several steps of Laue pattern indexation with classical approach is described. We have replaced the most CPU intensive step with the Neural Networks. The step where the Laue indices hkl of each spot os now determined with the Neural networks, alongside the spot hkl index, the neural network also predicts the Material that spot belongs to. This can be useful incase of Laue images comprising of diffraction signal from multi-phases.
 LaueNN uses the existing modules of Lauetools to generate simulated Laue patterns. The whole workflow and the application of this tool is illustrated in this article (https://onlinelibrary.wiley.com/iucr/doi/10.1107/S1600576722004198)
 
 For classical indexation of Laue pattern (GUI and scripts), check out the sister package: https://github.com/BM32ESRF/lauetools
 
-  
+
 ### Video tutorial
 ------------------------------
 - Video 1: Working with jupyter notebook scripts : https://cloud.esrf.fr/s/6q4DJfAn7K46BGN
 - Video 2: Working with lauetoolsnn GUI : https://cloud.esrf.fr/s/AeGow4CoqZRJiyx
 
 
-### Requirements: (latest version of each libraries accessed on 03/04/2022) 
------------------------------- 
+### Requirements: (latest version of each libraries accessed on 03/04/2022)
+------------------------------
 - PyQt5 (GUI)
 - matplotlib
 - Keras
-- tensorflow 
-- numpy 
+- tensorflow
+- numpy
 - scipy (scipy transform rotation is used)
 - h5py (required for writing neural network model files)
 - scikit-learn (required for generating trained model classification reports)
@@ -55,7 +56,7 @@ For classical indexation of Laue pattern (GUI and scripts), check out the sister
 
 ### Installation
 ------------------------------
-Lauetoolsnn can be installed either via PYPI usiing the following command in terminal (this installs all dependencies automatically): 
+Lauetoolsnn can be installed either via PYPI usiing the following command in terminal (this installs all dependencies automatically):
 
 https://pypi.org/project/lauetoolsnn/
 
@@ -87,8 +88,8 @@ Two example case studies are included in the lauetoolsnn\examples folder.
 Run the GUI by either launching directly from the terminal using the 'lauetoolsnn' command or by running it locally with python lauetoolsneuralnetwork.py command.
 
 First step is to load the config.txt from the example folder, it sets all the values of the GUI to the case study.
-In the GUI: 
-- Step1: File --> load config . Select the config file from the example directory. 
+In the GUI:
+- Step1: File --> load config . Select the config file from the example directory.
 - Step1a: If config file is not available, one can set parameters in the configure parameters window directly.
 - Step2: Press the configure parameters button and press Accept button at the end (the values are loaded from the config file).
 - Step3: Press Generate Training dataset button. This will generate the training and validation dataset for neural network.
@@ -126,4 +127,3 @@ This code was developed as a result of French-German project funded respectively
 ### Maintainer(s)
 ------------------------------
 * [Ravi PURUSHOTTAM](https://github.com/ravipurohit1991)
-
