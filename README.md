@@ -20,7 +20,6 @@
 
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/BM32ESRF/LaueNN/issues)
 
-This is a useless test change
 
 # lauetoolsnn/LaueNN
 An autonomous feed-forward neural network (FFNN) model to predict the HKL in single/multi-grain/multi-phase Laue patterns with high efficiency and accuracy is introduced.
