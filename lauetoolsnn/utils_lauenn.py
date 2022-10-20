@@ -1861,10 +1861,10 @@ def predict_preprocessMP(files, cnt,
         return strain_matrix, strain_matrixs, rotation_matrix, col, colx, coly, \
             match_rate, mat_global, cnt, files_treated,spots_len,iR_pix,fR_pix, check, best_match, None
             
-    print("# Predicting for "+ files)
-    
+    print("#Predicting for "+ files)
+
     call_global()
-    
+        
     if files.split(".")[-1] != "cor":
         CCDLabel=ccd_label
         seednumber = "Experimental "+CCDLabel+" file"    

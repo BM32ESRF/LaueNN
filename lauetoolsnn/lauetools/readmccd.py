@@ -829,7 +829,7 @@ def twoD_GaussianCF(imgSize, amp0, center_x, center_y, theta, sigma_x, sigma_y):
     g = amp0 * np.exp(-(((a-a0)**2)/(2*(sigma_x**2)) + ((b-b0)**2) /(2*(sigma_y**2))))
     return g.ravel()
 
-def peaksearch_skimage(filename, min_dist, pkid_threshold, bs, fit_peaks_gaussian, ccd_label):
+def peaksearch_skimage(filename, min_dist, pkid_threshold, bs, fit_peaks_gaussian, ccd_label, peak_limits):
     # start_time = time.time()
     data_raw = plt.imread(filename)
     ##BackGround correction with LaueTools
@@ -858,6 +858,9 @@ def peaksearch_skimage(filename, min_dist, pkid_threshold, bs, fit_peaks_gaussia
     intensity = intensity.reshape((len(intensity), 1))
     boxsize = boxsize.reshape((len(boxsize), 1))
     peak_coords = np.hstack((peak_coords, intensity, boxsize))
+    
+    if len(peak_coords) > peak_limits:
+        return None
     
     if fit_peaks_gaussian == 0:
         # all peaks list building
@@ -1059,16 +1062,16 @@ def PeakSearch(filename, stackimageindex=-1, CCDLabel="PRINCETON", center=None,
     ## New method replacing the old PeakSearch;
     if mode == "skimage":
         print("Skimage mode (strict constraints) of PeakSearch is used for the PeakSearch")
-        return peaksearch_skimage(filename, 3, IntensityThreshold, boxsize, 3, CCDLabel)
+        return peaksearch_skimage(filename, 3, IntensityThreshold, boxsize, 3, CCDLabel, 3000)
     elif mode == "skimage_relaxed":
         print("Skimage mode (relaxed constraints) of PeakSearch is used for the PeakSearch")
-        return peaksearch_skimage(filename, 3, IntensityThreshold, boxsize, 2, CCDLabel)
+        return peaksearch_skimage(filename, 3, IntensityThreshold, boxsize, 2, CCDLabel, 3000)
     elif mode == "skimage_nobounds":
         print("Skimage mode (no constraints) of PeakSearch is used for the PeakSearch")
-        return peaksearch_skimage(filename, 3, IntensityThreshold, boxsize, 1, CCDLabel)
+        return peaksearch_skimage(filename, 3, IntensityThreshold, boxsize, 1, CCDLabel, 3000)
     elif mode == "skimage_nofit":
         print("Skimage mode (No fit) of PeakSearch is used for the PeakSearch")
-        return peaksearch_skimage(filename, 3, IntensityThreshold, boxsize, 0, CCDLabel)
+        return peaksearch_skimage(filename, 3, IntensityThreshold, boxsize, 0, CCDLabel, 3000)
     else:
         print("LaueTools mode of PeakSearch is used for the PeakSearch")
         
