@@ -4244,7 +4244,7 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkl1_list[ii], tth_chi_spot1, \
                                                         hkl2_list[jj], tth_chi_spot2,
                                                         B)
-                rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
+                # rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
             except:
                 continue                    
             
@@ -4290,7 +4290,7 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkls[ii][0], tth_chi_spot1, \
                                                         hkls[ii][1], tth_chi_spot2,
                                                         B)
-                rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
+                # rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
             except:
                 continue                    
             
@@ -11642,7 +11642,7 @@ def predict_preprocessMultiMatProcess(files, cnt,
                                    FitPixelDev_global123=None,coeff123=None, coeff_overlap=None,
                                    material0_limit=None, use_previous_UBmatrix_name=None,
                                    material_phase_always_present=None, crystal=None, 
-                                   strain_free_parameters=None, model_annote="from_file", verbose=True):
+                                   strain_free_parameters=None, model_annote="DNN", verbose=True):
     
     if files in files_treated:
         return strain_matrix, strain_matrixs, rotation_matrix, col, colx, coly, \
@@ -11838,37 +11838,7 @@ def predict_preprocessMultiMatProcess(files, cnt,
         prediction = predict_DNN_onelayer(codebars, wb, temp_key)
     elif model_annote == "from_file":
         prediction = predict_with_file(codebars, model_direc, material_)
-    # #TODO
-    # elif model_annote == "CNNandDNN":
-        
-    #     ##CNN
-    #     classhkl = np.load(r"C:\Users\purushot\Desktop\github_version_simple\lauetoolsnn\multi_mat_LaueNN\Cu_Si_CNN_DNN\MOD_grain_classhkl_angbin.npz")["arr_0"]
-    #     model_weights = read_hdf5(r"C:\Users\purushot\Desktop\github_version_simple\lauetoolsnn\multi_mat_LaueNN\Cu_Si_CNN_DNN\model_Cu_Si.h5")
-    #     model_key = list(model_weights.keys())
-    #     prediction_CNN = predict_CNN_DNN(codebars, model_weights, model_key)
-    #     max_pred = np.max(prediction_CNN, axis = 1)
-    #     class_predicted = np.argmax(prediction_CNN, axis = 1)
-    #     predicted_hkl = classhkl[class_predicted]
-    #     predicted_hkl = predicted_hkl.astype(int)
 
-    #     ##DNN
-    #     classhkl1 = np.load(r"C:\Users\purushot\Desktop\github_version_simple\lauetoolsnn\multi_mat_LaueNN\Cu_Si_DNN\MOD_grain_classhkl_angbin.npz")["arr_0"]
-    #     model_weights1 = read_hdf5(r"C:\Users\purushot\Desktop\github_version_simple\lauetoolsnn\multi_mat_LaueNN\Cu_Si_DNN\model_Cu_Si.h5")
-    #     model_key1 = list(model_weights1.keys())
-    #     prediction_DNN = predict_DNN(codebars, model_weights1, model_key1)       
-    #     # max_pred1 = np.max(prediction_DNN, axis = 1)
-    #     class_predicted1 = np.argmax(prediction_DNN, axis = 1)
-    #     predicted_hkl1= classhkl1[class_predicted1]
-    #     predicted_hkl1 = predicted_hkl1.astype(int)
-        
-    #     diff = np.sum(predicted_hkl - predicted_hkl1, axis=1)
-    #     max_pred[diff !=0] = 0
-    #     max_pred[diff ==0] = 0.99 
-    #     class_predicted = np.argmax(prediction_CNN, axis = 1)
-    #     predicted_hkl123 = classhkl[class_predicted]
-    #     predicted_hkl123 = predicted_hkl123.astype(int)
-
-    # if  model_annote != "CNNandDNN":
     max_pred = np.max(prediction, axis = 1)
     class_predicted = np.argmax(prediction, axis = 1)
     predicted_hkl123 = classhkl[class_predicted]
@@ -13588,7 +13558,7 @@ def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist12
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkl1_list[ii], tth_chi_spot1, \
                                                         hkl2_list[jj], tth_chi_spot2,
                                                         B)
-                rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
+                # rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
             except:
                 continue                    
             
@@ -13631,7 +13601,7 @@ def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist12
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkls[ii][0], tth_chi_spot1, \
                                                         hkls[ii][1], tth_chi_spot2,
                                                         B)
-                rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
+                # rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
             except:
                 continue                    
             
