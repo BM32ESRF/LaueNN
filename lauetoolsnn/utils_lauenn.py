@@ -10970,6 +10970,10 @@ def generate_multimat_dataset(  material_=["Cu"],
                                 crystal = [None]): 
     """
     works for n phases now.
+    TODO: (already implemented in 2phase generation)
+    Add single crystal misorientation distribution in n phase training
+    add matrix phase always present option_global
+    add mat_listHKL option                         
     """
     ncpu = cpu_count()
     ## make sure directory exists
@@ -10997,7 +11001,7 @@ def generate_multimat_dataset(  material_=["Cu"],
                 codebars, angbins = get_material_data(material_ = imat, 
                                                       ang_maxx = ang_maxx, 
                                                       step = step,
-                                                      hkl_ref=n_mat, 
+                                                      hkl_ref=int(n_mat), 
                                                       classhkl=classhkl_mat) 
                 np.savez_compressed(save_directory+'//grain_classhkl_angbin_'+imat+'.npz',\
                                     classhkl_mat, angbins)
@@ -11047,6 +11051,32 @@ def generate_multimat_dataset(  material_=["Cu"],
     list_permute.pop(0)
     max_progress = len(list_permute)*(grains_nb_simulate)
 
+    
+    ##add uniform texture information here
+    odf_data = []
+    if modelp == "uniform":
+        if type_ =="training_data":
+            xlim, ylim = 0, int(0.8*2000)
+        else:
+            xlim, ylim = int(0.8*2000), 2000-1
+        path_array = resource_path("uniform_orientations_2000.npz")
+        arr = np.load(path_array)
+        for ino, isymm in enumerate(symmetry):
+            if isymm == isymm.cubic:
+                odf_data.append(arr["arr_6"][xlim:ylim])
+            elif isymm == isymm.hexagonal:
+                odf_data.append(arr["arr_5"][xlim:ylim])
+            elif isymm == isymm.trigonal:
+                odf_data.append(arr["arr_4"][xlim:ylim])
+            elif isymm == isymm.tetragonal:
+                odf_data.append(arr["arr_3"][xlim:ylim])
+            elif isymm == isymm.orthorhombic:
+                odf_data.append(arr["arr_2"][xlim:ylim])
+            elif isymm == isymm.monoclinic:
+                odf_data.append(arr["arr_1"][xlim:ylim])
+            elif isymm == isymm.triclinic:
+                odf_data.append(arr["arr_0"][xlim:ylim])
+            
     # generate a database upto n grain LP
     values = []
     for i in range(len(list_permute)):
@@ -11070,7 +11100,12 @@ def generate_multimat_dataset(  material_=["Cu"],
             else:
                 noisy_data = False
                 remove_peaks = False
-
+            
+            if modelp == "uniform":
+                data_odf_data = odf_data
+            else:
+                data_odf_data = None
+                
             seednumber = np.random.randint(1e6)
             values.append([ list_permute[i], 
                             material_,
@@ -11089,6 +11124,7 @@ def generate_multimat_dataset(  material_=["Cu"],
                             dim1, dim2,
                             removeharmonics,
                             0, i, j, save_directory_,
+                            data_odf_data,
                             modelp,
                             max_millerindex,
                             general_diff_rules,
@@ -11128,7 +11164,7 @@ def getMMpatterns_(nb, material_=None, emin=5, emax=23, detectorparameters=None,
                  sortintensity = False, ang_maxx = 45, step = 0.5, classhkl = None, noisy_data=False, 
                  remove_peaks=False, seed = None,hkl_all=None, lattice_material=None, family_hkl=None,
                  normal_hkl=None, index_hkl=None, dim1=2048, dim2=2048, removeharmonics=1, flag = 0,
-                 img_i=None, img_j=None, save_directory_=None, modelp=None,
+                 img_i=None, img_j=None, save_directory_=None, data_odf_data=None, modelp=None,
                  max_millerindex=0, general_diff_cond=False, crystal=None,
                  ):
     if np.all(np.array(nb)==0):
@@ -11146,6 +11182,7 @@ def getMMpatterns_(nb, material_=None, emin=5, emax=23, detectorparameters=None,
                                                                  dim1=dim1, dim2=dim2, 
                                                                  removeharmonics=removeharmonics,
                                                                  flag=flag, mode=modelp,
+                                                                 data_odf_data=data_odf_data,
                                                                  )
     if noisy_data:
         ## apply random gaussian type noise to the data (tth and chi)
@@ -11163,7 +11200,7 @@ def getMMpatterns_(nb, material_=None, emin=5, emax=23, detectorparameters=None,
     if remove_peaks:
         len_mi = np.array([iq for iq in range(len(s_miller_ind))])
         len_mi = len_mi[int(0.6*len(s_miller_ind)):]
-        indices_remove = np.random.choice(len_mi, int(len(len_mi)*0.3), replace=False)
+        indices_remove = np.random.choice(len_mi, int(len(len_mi)*0.5), replace=False)
         ## delete randomly selected less intense peaks
         ## to simulate real peak detection, where some peaks may not be
         ## well detected
@@ -11268,7 +11305,7 @@ def getMMpatterns_(nb, material_=None, emin=5, emax=23, detectorparameters=None,
                     mat_prefix = mat_prefix + material_[no]
 
             np.savez_compressed(save_directory_+'//'+mat_prefix+'_grain_'+str(img_i)+"_"+\
-                                str(img_j)+suffix_+'.npz', codebars, location, ori_mat, ori_mat1, flag,\
+                                str(img_j)+suffix_+"_nb"+"".join(str(param) for param in nb)+'.npz', codebars, location, ori_mat, ori_mat1, flag,\
                                 s_tth, s_chi, s_miller_ind)
         else:
             print("Skipping a simulation file: "+save_directory_+'//grain_'+\
@@ -11277,38 +11314,41 @@ def getMMpatterns_(nb, material_=None, emin=5, emax=23, detectorparameters=None,
 def simulatemultimatpatterns(nbUBs, seed=123, key_material=None, 
                              emin=5, emax=23, detectorparameters=None, pixelsize=None,
                              sortintensity = False, dim1=2048, dim2=2048, removeharmonics=1, flag = 0,
-                             mode="random"):
+                             mode="random", data_odf_data=None):
     l_tth, l_chi, l_miller_ind, l_posx, l_posy, l_E, l_intensity = [],[],[],[],[],[],[]
     detectordiameter = pixelsize * dim1
     if flag == 0:
-        if mode == "random":
-            for no, i in enumerate(nbUBs):
-                if i == 0:
-                    continue
-                
-                for igr in range(i):
+        for no, i in enumerate(nbUBs):
+            if i == 0:
+                continue
+            
+            for igr in range(i):
+                if mode == "random":
                     phi1 = rand1() * 360.
                     phi = 180. * acos(2 * rand1() - 1) / np.pi
                     phi2 = rand1() * 360.
                     UBmatrix = Euler2OrientationMatrix((phi1, phi, phi2))
-                    
-                    grain = CP.Prepare_Grain(key_material[no], UBmatrix)
-                    s_tth, s_chi, s_miller_ind, \
-                        s_posx, s_posy, s_E= LT.SimulateLaue_full_np(grain, emin, emax,
-                                                                    detectorparameters,
-                                                                    pixelsize=pixelsize,
-                                                                    dim=(dim1, dim2),
-                                                                    detectordiameter=detectordiameter,
-                                                                    removeharmonics=removeharmonics)
-                    s_miller_ind = np.c_[s_miller_ind, np.ones(len(s_miller_ind))*no]
-                    s_intensity = 1./s_E
-                    l_tth.append(s_tth)
-                    l_chi.append(s_chi)
-                    l_miller_ind.append(s_miller_ind)
-                    l_posx.append(s_posx)
-                    l_posy.append(s_posy)
-                    l_E.append(s_E)
-                    l_intensity.append(s_intensity)
+                if mode == "uniform":
+                    rand_choice = np.random.choice(len(data_odf_data[no]), 1, replace=False)
+                    UBmatrix = data_odf_data[no][rand_choice,:,:]
+
+                grain = CP.Prepare_Grain(key_material[no], UBmatrix)
+                s_tth, s_chi, s_miller_ind, \
+                    s_posx, s_posy, s_E= LT.SimulateLaue_full_np(grain, emin, emax,
+                                                                detectorparameters,
+                                                                pixelsize=pixelsize,
+                                                                dim=(dim1, dim2),
+                                                                detectordiameter=detectordiameter,
+                                                                removeharmonics=removeharmonics)
+                s_miller_ind = np.c_[s_miller_ind, np.ones(len(s_miller_ind))*no]
+                s_intensity = 1./s_E
+                l_tth.append(s_tth)
+                l_chi.append(s_chi)
+                l_miller_ind.append(s_miller_ind)
+                l_posx.append(s_posx)
+                l_posy.append(s_posy)
+                l_E.append(s_E)
+                l_intensity.append(s_intensity)
     
     #flat_list = [item for sublist in l for item in sublist]
     s_tth = np.array([item for sublist in l_tth for item in sublist])
@@ -11343,7 +11383,7 @@ def worker_generation_multimat(inputs_queue, outputs_queue, proc_id):
                  sortintensity, ang_maxx, step, classhkl, noisy_data, \
                  remove_peaks, seed,hkl_all, lattice_material, family_hkl,\
                  normal_hkl, index_hkl, dim1, dim2, removeharmonics, flag,\
-                 img_i, img_j, save_directory_, modelp, max_millerindex,\
+                 img_i, img_j, save_directory_, data_odf_data, modelp, max_millerindex,\
                          general_diff_cond, crystal = num1[ijk]
 
 
@@ -11351,7 +11391,7 @@ def worker_generation_multimat(inputs_queue, outputs_queue, proc_id):
                                          sortintensity, ang_maxx, step, classhkl, noisy_data, \
                                          remove_peaks, seed,hkl_all, lattice_material, family_hkl,\
                                          normal_hkl, index_hkl, dim1, dim2, removeharmonics, flag,\
-                                         img_i, img_j, save_directory_, modelp, \
+                                         img_i, img_j, save_directory_, data_odf_data, modelp, \
                                          max_millerindex, general_diff_cond, crystal)
                     
                 if ijk%10 == 0 and ijk!=0:
