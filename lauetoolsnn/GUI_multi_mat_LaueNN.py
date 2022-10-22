@@ -2962,5 +2962,5 @@ def start(  model_direc = None,
     win.show()
     sys.exit(app.exec_()) 
 
-# if __name__ == "__main__":
-#     start()
+if __name__ == "__main__":
+    print("Multi material LaueNN GUI")
