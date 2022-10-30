@@ -2,6 +2,12 @@
 What are we predicting with LaueNN
 ====================================
 
+.. only:: html
+
+   .. figure:: frames_medres.gif
+
+      A simple LaueNN architecture predicting hkl of spots in single crystal copper.
+      
 LauetoolsNN does not replace the complete Laue indexation workflow, it still relies heavily on the classical indexation approach to indexing Laue patterns (here using the `Lauetools module <https://pypi.org/project/LaueTools/>`_.)
 What has been replaced in the classical approach with LaueNN is to predict the Laue indices or hkl of each Laue spots in th eimage. By doing so, we can greatly accelerate the whole indexation process. 
 
