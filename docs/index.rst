@@ -33,9 +33,6 @@
 .. |Conda| image:: https://img.shields.io/conda/v/bm32esrf/lauetoolsnn?style=flat-square
    :target: https://anaconda.org/bm32esrf/lauetoolsnn
 
-.. |Anaconda-Server Badge1| image:: https://anaconda.org/bm32esrf/lauetoolsnn/badges/installer/conda.svg
-   :target: https://anaconda.org/bm32esrf/lauetoolsnn
-
 .. |contributions welcome| image:: https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat
    :target: https://github.com/BM32ESRF/LaueNN/issues
 
