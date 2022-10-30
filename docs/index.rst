@@ -3,7 +3,7 @@
 
 |Supported Platforms| |GitHub tag|
 |Python package| |Publish_PYPI| |PyPI| |PyPI pyversions|
-|Publish_Conda| |Anaconda-Server Badge| |Conda| |Anaconda-Server Badge1|
+|Publish_Conda| |Conda|
 |contributions welcome|
 
 .. |Supported Platforms| image:: https://img.shields.io/conda/pn/bm32esrf/lauetoolsnn?color=green&label=supported%20platform
@@ -27,13 +27,7 @@
 .. |Publish_Conda| image:: https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_conda.yml/badge.svg
    :target: https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_conda.yml
 
-.. |Anaconda-Server Badge| image:: https://anaconda.org/bm32esrf/lauetoolsnn/badges/license.svg
-   :target: https://anaconda.org/bm32esrf/lauetoolsnn
-
 .. |Conda| image:: https://img.shields.io/conda/v/bm32esrf/lauetoolsnn?style=flat-square
-   :target: https://anaconda.org/bm32esrf/lauetoolsnn
-
-.. |Anaconda-Server Badge1| image:: https://anaconda.org/bm32esrf/lauetoolsnn/badges/installer/conda.svg
    :target: https://anaconda.org/bm32esrf/lauetoolsnn
 
 .. |contributions welcome| image:: https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat
