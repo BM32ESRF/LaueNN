@@ -3,7 +3,7 @@
 
 |Supported Platforms| |GitHub tag|
 |Python package| |Publish_PYPI| |PyPI| |PyPI pyversions|
-|Publish_Conda| |Anaconda-Server Badge| |Conda| |Anaconda-Server Badge1|
+|Publish_Conda| |Conda|
 |contributions welcome|
 
 .. |Supported Platforms| image:: https://img.shields.io/conda/pn/bm32esrf/lauetoolsnn?color=green&label=supported%20platform
