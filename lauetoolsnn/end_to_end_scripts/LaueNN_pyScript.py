@@ -63,7 +63,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     "material_": "GaN",             ## same key as used in dict_LaueTools
                     "symmetry": "hexagonal",           ## crystal symmetry of material_
                     "SG": 191,                     ## Space group of material_ (None if not known)
-                    "hkl_max_identify" : 7,        ## Maximum hkl index to classify in a Laue pattern
+                    "hkl_max_identify" : 6,        ## Maximum hkl index to classify in a Laue pattern
                     "nb_grains_per_lp_mat0" : 2,        ## max grains to be generated in a Laue Image
 
                     "material1_": "Si",            ## same key as used in dict_LaueTools
@@ -85,7 +85,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     "desired_classes_output1": "all", ## desired_classes_output : can be all or an integer: to limit the number of output classes
                     "include_small_misorientation": False, ## to include additional data with small angle misorientation
                     "misorientation": 5, ##only used if "include_small_misorientation" is True
-                    "maximum_angle_to_search":60, ## Angle of radial distribution to reconstruct the histogram (in deg)
+                    "maximum_angle_to_search":20, ## Angle of radial distribution to reconstruct the histogram (in deg)
                     "step_for_binning" : 0.1,      ## bin widht of angular radial distribution in degree
                     
                     # =============================================================================
