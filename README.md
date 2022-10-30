@@ -1,7 +1,5 @@
-<p align="center">
-  <img width="1000" height="350" src="https://github.com/BM32ESRF/LaueNN/blob/main/icon.png">
-</p>
 
+![til](https://github.com/BM32ESRF/LaueNN/blob/main/docs/idea_lauenn/frames_medres.gif)
 
 [![Conda](https://img.shields.io/conda/pn/bm32esrf/lauetoolsnn?color=green&label=supported%20platform)](https://anaconda.org/bm32esrf/lauetoolsnn)
 [![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/BM32ESRF/LaueNN?color=blue&label=Github%20tag)](https://github.com/BM32ESRF/LaueNN)
