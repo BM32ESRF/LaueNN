@@ -14,6 +14,7 @@ build:
     - lauenn=lauetoolsnn.lauetoolsneuralnetwork:start
     - lauenn_addmat=lauetoolsnn.util_scripts.add_material:start
     - lauenn_mat=lauetoolsnn.util_scripts.add_material:querymat
+    - lauenn_maxhkl=lauetoolsnn.util_scripts.add_material:query_hklmax
   noarch: python
   script: {{ PYTHON }} -m pip install --no-deps --no-cache-dir . -vv
   number: 0
