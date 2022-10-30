@@ -27,9 +27,6 @@
 .. |Publish_Conda| image:: https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_conda.yml/badge.svg
    :target: https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_conda.yml
 
-.. |Anaconda-Server Badge| image:: https://anaconda.org/bm32esrf/lauetoolsnn/badges/license.svg
-   :target: https://anaconda.org/bm32esrf/lauetoolsnn
-
 .. |Conda| image:: https://img.shields.io/conda/v/bm32esrf/lauetoolsnn?style=flat-square
    :target: https://anaconda.org/bm32esrf/lauetoolsnn
 
