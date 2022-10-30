@@ -4,7 +4,7 @@ What are we predicting with LaueNN
 
 .. only:: html
 
-   .. figure:: frames.gif
+   .. figure:: frames_medres.gif
 
       A simple LaueNN architecture predicting hkl of spots in single crystal copper.
       
