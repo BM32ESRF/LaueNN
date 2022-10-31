@@ -8,6 +8,7 @@ Mayavi version of Neural network visualization
 
 A simple FFNN cubic Cu classifier with maxHKL upto 5
 
+You can also animate 2D CNN networks, with azimuth rotation during animation of frames to see in 3D
 """
 import os
 import numpy as np
