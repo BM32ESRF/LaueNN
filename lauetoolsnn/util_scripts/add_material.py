@@ -179,7 +179,7 @@ def query_hklmax():
                                             None,
                                             verbose,
                                             seed=seednumber,
-                                            detectorparameters=[dd, 1000, 1000, 0.3570000, 0.4370000], 
+                                            detectorparameters=[dd, 1000, 1000, 0.357, 0.437], 
                                             pixelsize=0.0734,
                                             dim1=2048,
                                             dim2=2048,

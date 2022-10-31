@@ -71,12 +71,13 @@ from skimage.transform import (hough_line, hough_line_peaks)
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QSettings, QTimer
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QMovie
 from PyQt5.QtWidgets import QApplication, QMainWindow,\
                             QPushButton, QWidget, QFormLayout, \
                             QToolBar, QStatusBar, QSlider, \
                             QVBoxLayout, QTextEdit, QProgressBar, \
-                            QComboBox, QLineEdit, QFileDialog, QMenuBar,QScrollArea, QSplashScreen                           
+                            QComboBox, QLineEdit, QFileDialog, QMenuBar,QScrollArea, QSplashScreen
+from PyQt5.Qt import QUrl, QDesktopServices
 ## for faster binning of histogram
 ## C version of hist (Relace by Numpy histogram)
 # from fast_histogram import histogram1d
@@ -408,6 +409,19 @@ class Window(QMainWindow):
         self.menu = self.menuBar().addMenu("&Menu")
         self.menu.addAction('&Load Config', self.getfileConfig)
         self.menu.addAction('&Exit', self.close)
+        
+        self.menu1 = self.menuBar().addMenu("&Help")
+        self.menu1.addAction('&Documentation', self.documentation)
+        self.menu1.addAction('&LaueNN concept', self.concept)
+    
+    def documentation(self):
+        url = QUrl("https://lauenn.readthedocs.io/en/latest/")
+        QDesktopServices.openUrl(url)
+    
+    def concept(self):
+        w21 = gif_window()
+        w21.show()
+        self.popups.append(w21)
     
     def getfileConfig(self):
         filters = "Config file (*.lauenn)"
@@ -3396,6 +3410,23 @@ class Window_allmap(QWidget):
             #     return
         else:
             print("Right click for plotting the pixel values")
+
+class gif_window(QWidget):
+    def __init__(self):
+        QWidget.__init__(self)
+        app_icon = QtGui.QIcon()
+        app_icon.addFile(Logo, QtCore.QSize(16,16))
+        self.setWindowIcon(app_icon)
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+        # create label
+        self.label = QtWidgets.QLabel()
+        self.label.setObjectName("label")
+        self.layout.addWidget(self.label)
+        # set qmovie as label
+        self.movie = QMovie("frames_medres.gif")
+        self.label.setMovie(self.movie)
+        self.movie.start()
 
 class sample_config(QWidget):
     def __init__(self):
