@@ -129,12 +129,12 @@ def query_hklmax():
         hkl_sol = s_miller_ind
         return hkl_sol, s_posx, s_posy, s_intensity, s_tth, s_chi
     
-    parser = argparse.ArgumentParser(description="Calculates the maxHKL available on the Detector with polycrystal Laue Simulation",
+    parser = argparse.ArgumentParser(description="Calculates the maxHKL available on the Detector with polycrystal Laue Simulation; useful for max_HKL_index parameter estimation in the config file",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-n", "--name", required=True, help="User string for the material")
     parser.add_argument("-dd", "--detectordistance", required=False, type=float, help="detector distance from sample in mm")
     parser.add_argument("-nb", "--numbergrains", required=False, type=int, help="number of grains used in simulate Laue")
-    parser.add_argument("-c", "--category", required=False, nargs="*", help="detector distance from sample in mm")
+    parser.add_argument("-c", "--category", required=False, nargs="*", help="string of categories to sort the hkl classes into; for example '5 10 15' will provide count of hkls less than index 5, less than index 10 and greater than 5, and less than index 15 and greater than 10")
 
     args = parser.parse_args()
     config = vars(args)
