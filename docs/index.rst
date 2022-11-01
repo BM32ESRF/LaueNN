@@ -1,6 +1,3 @@
-.. image:: ./images/icon.png
-
-
 |Supported Platforms| |GitHub tag|
 |Python package| |Publish_PYPI| |PyPI| |PyPI pyversions|
 |Publish_Conda| |Conda|
