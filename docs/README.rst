@@ -1,6 +1,6 @@
 
-lauetoolsnn
-------------
+Lauetoolsnn/ LaueNN
+-------------------
 An autonomous feed-forward neural network (FFNN) model to predict the HKL in single/multi-grain/multi-phase Laue patterns with high efficiency and accuracy is introduced. 
 
 Laue diffraction indexation (especially Laue images comprising of diffraction signal from several polycrystals/multi phase materials) can be a very tedious and CPU intensive process. To takle this, LaueNN or LauetoolsNN was developed employing the power of neural network to speed up a part of the indexation process. In the `LaueNN_presentation <https://github.com/BM32ESRF/LaueNN/tree/main/presentations/LaueNN_presentation.pdf>`_, several steps of Laue pattern indexation with classical approach is described. We have replaced the most CPU intensive step with the Neural Networks. The step where the Laue indices hkl of each spot os now determined with the Neural networks, alongside the spot hkl index, the neural network also predicts the Material that spot belongs to. This can be useful incase of Laue images comprising of diffraction signal from multi-phases. LaueNN uses the existing modules of Lauetools to generate simulated Laue patterns. The whole workflow and the application of this tool is illustrated in this article `LaueNN: neural-network-based hkl recognition of Laue spots and its application to polycrystalline materials <https://onlinelibrary.wiley.com/iucr/doi/10.1107/S1600576722004198>`_.
