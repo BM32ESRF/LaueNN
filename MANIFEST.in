@@ -12,6 +12,7 @@ include lauetoolsnn/*.txt
 include lauetoolsnn/*.png
 include lauetoolsnn/*.npz
 include lauetoolsnn/*.ini
+include lauetoolsnn/*.gif
 
 include lauetoolsnn/examples/ZnCUOCl/*.py
 include lauetoolsnn/examples/ZnCUOCl/*.txt
@@ -44,7 +45,9 @@ include lauetoolsnn/lauetools/*.json
 
 include lauetoolsnn/developments/*.py
 include lauetoolsnn/developments/*.ipynb
-
+include lauetoolsnn/developments/bayesian_inference_Laue/*.py
+include lauetoolsnn/developments/bayesian_inference_Laue/*.ipynb
+include lauetoolsnn/developments/mayavi_animation_LaueNN/*.py
 
 recursive-include docs/*.*
 
