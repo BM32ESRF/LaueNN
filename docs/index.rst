@@ -1,8 +1,4 @@
-.. only:: html
-
-   .. figure:: idea_lauenn/frames_medres.gif
-
-      A simple LaueNN architecture predicting hkl of spots in single crystal copper.
+.. image:: ./images/frame.png
 
 |Supported Platforms| |GitHub tag|
 |Python package| |Publish_PYPI| |PyPI| |PyPI pyversions|
