@@ -12,6 +12,7 @@ Credits:
 Lattice and symmetry routines are extracted and adapted from the PYMICRO and Xrayutilities repository
 
 """
+__author__ = "Ravi raj purohit PURUSHOTTAM RAJ PUROHIT, CRG-IF BM32 @ ESRF"
 
 if __name__ == '__main__':     #enclosing required because of multiprocessing
 

@@ -14,7 +14,6 @@ TODO:
     2. Structure factor calculation with xrayutilities
     
     # Optional TODO
-    # Include a user defined list of HKLs to be included in the training dataset
     # Write a function that looks for pixels with no indexation having atleast 6 neighbors indexed
     # idea is to index with their rotation matrix ?
     # Also write a function to rearrange matricies of each pixel to have complete grain representation

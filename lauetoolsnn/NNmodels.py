@@ -11,6 +11,8 @@ Numpy version of prediction for both DNN and CNN models are implemented, but bit
 but we can use multiprocessing
 
 """
+__author__ = "Ravi raj purohit PURUSHOTTAM RAJ PUROHIT, CRG-IF BM32 @ ESRF"
+
 import numpy as np
 import os
 ## Keras import
