@@ -1173,6 +1173,44 @@ def getpatterns_(nb, nb1, material_=None, material1_=None, emin=5, emax=23, dete
                  img_i=None, img_j=None, save_directory_=None, odf_data=None, odf_data1=None, modelp=None,
                  misorientation_angle=None, max_millerindex=0, max_millerindex1=0, general_diff_cond=False, crystal=None, crystal1=None,
                  phase_always_present=None, mat0_listHKl=None, mat1_listHKl=None):    
+    """
+    The code simulates two random crystals and plots the 2D histogram of the Miller Indices and their relative orientation.
+
+    The following parameters can be changed:
+        - nb : number of orientations
+        - material_ : list of materials to be simulated
+        - emin : mininum wavelength to be simulated
+        - emax : maximum wavelength to be simulated
+        - detectorparameters : parameters of the detector
+        - pixelsize : size of the pixel
+        - sortintensity : If True, the most intense spots are plotted
+        - ang_maxx : maximum angle between two orientations to be considered. 
+        - step : resolution of the angle bin
+        - classhkl : list of Miller Indices to be plotted
+        - noisy_data : if True, the simulated data has noise
+        - remove_peaks : if True, some spots are removed to simulate incomplete powder data
+        - seed : seed of the random number generator
+        - hkl_all : all possible Miller Indices
+        - lattice_material : list of lattice parameters of the materials
+        - family_hkl : list of Families of Miller Indices
+        - normal_hkl : list of normals of Miller Indices
+        - index_hkl : list of indices of Miller Indices
+        - dim1 : number of columns of the detector
+        - dim2 : number of rows of the detector
+        - removeharmonic : if True, the harmonics are removed
+        - flag :
+        - img_i : index of the orientation on the x-axis of the plot
+        - img_j : index of the orientation on the y-axis of the plot
+        - save_directory_ : directory to save the plot
+        - odf_data : data of an orientaiton distribution function
+        - odf_data1 : data of an orientaiton distribution function
+        - modelp : model of the ODF
+    
+    The ouput of the code are the following figures:
+        - figure of the simulated powder data
+        - figure of the 2D histogram of the Miller Indices and their relative orientations.
+
+    """
     s_tth, s_chi, s_miller_ind, _, _, _, \
         ori_mat, ori_mat1 = simulatemultiplepatterns(nb, nb1, seed=seed, key_material=material_, 
                                                                         key_material1=material1_,
@@ -1646,6 +1684,13 @@ def chunker_list(seq, size):
     return (seq[i::size] for i in range(size))
 
 def worker_generation(inputs_queue, outputs_queue, proc_id):
+    """
+    This code is a multiprocessing code that generates random patterns. Usually, if 
+    one wants to generate N patterns, one has to run N times the getpatterns_ code. 
+    This code is a parallel version of the getpatterns_ code, using several 
+    processors.
+    """
+
     while True:
         time.sleep(0.01)
         if not inputs_queue.empty():
@@ -1849,6 +1894,13 @@ def predict_preprocessMP_vsingle(files, cnt,
                        material0_limit=None, material1_limit=None, use_previous_UBmatrix_name=None,
                        material_phase_always_present=None, crystal=None, crystal1=None, peak_XY=None,
                        strain_free_parameters=None):
+    """
+    1. Open the wb and temp_key for the model.
+    2. Do a peaksearch and Convert to angles and compute the angles between all spots
+    3. Predict for all spots
+    4. Calculate the ubmatrix for the best match
+    5. Calculate the strain for the best match
+    """
     
     if files in files_treated:
         return strain_matrix, strain_matrixs, rotation_matrix, col, colx, coly, \
@@ -2032,6 +2084,13 @@ def predict_preprocessMP(files, cnt,
                        material0_limit=None, material1_limit=None, use_previous_UBmatrix_name=None,
                        material_phase_always_present=None, crystal=None, crystal1=None, \
                        strain_free_parameters=None, mode_peaksearch=None):
+    """
+    1. Open the wb and temp_key for the model.
+    2. Do a peaksearch and Convert to angles and compute the angles between all spots
+    3. Predict for all spots
+    4. Calculate the ubmatrix for the best match
+    5. Calculate the strain for the best match
+    """
     
     if files in files_treated:
         return strain_matrix, strain_matrixs, rotation_matrix, col, colx, coly, \
@@ -4420,7 +4479,6 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkl1_list[ii], tth_chi_spot1, \
                                                         hkl2_list[jj], tth_chi_spot2,
                                                         B)
-                # rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
             except:
                 continue                    
             
@@ -4466,7 +4524,6 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkls[ii][0], tth_chi_spot1, \
                                                         hkls[ii][1], tth_chi_spot2,
                                                         B)
-                # rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
             except:
                 continue                    
             
@@ -4509,22 +4566,6 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
         spot2_hkl1.append(spot2_hkl[inin])
     actual_mat, spot1_hkl, spot2_hkl = actual_mat1, spot1_hkl1, spot2_hkl1
     return actual_mat, False, spot1_hkl, spot2_hkl
-
-def find_uniq_u(u, syms):
-    """
-    Unique representation of rotation matrix:
-        apply this function before strain 
-        as distorted unit cell may produce undesireable matrix
-    """
-    uniq = u
-    tmax = np.trace(uniq)
-    for sym in syms:
-        cand = np.dot(sym, uniq)
-        t = np.trace(cand)
-        if np.trace(cand) > tmax:
-            uniq = cand
-            tmax = t
-    return np.array(uniq)
 
 def remove_spots(s_tth, s_chi, first_match123, material_, input_params, detectorparameters, dict_dp):
     ## get proximity for exp and theo spots
@@ -13774,7 +13815,6 @@ def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist12
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkl1_list[ii], tth_chi_spot1, \
                                                         hkl2_list[jj], tth_chi_spot2,
                                                         B)
-                # rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
             except:
                 continue                    
             
@@ -13817,7 +13857,6 @@ def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist12
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkls[ii][0], tth_chi_spot1, \
                                                         hkls[ii][1], tth_chi_spot2,
                                                         B)
-                # rot_mat1 = find_uniq_u(rot_mat1, symm_operator)
             except:
                 continue                    
             
