@@ -452,7 +452,7 @@ def testhklcond_generalrules_array(spacegroup, hkl):
     if gp[2] is not None or gp[2] != 'n/a':
         hklcond = hklcond_group.findall(gp[2])
     else:
-        return True
+        return hkl
     
     ##Array version of the code
     pattern_applied = np.zeros(len(hkl), dtype=np.int8)
