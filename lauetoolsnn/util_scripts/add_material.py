@@ -6,7 +6,71 @@ Created on Mon Feb 28 13:14:53 2022
 
 Add user material and extinction rule to the json object
 
+NEW: query pymatgen rest API for lattice parameters and spacegroups
 """
+__author__ = "Ravi raj purohit PURUSHOTTAM RAJ PUROHIT, CRG-IF BM32 @ ESRF"
+
+import warnings
+warnings.filterwarnings('ignore')
+
+def pymatgen_query():
+    from pymatgen.ext.matproj import MPRester
+    import argparse
+    import numpy as np
+    parser = argparse.ArgumentParser(description="Query the PYMATGEN rest API for lattice parameters and spacegroup",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-e", "--elements", required=True, nargs="*", help="User string for the elements present in the material; provide a list of elements space seperated")
+    args = parser.parse_args()
+    config = vars(args)
+
+    cat = config["elements"]
+    cat = [str(i) for i in cat[0].split(' ')]
+    print("Desired Elements", cat)
+
+    ## MY api key to access materialsproject database
+    pymatgen_api_key = "87iNakVJgbTSqn3A"
+
+    def spacegroup_extractor(entry_id):
+        """Extracts space group for a compound. Is the target property for this project
+        :parameter entry_id: A string which is the id of the crystals in Materials Project
+        :returns space group symbol as a string
+        """
+        properties = ['spacegroup']
+        with MPRester(pymatgen_api_key) as m:
+            results = m.query(entry_id, properties=properties)
+        return results[0]['spacegroup']['symbol']
+
+    def lattice_extractor(entry_id):
+        """Extracts the lattice parameters for a given crystal
+        :parameter entry_id: A string which is the id of the crystals in Materials Project
+        :returns list of 6 lattice parameters as float
+        """
+        properties = ['initial_structure']
+        with MPRester(pymatgen_api_key) as m:
+            results = m.query(entry_id, properties=properties)
+        lattice_parameters = results[0]['initial_structure'].as_dict()['lattice']
+        return [lattice_parameters['a'], lattice_parameters['b'], lattice_parameters['c'],
+                lattice_parameters['alpha'], lattice_parameters['beta'], lattice_parameters['gamma']]
+
+    with MPRester(pymatgen_api_key) as m:
+        mp_entries = m.get_entries_in_chemsys(cat)
+
+    print("Total number found on PYMATGEN database:", len(mp_entries))
+    print()
+    data_dict = {}
+    for index, element in enumerate(mp_entries):
+        lattices = np.round(lattice_extractor(element.entry_id), 4)
+        sg = spacegroup_extractor(element.entry_id)
+        data_dict[element.entry_id] = {'lattice': lattices, 
+                                       'spacegroup': sg}
+        
+        print("Entry", index+1)
+        print(element.entry_id)
+        print("Composition", element.composition)
+        print("Lattice parameters", lattices)
+        print("Space group", sg)
+        print("***************************************")
+
 def querymat():
     import argparse
     from lauetoolsnn.utils_lauenn import resource_path
@@ -54,7 +118,9 @@ def querymat():
         print("Material found in LaueNN library")
         print(material_queried)
 
-
+    if error_free_ext:
+        print("Material Extinction found in LaueNN library")
+        print(extinction_json[material_queried[2]])
 
 def start():
     import argparse
@@ -188,7 +254,6 @@ def query_hklmax():
             hkl_sol_all.append(_round_indices(txt_hkl[:3]))
         nbtestspots = nbtestspots + len(hkl_sol)
     hkl_sol_all = np.array(hkl_sol_all)
-    # print(hkl_sol_all[::100])
     indexes = []
     for i in range(len(hkl_sol_all)):
         for k, j in enumerate(cat):
@@ -205,4 +270,3 @@ def query_hklmax():
     print("Total spots created for calculating HKL bounds:"+str(nbtestspots))
     print("Max HKL index:"+str(np.max(hkl_sol_all)))
     print("Min HKL index:"+str(np.min(hkl_sol_all)))  
-    

@@ -64,7 +64,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     "material_": ["GaN", "Si"],             ## same key as used in dict_LaueTools
                     "symmetry": ["hexagonal", "cubic"],           ## crystal symmetry of material_
                     "SG": [191, 227], #186                    ## Space group of material_ (None if not known)
-                    "hkl_max_identify" : [7,5],        ## Maximum hkl index to classify in a Laue pattern
+                    "hkl_max_identify" : [6,5],        ## Maximum hkl index to classify in a Laue pattern
                     "nb_grains_per_lp_mat" : [2,1],        ## max grains to be generated in a Laue Image
 
                     ## hkl_max_identify : can be "auto" or integer: Maximum index of HKL to build output classes
@@ -87,7 +87,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     # =============================================================================
                     "orientation_generation": "uniform", ## can be random or uniform
                     "batch_size":100,               ## batches of files to use while training
-                    "epochs":5,                    ## number of epochs for training
+                    "epochs":8,                    ## number of epochs for training
 
                     # =============================================================================
                     # ## Detector parameters of the Experimental setup
@@ -106,8 +106,8 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     # =============================================================================
                     "experimental_directory": r"D:\some_projects\GaN\BLC12834\NW1",
                     "experimental_prefix": r"nw1_",
-                    "grid_size_x" : 4,            ## Grid X and Y limit to generate the simulated dataset (a rectangular scan region)
-                    "grid_size_y" : 4,
+                    "grid_size_x" : 61,            ## Grid X and Y limit to generate the simulated dataset (a rectangular scan region)
+                    "grid_size_y" : 61,
                     
                     # =============================================================================
                     # ## Prediction Settings
@@ -123,7 +123,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     "material_limit" : [2, 1],
                     "material_phase_always_present" : 2,
                     "softmax_threshold_global" : 0.85,
-                    "cap_matchrate" : 0.30,
+                    "cap_matchrate" : 0.20,
                     "coeff_overlap" : 0.3,
                     "mode_spotCycle" : "graphmode",
                     ##true for few crystal and prefered texture case, otherwise time consuming; advised for single phase alone
@@ -158,9 +158,9 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     "path_user_OM" : "",
                     }
 
-    generate_dataset = False
-    train_network = False
-    write_config_GUI = False
+    generate_dataset = True
+    train_network = True
+    write_config_GUI = True
     run_prediction = True
     prediction_GUI = False
     # =============================================================================

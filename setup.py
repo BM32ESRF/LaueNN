@@ -9,7 +9,7 @@ with open(os.path.join(os.path.dirname(__file__), "README.md")) as readme:
 setuptools.setup(
     name="lauetoolsnn",
     
-    version="3.0.78",
+    version="3.0.79",
 
     author="Ravi raj purohit PURUSHOTTAM RAJ PUROHIT",
     
@@ -34,9 +34,10 @@ setuptools.setup(
     entry_points={
                  "console_scripts": ["lauetoolsnn=lauetoolsnn.lauetoolsneuralnetwork:start",
                                      "lauenn=lauetoolsnn.lauetoolsneuralnetwork:start", 
-                                    "lauenn_addmat=lauetoolsnn.util_scripts.add_material:start",
-                                    "lauenn_mat=lauetoolsnn.util_scripts.add_material:querymat",
-                                    "lauenn_maxhkl=lauetoolsnn.util_scripts.add_material:query_hklmax"]
+                                     "lauenn_addmat=lauetoolsnn.util_scripts.add_material:start",
+                                     "lauenn_mat=lauetoolsnn.util_scripts.add_material:querymat",
+                                     "lauenn_maxhkl=lauetoolsnn.util_scripts.add_material:query_hklmax",
+                                     "lauenn_pymatgen=lauetoolsnn.util_scripts.add_material:pymatgen_query"]
                  },
                  
     classifiers=[
