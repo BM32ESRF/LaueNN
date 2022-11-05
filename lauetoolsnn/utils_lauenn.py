@@ -166,6 +166,14 @@ if default_initialization:
         
 
 def call_global():
+    """
+    Generates global variables from the settings.ini file to be used in the code
+
+    Returns
+    -------
+    None.
+
+    """
     global residues_threshold, nb_spots_global_threshold, option_global, \
             use_om_user, nb_spots_consider, path_user_OM, intensity_threshold, \
             FitPixelDev_global123, boxsize, softmax_threshold_global123, cap_matchrate123,\
@@ -194,7 +202,63 @@ def call_global():
 def rmv_freq_class(freq_rmv = 0, elements="all", freq_rmv1 = 0, elements1="all",
                    save_directory="", material_=None, material1_=None, write_to_console=None,
                    progress=None, qapp=None, list_hkl_keep=None, list_hkl_keep1=None):
-    
+    """
+    This module takes in the classification of training data and removes the 
+    classes which have very low occurances. The removal occurs 1. if the frequency
+    of a class is less than a specified percentage [default is 0.0%] or 2. if the 
+    number of occurances of a class is less than a specified value.
+
+    The input to the module is the path of the save directory, the material being
+    considered and various other parameters. 
+
+    The output of the module is a modified version of the training_data and 
+    class_hkl which has the unwanted classes removed. The module also saves the 
+    modified training data, class_hkl, class_weights and the indices of the 
+    removed classes.
+
+    Required modules:
+
+    1. cPickle
+    2. collections
+    3. array_generatorV2
+    4. os
+
+    Parameters
+    ----------
+
+    freq_rmv/freq_rmv1 : int
+        The minimum frequency [int] of a class to be considered in the training data.
+    elements/elements1 : int
+        The number of most common classes to be considered in the training data.
+    save_directory : str
+        The path of the save directory.
+    material_ : str
+        The material being considered.
+    material1_ : str
+        The material being considered.
+    write_to_console : None
+        A parameter which if set to "True" writes the status of the module to the console.
+    progress : None
+        A parameter which if set to "True", displays the progress of the module.
+    qapp : None
+        A parameter which if set to "True", displays the progress of the module in the form of
+        a Qt application.
+    list_hkl_keep/list_hkl_keep1 : array_like
+        List of hkl indices which should not be removed from the training data.
+        
+    Returns
+    -------
+    Saves a modified pickle object in the directory
+
+    class_weight : dict
+        Class weights for the training data.
+    rmv_indices : list 
+        Indices of the classes which have been removed from the training data.
+    freq_rmv/freq_rmv1 : float
+        The minimum frequency [%] of a class to be considered in the training data.
+    elements/elements1 : int
+        The number of most common classes to be considered in the training data.
+    """
     classhkl0 = np.load(save_directory+"//grain_classhkl_angbin.npz")["arr_0"]
     if write_to_console != None:
         write_to_console("First material index length: " + str(len(classhkl0)))
@@ -375,6 +439,18 @@ def rmv_freq_class(freq_rmv = 0, elements="all", freq_rmv1 = 0, elements1="all",
 def array_generator(path_, batch_size, n_classes, loc_new, write_to_console=None, tocategorical=True):
     """
     Assign a new class to data that is removed (to include in the training anyway)
+
+    Input:
+    
+    path_: Path of data
+    batch_size: Number of batches per epoch
+    n_classes: Number of classes
+    loc_new: Array of unique classes
+    write_to_console: True/False to write to console or not.
+    tocategorical: True/False to convert to one hot encoding or not.
+    
+    Output:
+     Generator of arrays
     """
     array_pairs = get_path(path_, ver=0)
     random.shuffle(array_pairs)
@@ -436,6 +512,34 @@ def array_generator(path_, batch_size, n_classes, loc_new, write_to_console=None
         yield trainX1, trainY1
         
 def vali_array(path_, batch_size, n_classes, loc_new, write_to_console=None, tocategorical=True):
+    """
+    This function first loads the array from the given path and shuffles it.
+    Then it deletes the non-frequent classes and rearranges the data.
+    Last, it loads the data into a new array which is to be returned.
+    
+    Parameters
+    ----------
+    path_ : string
+        The path of the array which is to be loaded.
+    batch_size : int
+        The number of arrays that are to be loaded.
+    n_classes : int
+        The number of classes in the array.
+    loc_new : array
+        The array which contains the new locations.
+    tocategorical : bool
+        The boolean value to determine if the labels are to be converted to one-hot encoding.
+    write_to_console : function
+        The function to which the messages are to be written to console.
+    
+    Returns
+    -------
+    trainX1 : array
+        The new array which contains the data of the original array with the non-frequent classes deleted.
+    trainY1 : array
+        The new array which contains the labels of the original array with the non-frequent classes deleted.
+
+    """
     array_pairs = get_path(path_, ver=0)
     random.shuffle(array_pairs)
     zipped = itertools.cycle(array_pairs)
@@ -496,6 +600,23 @@ def vali_array(path_, batch_size, n_classes, loc_new, write_to_console=None, toc
     return trainX1, trainY1
 
 def get_path(path_, ver=0):
+    """
+    This function will search through a directory,
+    looking for image files with extensions in the
+    ACCEPTABLE_FORMATS list.
+    For each image file it will return a full path.
+    
+    Parameters
+    ----------
+    path_ : str
+        Full path of directory to be searched
+    
+    Returns
+    -------
+    list
+        A list of full paths to the image files in
+        the directory
+    """
     image_files = []
     for dir_entry in os.listdir(path_):
         if os.path.isfile(os.path.join(path_, dir_entry)) and \
@@ -517,6 +638,17 @@ def get_path(path_, ver=0):
     return return_value
 
 def array_generator_verify(path_, batch_size, n_classes, loc_new, write_to_console=None):
+    """
+    array_generator_verify : loads the values from a pickle file, shuffle it and return in batches
+    Parameters:
+        path_: complete path of the folder where pickle file is located
+        batch_size: batch size (generally number of processors)
+        n_classes: number of classes present in the data
+        loc_new: array of all the classes along with their new indexes
+        write_to_console: if true displays the message on console if file is skipped due to missing values
+    Returns:
+        trainY1: array of classes of size (batch_size,1)
+    """
     array_pairs = get_path(path_, ver=1)
     random.shuffle(array_pairs)
     zipped = itertools.cycle(array_pairs)
@@ -626,6 +758,50 @@ def mse_images(pathA, pathB, ix, iy, ccd_label, progressbar=False, iteration=Non
 def generate_classHKL(n, rules, lattice_material, symmetry, material_, crystal=None, SG=None, general_diff_cond=False,
          save_directory="", write_to_console=None, progress=None, qapp=None, ang_maxx = None, step = None, 
          mat_listHKl=None):
+    """
+    Generate all the hkl's for the material symmetry.
+    Return a dictionary with keys the hkl's and values in the family list.
+    
+    Parameters
+    ----------
+    n : int
+        Max index hkl
+    rules : dict
+        rules for the crystal symmetry
+    lattice_material : dict
+        dict with the crystal lattice, a and b.
+    symmetry : dict
+        dict with the crystal symmetry.
+    material_ : string
+        name of the material
+    crystal: Crystal class
+        optionally you can give a crystal class and don't generate it here (used in get_material_data to gain speed and avoid to recalculate the crystal class)
+    SG : string
+        optionally you can give the space group of the crystal.
+    general_diff_cond: bool, optional
+        if general_diff_cond is True the hkl are filtered with the crystal general diffraction condition
+    save_directory: string, optional
+        directory to save the results, by default is empty and the results are not saved
+    write_to_console: bool, optional
+        if set to True write to console, by default is set to None, it is a flag used to not print everything on console and save in log file
+    progress: progress bar, optional
+        progress bar
+    qapp: qt object, optional
+        qt object to handle the thread
+    
+    Returns
+    -------
+    Saves pickle file with the following information
+    classhkl : dictionary
+        dictionary with keys the hkl's and values the family list.
+    classhkl_ : ndarray
+        all hkl index generated with the crystal symmetry
+    ind_rmv : list
+        list with hkl's removed from the dictionary
+    n : int
+        Max index hkl
+
+    """
 
     temp_ = GT.threeindices_up_to(int(n))
     
