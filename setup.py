@@ -50,6 +50,6 @@ setuptools.setup(
                     "License :: OSI Approved :: MIT License "
                 ],
                 
-    python_requires='>=3.7',
+    python_requires='>=3.7, <=3.10',
     # >=3.7 is required becquse of PyQt5
 )
