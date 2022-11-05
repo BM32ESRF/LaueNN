@@ -1,8 +1,15 @@
 name: Publish_PYPI
 
 on:
-  release:
-    types: [published]
+  push:
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
 
 jobs:
   deploy:
