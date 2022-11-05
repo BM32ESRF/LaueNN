@@ -157,6 +157,7 @@ def resource_path(relative_path, verbose=0):
 
 Logo = resource_path("lauetoolsnn_logo_bXM_2.png",  verbose=0)
 Logo_splash = resource_path("lauetoolsnn_splash_bXM_2.png",  verbose=0)
+gif_path = resource_path("frames_medres.gif",  verbose=0)
 
 default_initialization = True
 if default_initialization:
@@ -3423,7 +3424,7 @@ class gif_window(QWidget):
         self.label.setObjectName("label")
         self.layout.addWidget(self.label)
         # set qmovie as label
-        self.movie = QMovie("frames_medres.gif")
+        self.movie = QMovie(gif_path)
         self.label.setMovie(self.movie)
         self.movie.start()
 
