@@ -106,8 +106,8 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     # =============================================================================
                     "experimental_directory": r"D:\some_projects\GaN\BLC12834\NW1",
                     "experimental_prefix": r"nw1_",
-                    "grid_size_x" : 5,            ## Grid X and Y limit to generate the simulated dataset (a rectangular scan region)
-                    "grid_size_y" : 5,
+                    "grid_size_x" : 4,            ## Grid X and Y limit to generate the simulated dataset (a rectangular scan region)
+                    "grid_size_y" : 4,
                     
                     # =============================================================================
                     # ## Prediction Settings

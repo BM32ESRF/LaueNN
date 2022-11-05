@@ -94,7 +94,7 @@ def testhklcond_generalrules(spacegroup, hkl):
     gp = wp[space_group][gplabel]
     
     # load reflection conditions if needed
-    if gp[2] is not None or gp[2] != 'n/a':
+    if gp[2] is not None and gp[2] != 'n/a':
         hklcond = hklcond_group.findall(gp[2])
     else:
         return True
@@ -434,7 +434,7 @@ def testhklcond_generalrules_array(spacegroup, hkl):
      *  spacegroup :   General reflection conditions will be taken for the spacegroup
      * Returns
      * -------
-     * bool : True if peak is allowed, False otherwise
+     * hkl array : array of allowed hkl filtered from the input hkl
      """
     # * test general reflection conditions
     # * if they are violated the peak is forbidden
@@ -449,7 +449,7 @@ def testhklcond_generalrules_array(spacegroup, hkl):
     gp = wp[space_group][gplabel]
     
     # load reflection conditions if needed
-    if gp[2] is not None or gp[2] != 'n/a':
+    if gp[2] is not None and gp[2] != 'n/a':
         hklcond = hklcond_group.findall(gp[2])
     else:
         return hkl
