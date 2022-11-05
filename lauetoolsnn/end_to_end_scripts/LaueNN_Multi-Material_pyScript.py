@@ -113,7 +113,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     # model_weight_file: if none, it will select by default the latest H5 weight file, else provide a specific model
                     # softmax_threshold_global: thresholding to limit the predicted spots search zone
                     # cap_matchrate: any UB matrix providing MR less than this will be ignored
-                    # coeff: should be same as cap_matchrate or no? (this is for try previous UB matrix)
+                    # coeff: should be same as cap_matchrate or no? (this is for when use_previous is True)
                     # coeff_overlap: coefficient to limit the overlapping between spots; if more than this, new solution will be computed
                     # mode_spotCycle: How to cycle through predicted spots (slow or graphmode )
                     "UB_matrix_to_detect" : 3,

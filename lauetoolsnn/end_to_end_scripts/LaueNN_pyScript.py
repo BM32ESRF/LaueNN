@@ -32,11 +32,11 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
         extinction_json = json.load(f)
 
     ## Modify the dictionary values to add new entries
-    dict_Materials["GaN"] = ["GaN", [3.189, 3.189, 5.185, 90, 90, 120], "wurtzite"]
-    dict_Materials["Si"] = ["Si", [5.4309, 5.4309, 5.4309, 90, 90, 90], "dia"]
+    dict_Materials["GaN"] = ["GaN", [3.189, 3.189, 5.185, 90, 90, 120], "191"]
+    dict_Materials["Si"] = ["Si", [5.4309, 5.4309, 5.4309, 90, 90, 90], "227"]
 
-    extinction_json["wurtzite"] = "wurtzite"
-    extinction_json["dia"] = "dia"
+    extinction_json["191"] = "191"
+    extinction_json["227"] = "227"
 
     ## verify if extinction is present in CrystalParameters.py file of lauetools (Manually done for now)
 
@@ -61,29 +61,22 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     "global_path" : r"C:\Users\purushot\Desktop\LaueNN_script",
                     "prefix" : "_2phase",                 ## prefix for the folder to be created for training dataset
 
-                    "material_": "GaN",             ## same key as used in dict_LaueTools
-                    "symmetry": "hexagonal",           ## crystal symmetry of material_
-                    "SG": 191,                     ## Space group of material_ (None if not known)
-                    "hkl_max_identify" : 6,        ## Maximum hkl index to classify in a Laue pattern
-                    "nb_grains_per_lp_mat0" : 2,        ## max grains to be generated in a Laue Image
+                    "material_": ["GaN", "Si"],             ## same key as used in dict_LaueTools
+                    "symmetry": ["hexagonal", "cubic"],           ## crystal symmetry of material_
+                    "SG": [191, 227], #186                    ## Space group of material_ (None if not known)
+                    "hkl_max_identify" : [7,5],        ## Maximum hkl index to classify in a Laue pattern
+                    "nb_grains_per_lp_mat" : [2,1],        ## max grains to be generated in a Laue Image
 
-                    "material1_": "Si",            ## same key as used in dict_LaueTools
-                    "symmetry1": "cubic",          ## crystal symmetry of material1_
-                    "SG1": 227,                    ## Space group of material1_ (None if not known)
-                    "hkl_max_identify1" : 5,        ## Maximum hkl index to classify in a Laue pattern
-                    "nb_grains_per_lp_mat1" : 1,        ## max grains to be generated in a Laue Image
                     ## hkl_max_identify : can be "auto" or integer: Maximum index of HKL to build output classes
                     
                     # =============================================================================
                     # ## Data generation settings
                     # =============================================================================
                     "grains_nb_simulate" : 500,    ## Number of orientations to generate (takes advantage of crystal symmetry)
-                    "classes_with_frequency_to_remove": 100, ## classes_with_frequency_to_remove: HKL class with less appearance than 
+                    "classes_with_frequency_to_remove": [100,100], ## classes_with_frequency_to_remove: HKL class with less appearance than 
                                                                             ##  specified will be ignored in output
-                    "desired_classes_output": "all", ## desired_classes_output : can be all or an integer: to limit the number of output classes
-                    "classes_with_frequency_to_remove1": 100,## classes_with_frequency_to_remove: HKL class with less appearance than 
-                                                                            ##  specified will be ignored in output
-                    "desired_classes_output1": "all", ## desired_classes_output : can be all or an integer: to limit the number of output classes
+                    "desired_classes_output": ["all","all"], ## desired_classes_output : can be all or an integer: to limit the number of output classes
+
                     "include_small_misorientation": False, ## to include additional data with small angle misorientation
                     "misorientation": 5, ##only used if "include_small_misorientation" is True
                     "maximum_angle_to_search":20, ## Angle of radial distribution to reconstruct the histogram (in deg)
@@ -94,7 +87,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     # =============================================================================
                     "orientation_generation": "uniform", ## can be random or uniform
                     "batch_size":100,               ## batches of files to use while training
-                    "epochs":10,                    ## number of epochs for training
+                    "epochs":5,                    ## number of epochs for training
 
                     # =============================================================================
                     # ## Detector parameters of the Experimental setup
@@ -113,8 +106,8 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     # =============================================================================
                     "experimental_directory": r"D:\some_projects\GaN\BLC12834\NW1",
                     "experimental_prefix": r"nw1_",
-                    "grid_size_x" : 61,            ## Grid X and Y limit to generate the simulated dataset (a rectangular scan region)
-                    "grid_size_y" : 61,
+                    "grid_size_x" : 5,            ## Grid X and Y limit to generate the simulated dataset (a rectangular scan region)
+                    "grid_size_y" : 5,
                     
                     # =============================================================================
                     # ## Prediction Settings
@@ -126,10 +119,8 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     # coeff_overlap: coefficient to limit the overlapping between spots; if more than this, new solution will be computed
                     # mode_spotCycle: How to cycle through predicted spots (slow or graphmode )
                     "UB_matrix_to_detect" : 3,
-                    "matrix_tolerance" : 0.6,
-                    "matrix_tolerance1" : 0.6,
-                    "material0_limit" : 2,
-                    "material1_limit" : 1,
+                    "matrix_tolerance" : [0.6, 0.6],
+                    "material_limit" : [2, 1],
                     "material_phase_always_present" : 2,
                     "softmax_threshold_global" : 0.85,
                     "cap_matchrate" : 0.30,
@@ -152,8 +143,8 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     # # [STRAINCALCULATION]
                     # =============================================================================
                     "strain_compute" : True,
-                    "tolerance_strain_refinement" : [0.6,0.5,0.4,0.3,0.2,0.1],
-                    "tolerance_strain_refinement1" : [0.6,0.5,0.4,0.3,0.2,0.1],
+                    "tolerance_strain_refinement" : [[0.6,0.5,0.4,0.3,0.2,0.1],
+                                                     [0.6,0.5,0.4,0.3,0.2,0.1]],
                     "free_parameters" : ["b","c","alpha","beta","gamma"],
                     
                     # =============================================================================
@@ -167,11 +158,11 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     "path_user_OM" : "",
                     }
 
-    generate_dataset = True
-    train_network = True
-    write_config_GUI = True
+    generate_dataset = False
+    train_network = False
+    write_config_GUI = False
     run_prediction = True
-    prediction_GUI = True
+    prediction_GUI = False
     # =============================================================================
     # END OF USER INPUT
     # =============================================================================
@@ -180,10 +171,10 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
     
     if write_config_GUI:
         ## write config file for GUI 
-        if input_params["material_"] != input_params["material1_"]:
-            text_file = open(os.path.join(global_path,input_params["material_"]+"_"+input_params["material1_"]+input_params["prefix"]+".lauenn"), "w")
+        if input_params["material_"][0] != input_params["material_"][1]:
+            text_file = open(os.path.join(global_path,input_params["material_"][0]+"_"+input_params["material_"][1]+input_params["prefix"]+".lauenn"), "w")
         else:
-            text_file = open(os.path.join(global_path,input_params["material_"]+"_"+input_params["prefix"]+".lauenn"), "w")
+            text_file = open(os.path.join(global_path,input_params["material_"][0]+"_"+input_params["prefix"]+".lauenn"), "w")
 
         text_file.write("### config file for LaueNeuralNetwork GUI \n")
         text_file.write("[GLOBAL_DIRECTORY]\n")
@@ -191,14 +182,14 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
         text_file.write("main_directory = "+global_path+"\n")
         text_file.write("\n")
         text_file.write("[MATERIAL]\n")
-        text_file.write("material = "+input_params["material_"]+"\n")
-        text_file.write("symmetry = "+input_params["symmetry"]+"\n")
-        text_file.write("space_group = "+str(input_params["SG"])+"\n")
+        text_file.write("material = "+input_params["material_"][0]+"\n")
+        text_file.write("symmetry = "+input_params["symmetry"][0]+"\n")
+        text_file.write("space_group = "+str(input_params["SG"][0])+"\n")
         text_file.write("general_diffraction_rules = false\n")
         text_file.write("\n")
-        text_file.write("material1 = "+input_params["material1_"]+"\n")
-        text_file.write("symmetry1 = "+input_params["symmetry1"]+"\n")
-        text_file.write("space_group1 = "+str(input_params["SG1"])+"\n")
+        text_file.write("material1 = "+input_params["material_"][1]+"\n")
+        text_file.write("symmetry1 = "+input_params["symmetry"][1]+"\n")
+        text_file.write("space_group1 = "+str(input_params["SG"][1])+"\n")
         text_file.write("general_diffraction_rules1 = false\n")
         text_file.write("\n")
         text_file.write("[DETECTOR]\n")
@@ -208,14 +199,14 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
         text_file.write("emin = "+str(input_params["emin"])+"\n")
         text_file.write("\n")
         text_file.write("[TRAINING]\n")
-        text_file.write("classes_with_frequency_to_remove = "+str(input_params["classes_with_frequency_to_remove"])+"\n")
-        text_file.write("desired_classes_output = "+str(input_params["desired_classes_output"])+"\n")
-        text_file.write("max_HKL_index = "+str(input_params["hkl_max_identify"])+"\n")
-        text_file.write("max_nb_grains = "+str(input_params["nb_grains_per_lp_mat0"])+"\n")
-        text_file.write("classes_with_frequency_to_remove1 = "+str(input_params["classes_with_frequency_to_remove1"])+"\n")
-        text_file.write("desired_classes_output1 = "+str(input_params["desired_classes_output1"])+"\n")
-        text_file.write("max_HKL_index1 = "+str(input_params["hkl_max_identify1"])+"\n")
-        text_file.write("max_nb_grains1 = "+str(input_params["nb_grains_per_lp_mat1"])+"\n")
+        text_file.write("classes_with_frequency_to_remove = "+str(input_params["classes_with_frequency_to_remove"][0])+"\n")
+        text_file.write("desired_classes_output = "+str(input_params["desired_classes_output"][0])+"\n")
+        text_file.write("max_HKL_index = "+str(input_params["hkl_max_identify"][0])+"\n")
+        text_file.write("max_nb_grains = "+str(input_params["nb_grains_per_lp_mat"][0])+"\n")
+        text_file.write("classes_with_frequency_to_remove1 = "+str(input_params["classes_with_frequency_to_remove"][1])+"\n")
+        text_file.write("desired_classes_output1 = "+str(input_params["desired_classes_output"][1])+"\n")
+        text_file.write("max_HKL_index1 = "+str(input_params["hkl_max_identify"][1])+"\n")
+        text_file.write("max_nb_grains1 = "+str(input_params["nb_grains_per_lp_mat"][1])+"\n")
         text_file.write("max_simulations = "+str(input_params["grains_nb_simulate"])+"\n")
         text_file.write("include_small_misorientation = "+str(input_params["include_small_misorientation"]).lower()+"\n")
         text_file.write("misorientation_angle = 1 \n")
@@ -226,10 +217,10 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
         text_file.write("\n")
         text_file.write("[PREDICTION]\n")
         text_file.write("UB_matrix_to_detect = "+str(input_params["UB_matrix_to_detect"])+"\n")
-        text_file.write("matrix_tolerance = "+str(input_params["matrix_tolerance"])+"\n")
-        text_file.write("matrix_tolerance1 = "+str(input_params["matrix_tolerance1"])+"\n")
-        text_file.write("material0_limit = "+str(input_params["material0_limit"])+"\n")
-        text_file.write("material1_limit = "+str(input_params["material1_limit"])+"\n")
+        text_file.write("matrix_tolerance = "+str(input_params["matrix_tolerance"][0])+"\n")
+        text_file.write("matrix_tolerance1 = "+str(input_params["matrix_tolerance"][1])+"\n")
+        text_file.write("material0_limit = "+str(input_params["material_limit"][0])+"\n")
+        text_file.write("material1_limit = "+str(input_params["material_limit"][1])+"\n")
         text_file.write("softmax_threshold_global = "+str(input_params["softmax_threshold_global"])+"\n")
         text_file.write("cap_matchrate = "+str(input_params["cap_matchrate"])+"\n")
         text_file.write("coeff = 0.3\n")
@@ -253,8 +244,8 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
         text_file.write("\n")
         text_file.write("[STRAINCALCULATION]\n")
         text_file.write("strain_compute = "+str(input_params["strain_compute"]).lower()+"\n")
-        text_file.write("tolerance_strain_refinement ="+ ",".join(str(param) for param in input_params["tolerance_strain_refinement"])+"\n")
-        text_file.write("tolerance_strain_refinement1 ="+ ",".join(str(param) for param in input_params["tolerance_strain_refinement1"])+"\n")
+        text_file.write("tolerance_strain_refinement ="+ ",".join(str(param) for param in input_params["tolerance_strain_refinement"][0])+"\n")
+        text_file.write("tolerance_strain_refinement1 ="+ ",".join(str(param) for param in input_params["tolerance_strain_refinement"][1])+"\n")
         text_file.write("free_parameters ="+ ",".join(str(param) for param in input_params["free_parameters"])+"\n")
         text_file.write("\n")
         text_file.write("[DEVELOPMENT]\n")
@@ -284,23 +275,23 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
         # ## Get material parameters 
         # ### Generates a folder with material name and gets material unit cell parameters 
         # ### and symmetry object from the get_material_detail function
-        material_= input_params["material_"]
-        material1_= input_params["material1_"]
-        n = input_params["hkl_max_identify"]
-        n1 = input_params["hkl_max_identify1"]
+        material_= input_params["material_"][0]
+        material1_= input_params["material_"][1]
+        n = input_params["hkl_max_identify"][0]
+        n1 = input_params["hkl_max_identify"][1]
         maximum_angle_to_search = input_params["maximum_angle_to_search"]
         step_for_binning = input_params["step_for_binning"]
-        nb_grains_per_lp0 = input_params["nb_grains_per_lp_mat0"]
-        nb_grains_per_lp1 = input_params["nb_grains_per_lp_mat1"]
+        nb_grains_per_lp0 = input_params["nb_grains_per_lp_mat"][0]
+        nb_grains_per_lp1 = input_params["nb_grains_per_lp_mat"][1]
         grains_nb_simulate = input_params["grains_nb_simulate"]
         detectorparameters = input_params["detectorparameters"]
         pixelsize = input_params["pixelsize"]
         emax = input_params["emax"]
         emin = input_params["emin"]
-        symm_ = input_params["symmetry"]
-        symm1_ = input_params["symmetry1"]
-        SG = input_params["SG"]
-        SG1 = input_params["SG1"]
+        symm_ = input_params["symmetry"][0]
+        symm1_ = input_params["symmetry"][1]
+        SG = input_params["SG"][0]
+        SG1 = input_params["SG"][1]
         
         ## read hkl information from a fit file in case too large HKLs
         manual_hkl_list=False
@@ -394,8 +385,8 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
         # freq_rmv: remove output hkl if the training dataset has less tha 100 occurances of 
         # the considered hkl (freq_rmv1 for second phase)
         # Weights (penalty during training) are also calculated based on the occurance
-        rmv_freq_class(freq_rmv = input_params["classes_with_frequency_to_remove"], 
-                       freq_rmv1 = input_params["classes_with_frequency_to_remove1"], 
+        rmv_freq_class(freq_rmv = input_params["classes_with_frequency_to_remove"][0], 
+                       freq_rmv1 = input_params["classes_with_frequency_to_remove"][1], 
                        save_directory=save_directory, 
                        material_=material_, 
                        material1_=material1_, 
@@ -417,10 +408,10 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
         # ## Defining a neural network architecture or load a predefined one from NNmodels
         from lauetoolsnn.NNmodels import model_arch_general, LoggingCallback
             
-        material_= input_params["material_"]
-        material1_= input_params["material1_"]
-        nb_grains_per_lp = input_params["nb_grains_per_lp_mat0"]
-        nb_grains_per_lp1 = input_params["nb_grains_per_lp_mat1"]
+        material_= input_params["material_"][0]
+        material1_= input_params["material_"][1]
+        nb_grains_per_lp = input_params["nb_grains_per_lp_mat"][0]
+        nb_grains_per_lp1 = input_params["nb_grains_per_lp_mat"][1]
         grains_nb_simulate = input_params["grains_nb_simulate"]
         
         if material_ != material1_:
@@ -580,18 +571,18 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
             # ### Get model and data paths from the input
             # ### User input parameters for various algorithms to compute the orientation matrix
     
-            material_= input_params["material_"]
-            material1_= input_params["material1_"]
+            material_= input_params["material_"][0]
+            material1_= input_params["material_"][1]
             detectorparameters = input_params["detectorparameters"]
             pixelsize = input_params["pixelsize"]
             emax = input_params["emax"]
             emin = input_params["emin"]
             dim1 = input_params["dim1"]
             dim2 = input_params["dim2"]
-            symm_ = input_params["symmetry"]
-            symm1_ = input_params["symmetry1"]
-            SG = input_params["SG"]
-            SG1 = input_params["SG1"]
+            symm_ = input_params["symmetry"][0]
+            symm1_ = input_params["symmetry"][1]
+            SG = input_params["SG"][0]
+            SG1 = input_params["SG"][1]
             
             if material_ != material1_:
                 model_direc = os.path.join(global_path,material_+"_"+material1_+input_params["prefix"])
@@ -641,12 +632,12 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
             ccd_label_global = input_params["ccd_label"]
                     
             ## tolerance angle to match simulated and experimental spots for two materials
-            tolerance = input_params["matrix_tolerance"]
-            tolerance1 = input_params["matrix_tolerance1"]
+            tolerance = input_params["matrix_tolerance"][0]
+            tolerance1 = input_params["matrix_tolerance"][1]
             
             ## tolerance angle for strain refinements
-            tolerance_strain = input_params["tolerance_strain_refinement"]
-            tolerance_strain1 = input_params["tolerance_strain_refinement1"]
+            tolerance_strain = input_params["tolerance_strain_refinement"][0]
+            tolerance_strain1 = input_params["tolerance_strain_refinement"][1]
             strain_free_parameters = input_params["free_parameters"]
             
             ## Parameters to control the orientation matrix indexation
@@ -655,8 +646,8 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
             cap_matchrate = input_params["cap_matchrate"] * 100 ## any UB matrix providing MR less than this will be ignored
             coeff = 0.30            ## coefficient to calculate the overlap of two solutions
             coeff_overlap = input_params["coeff_overlap"]    ##10% spots overlap is allowed with already indexed orientation
-            material0_limit = input_params["material0_limit"]  ## how many UB can be proposed for first material
-            material1_limit = input_params["material1_limit"] ## how many UB can be proposed for second material; this forces the orientation matrix deduction algorithm to find only a required materials matrix
+            material0_limit = input_params["material_limit"][0]  ## how many UB can be proposed for first material
+            material1_limit = input_params["material_limit"][1] ## how many UB can be proposed for second material; this forces the orientation matrix deduction algorithm to find only a required materials matrix
             material_phase_always_present = input_params["material_phase_always_present"] ## in case if one phase is always present in a Laue pattern (useful for substrate cases)
             
             ## Additional parameters to refine the orientation matrix construction process
