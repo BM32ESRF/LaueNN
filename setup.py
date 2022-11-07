@@ -10,7 +10,7 @@ setuptools.setup(
     name="lauetoolsnn",
     use_scm_version=True,
 
-    #version="3.0.79",
+    #version="3.0.79", ##Automatic versioning with github tag
 
     author="Ravi raj purohit PURUSHOTTAM RAJ PUROHIT",
     
