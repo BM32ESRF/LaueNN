@@ -27,11 +27,11 @@ from scipy import sparse
 import os
 import numpy as np
 
-img = plt.imread(r"C:\Users\purushot\Downloads\Ni_laue.tiff")
+img = plt.imread(r"D:\some_projects\GaN\BLC12834\NW1\nw1_0000.tif")
 
 transformed_original = np.fft.fft2(img)
 data_csr = sparse.csr_matrix(transformed_original)
-# sparse.save_npz("original.npz", data_csr)
+sparse.save_npz("original.npz", data_csr)
 size = os.path.getsize("original.npz")/1e6
 
 
@@ -47,7 +47,7 @@ for factor in compression_factors:
     transformed[abs(transformed) < thresh] = 0
     data_csr = sparse.csr_matrix(transformed)
     fileName = "@{}%.npz".format(factor)
-    # sparse.save_npz(fileName, data_csr)
+    sparse.save_npz(fileName, data_csr)
     size = os.path.getsize(fileName)/1e6
     back =  np.fft.ifft2(transformed).real
     plt.subplot(2,3,index_count), plt.imshow(back, cmap="gray", vmin=1000, vmax=2000)
@@ -78,7 +78,7 @@ def display_2(im_1, title_1, im_2, title_2, vmin=None, vmax=None):
     plt.imshow(im_2, cmap="gray", vmin=-7, vmax=15)  
 
 
-def Fourier_bandpass(fI, fmin, fmax, vmin=None, vmax=None) :
+def Fourier_bandpass(fI, fmin, fmax, vmin=None, vmax=None, save=False) :
     """
     Truncates a Fourier Transform fI, before reconstructing a bandpassed image.
     """
@@ -90,9 +90,11 @@ def Fourier_bandpass(fI, fmin, fmax, vmin=None, vmax=None) :
     fI_band[ radius > fmax ] = 0      # Remove all the high frequencies
     I_band = np.real(ifft2(fI_band))  # Invert the new transform...
     display_2(I_band, "Image", fftshift( np.log(1e-7 + abs(fI_band)) ), "Fourier Transform", vmin=vmin, vmax=vmax )
+    if save:
+        np.save_npz(str(fmin)+"_"+str(fmax)+".npz", fI_band)
 
 
-I = imread(r"C:\Users\purushot\Downloads\Ni_laue.tiff")  # Import as a grayscale array
+I = imread(r"D:\some_projects\GaN\BLC12834\NW1\nw1_0000.tif")  # Import as a grayscale array
 
 fI = fft2(I)  # Compute the Fourier transform of our Laue image
 
@@ -102,10 +104,7 @@ fI = fft2(I)  # Compute the Fourier transform of our Laue image
 display_2( I, "Image", fftshift( np.log(1e-7 + abs(fI)) ), "Fourier Transform" , vmin=1000, vmax=2000)
 
 
-
-Fourier_bandpass(fI, 0, 200, vmin=1000, vmax=2000)
-
-
+Fourier_bandpass(fI, 0, 300, vmin=1000, vmax=2000, save=False)
 
 
 

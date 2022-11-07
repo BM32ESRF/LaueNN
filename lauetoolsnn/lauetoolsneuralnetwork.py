@@ -413,7 +413,13 @@ class Window(QMainWindow):
         self.menu1 = self.menuBar().addMenu("&Help")
         self.menu1.addAction('&Documentation', self.documentation)
         self.menu1.addAction('&LaueNN concept', self.concept)
+        self.menu1.addAction('&LaueNN terminal commands', self.commands_cmd)
     
+    def commands_cmd(self,):
+        w21 = sample_commands()
+        w21.show()
+        self.popups.append(w21)
+
     def documentation(self):
         url = QUrl("https://lauenn.readthedocs.io/en/latest/")
         QDesktopServices.openUrl(url)
@@ -3428,6 +3434,45 @@ class gif_window(QWidget):
         self.label.setMovie(self.movie)
         self.movie.start()
 
+class sample_commands(QWidget):
+    def __init__(self):
+        QWidget.__init__(self)
+        app_icon = QtGui.QIcon()
+        app_icon.addFile(Logo, QtCore.QSize(16,16))
+        self.setWindowIcon(app_icon)
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+        self._createDisplay() ## display screen
+        self.setDisplayText("Here are the set of commands that you can use with terminal to execute stuff!")
+        self.setDisplayText("----------")
+        self.setDisplayText("lauetoolsnn or lauenn : launches the current GUI")
+        self.setDisplayText("----------")
+        self.setDisplayText("lauenn_addmat : Add user material to laueNN library")
+        self.setDisplayText("usage : lauenn_addmat -n Cu -l 3.6 3.6 3.6 90 90 90 -e 227")
+        self.setDisplayText("----------")
+        self.setDisplayText("lauenn_mat : Query a user material in laueNN library")
+        self.setDisplayText("usage : lauenn_mat -n Cu")
+        self.setDisplayText("----------")
+        self.setDisplayText("lauenn_maxhkl : Calculates the maxHKL available on the Detector with polycrystal Laue Simulation; useful for max_HKL_index parameter estimation in the config file")
+        self.setDisplayText("usage : lauenn_maxhkl -n Cu -dd 79.5 -nb 5 -c '3 5 7 10' -s 100")
+        self.setDisplayText("----------")
+        self.setDisplayText("lauenn_pymatgen : Query the PYMATGEN rest API for lattice parameters and spacegroup")
+        self.setDisplayText("usage : lauenn_pymatgen -e Cu Si")
+        self.setDisplayText("----------")
+        self.setDisplayText("lauenn_example : Copies example script of LaueNN from installation directory to current user directory (terminal cwd)")
+        self.setDisplayText("usage : lauenn_example")
+
+    def _createDisplay(self):
+        """Create the display."""
+        self.display = QTextEdit()
+        self.display.setReadOnly(True)
+        self.layout.addWidget(self.display)
+
+    def setDisplayText(self, text):
+        self.display.append('%s'%text)
+        self.display.moveCursor(QtGui.QTextCursor.End)
+        self.display.setFocus()
+        
 class sample_config(QWidget):
     def __init__(self):
         QWidget.__init__(self)

@@ -26,7 +26,6 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import numpy as np
-from random import random as rand1
 from math import acos
 import time
 import enum
@@ -1471,6 +1470,7 @@ def simulatemultiplepatterns(nbUBs, nbUBs1, seed=123, key_material=None, key_mat
     
     detectordiameter = pixelsize * dim1 #TODO * 2.0
     # UBelemagnles = np.random.random((3,nbUBs))*360-180
+    np.random.seed(seed)
     orientation_send = []
     orientation_send1 = []
     if flag == 0:
@@ -1481,16 +1481,16 @@ def simulatemultiplepatterns(nbUBs, nbUBs1, seed=123, key_material=None, key_mat
         if mode == "random":
             if key_material != key_material1:
                 for igr in range(nbUBs1):    
-                    phi1 = rand1() * 360.
-                    phi = 180. * acos(2 * rand1() - 1) / np.pi
-                    phi2 = rand1() * 360.
+                    phi1 = np.random.rand() * 360.
+                    phi = 180. * acos(2 * np.random.rand() - 1) / np.pi
+                    phi2 = np.random.rand() * 360.
                     g1[igr] = Euler2OrientationMatrix((phi1, phi, phi2))
                     orientation_send1.append(g1[igr])
                     
             for igr in range(nbUBs):
-                phi1 = rand1() * 360.
-                phi = 180. * acos(2 * rand1() - 1) / np.pi
-                phi2 = rand1() * 360.
+                phi1 = np.random.rand() * 360.
+                phi = 180. * acos(2 * np.random.rand() - 1) / np.pi
+                phi2 = np.random.rand() * 360.
                 g[igr] = Euler2OrientationMatrix((phi1, phi, phi2))
                 orientation_send.append(g[igr])
                 
@@ -1508,9 +1508,9 @@ def simulatemultiplepatterns(nbUBs, nbUBs1, seed=123, key_material=None, key_mat
         g = np.zeros((nbUBs, 3, 3))
         for igr in range(nbUBs):
             if igr == 0:
-                phi1 = rand1() * 360.
-                phi = 180. * acos(2 * rand1() - 1) / np.pi
-                phi2 = rand1() * 360.
+                phi1 = np.random.rand() * 360.
+                phi = 180. * acos(2 * np.random.rand() - 1) / np.pi
+                phi2 = np.random.rand() * 360.
                 g[igr] = Euler2OrientationMatrix((phi1, phi, phi2))
                 orientation_send.append(g[igr])
             elif igr == 1:
@@ -11534,6 +11534,7 @@ def simulatemultimatpatterns(nbUBs, seed=123, key_material=None,
                              mode="random", data_odf_data=None):
     l_tth, l_chi, l_miller_ind, l_posx, l_posy, l_E, l_intensity = [],[],[],[],[],[],[]
     detectordiameter = pixelsize * dim1
+    np.random.seed(seed)
     if flag == 0:
         for no, i in enumerate(nbUBs):
             if i == 0:
@@ -11541,9 +11542,9 @@ def simulatemultimatpatterns(nbUBs, seed=123, key_material=None,
             
             for igr in range(i):
                 if mode == "random":
-                    phi1 = rand1() * 360.
-                    phi = 180. * acos(2 * rand1() - 1) / np.pi
-                    phi2 = rand1() * 360.
+                    phi1 = np.random.rand() * 360.
+                    phi = 180. * acos(2 * np.random.rand() - 1) / np.pi
+                    phi2 = np.random.rand() * 360.
                     UBmatrix = Euler2OrientationMatrix((phi1, phi, phi2))
                 if mode == "uniform":
                     rand_choice = np.random.choice(len(data_odf_data[no]), 1, replace=False)

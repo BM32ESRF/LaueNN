@@ -37,7 +37,8 @@ setuptools.setup(
                                      "lauenn_addmat=lauetoolsnn.util_scripts.add_material:start",
                                      "lauenn_mat=lauetoolsnn.util_scripts.add_material:querymat",
                                      "lauenn_maxhkl=lauetoolsnn.util_scripts.add_material:query_hklmax",
-                                     "lauenn_pymatgen=lauetoolsnn.util_scripts.add_material:pymatgen_query"]
+                                     "lauenn_pymatgen=lauetoolsnn.util_scripts.add_material:pymatgen_query",
+                                     "lauenn_example=lauetoolsnn.util_scripts.add_material:example_scripts"]
                  },
                  
     classifiers=[

@@ -13,6 +13,42 @@ __author__ = "Ravi raj purohit PURUSHOTTAM RAJ PUROHIT, CRG-IF BM32 @ ESRF"
 import warnings
 warnings.filterwarnings('ignore')
 
+def example_scripts():
+    ## Given a path from the users
+    ## Transfer the example scripts there
+    ## And additionally if download is true, then download a test dataset
+    
+    from lauetoolsnn.utils_lauenn import resource_path
+    import os
+    filepath = resource_path('end_to_end_scripts')
+    file1 = os.path.join(filepath,"LaueNN_Multi-Material_pyScript.py")
+    file2 = os.path.join(filepath,"LaueNN_pyScript.py")
+    
+    current_path = os.getcwd()
+    save_directory = os.path.join(current_path, "LaueNN_script")
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
+    import shutil
+    shutil.move(file1, save_directory)
+    shutil.move(file2, save_directory)
+    print("Files moved to "+save_directory+" successfully")
+    
+    # import argparse
+    # parser = argparse.ArgumentParser(description="Place the example scripts in the current directory where the terminal is pointing to",
+    #                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    # parser.add_argument("-d", "--download_data", required=False, help="User string to download data (GaN dataset) to test with LaueNN")
+    # args = parser.parse_args()
+    # config = vars(args)
+    
+    # cat = config["download_data"]
+    # if cat in ["y", "yes", "True", True]:
+    #     print("Download of example data is requested")
+    
+    # ## Download a test dataset
+    # import requests
+    # url = 'https://cloud.esrf.fr/s/Qi7iW7aCEdM6cRS'
+    # r = requests.get(url, allow_redirects=True)
+
 def pymatgen_query():
     from pymatgen.ext.matproj import MPRester
     import argparse
@@ -199,6 +235,7 @@ def query_hklmax():
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-n", "--name", required=True, help="User string for the material")
     parser.add_argument("-dd", "--detectordistance", required=False, type=float, help="detector distance from sample in mm")
+    # parser.add_argument("-sg", "--spacegroup", required=False, type=float, help="detector distance from sample in mm")
     parser.add_argument("-nb", "--numbergrains", required=False, type=int, help="number of grains used in simulate Laue")
     parser.add_argument("-c", "--category", required=False, nargs="*", help="string of categories to sort the hkl classes into; for example '5 10 15' will provide count of hkls less than index 5, less than index 10 and greater than 5, and less than index 15 and greater than 10")
 
@@ -218,7 +255,10 @@ def query_hklmax():
     
     try:
         cat = config["category"]
-        cat = [float(i) for i in cat[0].split(' ')]
+        if len(cat) > 1:
+            cat = [float(i.strip("'")) for i in cat]
+        else:
+            cat = [float(i) for i in cat[0].split(' ')]
         if cat == None:
             print("hkl category not defined, using default index of 5s")
             cat = [5, 10, 15, 20, 25, 30]
