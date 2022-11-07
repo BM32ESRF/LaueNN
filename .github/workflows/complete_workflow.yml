@@ -1,0 +1,96 @@
+name: Lint, test, build, and publish
+
+on: 
+  push:
+  
+
+jobs:
+  lint_and_test:
+    name: Runs the linter and tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies and Lauetools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Test with pytest
+        run: |
+          pytest
+
+  build-n-publish-pypi:
+    name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
+    needs: lint_and_test
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - name: Install dependencies
+      run: |
+        python -m pip install versiontag
+        python -m pip install setuptools-scm==4.1.2
+        python -m pip install wheel==0.34.2
+        python -m pip install --upgrade pip
+        pip install setuptools wheel twine
+    - name: Publish a Python distribution to PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        python setup.py sdist bdist_wheel
+        twine upload dist/*
+
+  build-n-publish-anaconda-win-mac-linux:
+    name: Build and publish anaconda packages
+    needs: lint_and_test
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: publish-to-conda
+        uses: ravipurohit1991/conda-package-publish-action@v1.3
+        with:
+          subDir: 'conda'
+          AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}
+
+  build-n-publish-anaconda-noarch:
+    name: Build and publish anaconda packages
+    needs: lint_and_test
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: publish-to-conda
+        uses: ravipurohit1991/conda-package-publish-action@v1.4
+        with:
+          subDir: 'conda.noarch'
+          AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}

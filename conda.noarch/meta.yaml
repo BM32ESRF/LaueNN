@@ -1,9 +1,8 @@
 {% set name = "lauetoolsnn" %}
-{% set data = load_setup_py_data() %}
 
 package:
   name: {{ name|lower }}
-  version: {{ data['version'] }}
+  version: {{ GIT_DESCRIBE_TAG }}
 
 source:
   path: ..
@@ -37,6 +36,8 @@ requirements:
     - scipy
     - numpy
     - pip
+    - setuptools
+    - setuptools_scm
   host:
     - python >=3.7
     - matplotlib-base
@@ -52,6 +53,8 @@ requirements:
     - scikit-image
     - tqdm
     - pip
+    - setuptools
+    - setuptools_scm
   run:
     - python >=3.7
     - matplotlib-base >=3.4.2
