@@ -8,8 +8,9 @@ with open(os.path.join(os.path.dirname(__file__), "README.md")) as readme:
 
 setuptools.setup(
     name="lauetoolsnn",
-    
-    version="3.0.79",
+    use_scm_version=True,
+    setup_requires=['setuptools_scm'],
+    #version="3.0.79",
 
     author="Ravi raj purohit PURUSHOTTAM RAJ PUROHIT",
     
