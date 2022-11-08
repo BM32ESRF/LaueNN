@@ -20,14 +20,8 @@ build:
   number: 0
   
 requirements:
-  build:
-    - python >=3.7
-    - pip
-    - setuptools
-    - setuptools_scm
-    - numpy >=1.17
   host:
-    - python >=3.7
+    - python <3.9
     - pip
     - setuptools
     - setuptools_scm
@@ -35,17 +29,17 @@ requirements:
   run:
     - python >=3.7
     - matplotlib-base >=3.4.2
-    - keras >=2.7.0
     - scipy >=1.7.0
     - numpy >=1.17
     - h5py >=3.1
-    - tensorflow >=2.7.0
     - pyqt >=5.9
     - scikit-learn >=0.24.2
     - fabio >=0.11
     - networkx >=2.6.3
     - scikit-image >=0.18
     - tqdm >=4.60
+    - keras >=2.7.0
+    - tensorflow >=2.7.0
 
 test:
   imports:
