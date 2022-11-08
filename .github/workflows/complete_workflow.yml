@@ -1,7 +1,8 @@
-name: Lint, test, build, and publish
+name: Lint, test, build, and publish (PyPI and Conda)
 
-on: 
-  push:
+on:
+  release:
+    types: [published]
   
 
 jobs:
