@@ -95,7 +95,7 @@ jobs:
       - name: convert packages
         shell: bash -l {0}
         run: |
-          conda convert -p osx-arm64 -p osx-64 -o conda_convert ${{ steps.conda_validation.outputs.package_paths }}
+          conda convert -p osx-arm64 -p osx-64 -p win-64 -o conda_convert ${{ steps.conda_validation.outputs.package_paths }}
           mkdir conda_convert/linux-64
           cp -f ${{ steps.conda_validation.outputs.package_paths }} conda_convert/linux-64
       - name: upload to anaconda
