@@ -21,7 +21,36 @@ build:
   
 requirements:
   build:
-    - python
+    - python >=3.7
+    - tqdm
+    - scikit-image
+    - fabio
+    - scikit-learn
+    - tensorflow
+    - h5py
+    - keras
+    - networkx
+    - pyqt
+    - matplotlib-base
+    - scipy
+    - numpy
+    - pip
+    - setuptools
+    - setuptools_scm
+  host:
+    - python >=3.7
+    - matplotlib-base
+    - keras
+    - scipy
+    - numpy
+    - h5py
+    - tensorflow
+    - pyqt
+    - scikit-learn
+    - fabio
+    - networkx
+    - scikit-image
+    - tqdm
     - pip
     - setuptools
     - setuptools_scm
@@ -38,7 +67,7 @@ requirements:
     - fabio >=0.11.0
     - networkx >=2.6.3
     - scikit-image >=0.18.0
-    - conda-forge::tqdm >=4.60.0
+    - tqdm >=4.60.0
 
 test:
   imports:
