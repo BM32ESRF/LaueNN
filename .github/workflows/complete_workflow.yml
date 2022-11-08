@@ -63,7 +63,7 @@ jobs:
         python setup.py sdist bdist_wheel
         twine upload dist/*
 
-  build-n-publish-anaconda-win-mac-linux:
+  build-n-publish-anaconda:
     name: Build and publish anaconda packages
     needs: lint_and_test
     runs-on: ubuntu-latest
@@ -73,24 +73,62 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: publish-to-conda
-        uses: ravipurohit1991/conda-package-publish-action@v1.3
+      - uses: conda-incubator/setup-miniconda@v2
         with:
-          subDir: 'conda'
-          AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}
+          python-version: 3.9
+      - name: install conda build
+        shell: bash -l {0}
+        run: conda install conda-build conda-verify anaconda-client
+      # Runs the action with the following inputs or defaults if not specified.
+      - name: validate recipe
+        shell: bash -l {0}
+        id: conda_validation
+        run: |
+          PACKAGE_PATHS=$(conda build . --output --check -c conda-forge)
+          PACKAGE_PATHS="${PACKAGE_PATHS//$'\n'/' '}"
+          PACKAGE_PATHS="${PACKAGE_PATHS//$'\r'/''}"
+          echo "::set-output name=package_paths::$PACKAGE_PATHS"
+      - name: run build
+        shell: bash -l {0}
+        run: conda build . -c conda-forge
+      - name: convert packages
+        shell: bash -l {0}
+        run: |
+          conda convert -p osx-arm64 -p osx-64 -o conda_convert ${{ steps.conda_validation.outputs.package_paths }}
+          mkdir conda_convert/linux-64
+          cp -f ${{ steps.conda_validation.outputs.package_paths }} conda_convert/linux-64
+      - name: upload to anaconda
+        shell: bash -l {0}
+        run: anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload --no-progress --force conda_convert/*/*
 
-  build-n-publish-anaconda-noarch:
-    name: Build and publish anaconda packages
-    needs: lint_and_test
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
+  # build-n-publish-anaconda-win-mac-linux:
+    # name: Build and publish anaconda packages
+    # needs: lint_and_test
+    # runs-on: ubuntu-latest
+    # if: startsWith(github.ref, 'refs/tags/')
 
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: publish-to-conda
-        uses: ravipurohit1991/conda-package-publish-action@v1.4
-        with:
-          subDir: 'conda.noarch'
-          AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}
+    # steps:
+      # - uses: actions/checkout@v2
+        # with:
+          # fetch-depth: 0
+      # - name: publish-to-conda
+        # uses: ravipurohit1991/conda-package-publish-action@v1.3
+        # with:
+          # subDir: 'conda'
+          # AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}
+
+  # build-n-publish-anaconda-noarch:
+    # name: Build and publish anaconda packages
+    # needs: lint_and_test
+    # runs-on: ubuntu-latest
+    # if: startsWith(github.ref, 'refs/tags/')
+
+    # steps:
+      # - uses: actions/checkout@v2
+        # with:
+          # fetch-depth: 0
+      # - name: publish-to-conda
+        # uses: ravipurohit1991/conda-package-publish-action@v1.4
+        # with:
+          # subDir: 'conda.noarch'
+          # AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}
