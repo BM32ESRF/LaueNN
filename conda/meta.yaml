@@ -16,7 +16,7 @@ build:
     - lauenn_maxhkl=lauetoolsnn.util_scripts.add_material:query_hklmax
     - lauenn_pymatgen=lauetoolsnn.util_scripts.add_material:pymatgen_query
     - lauenn_example=lauetoolsnn.util_scripts.add_material:example_scripts
-  script: {{ PYTHON }} -m pip install --no-deps .
+  script: {{ PYTHON }} -m pip install --no-deps --ignore-installed .
   number: 0
   
 requirements:
@@ -34,23 +34,6 @@ requirements:
     - matplotlib-base
     - scipy
     - numpy
-    - pip
-    - setuptools
-    - setuptools_scm
-  host:
-    - python >=3.7
-    - matplotlib-base
-    - keras
-    - scipy
-    - numpy
-    - h5py
-    - tensorflow
-    - pyqt
-    - scikit-learn
-    - fabio
-    - networkx
-    - scikit-image
-    - tqdm
     - pip
     - setuptools
     - setuptools_scm
