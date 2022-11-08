@@ -92,7 +92,7 @@ jobs:
           echo "::set-output name=package_paths::$PACKAGE_PATHS"
       - name: run build
         shell: bash -l {0}
-        run: conda build . -c conda-forge
+        run: conda build -c conda-forge --output-folder . .
       - name: convert packages
         shell: bash -l {0}
         run: |
