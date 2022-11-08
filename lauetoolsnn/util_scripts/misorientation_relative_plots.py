@@ -3,14 +3,11 @@
 Created on Mon Mar 21 19:04:03 2022
 
 @author: PURUSHOT
+
+Script to test misorientation functions
+
 """
 import numpy as np
-
-
-# =============================================================================
-# PYMICRO FUNCTION IMPORTS
-# =============================================================================
-
 def move_rotation_to_FZ(g, symmetry_operators = None):
     """Compute the rotation matrix in the Fundamental Zone of a given
     `Symmetry` instance.

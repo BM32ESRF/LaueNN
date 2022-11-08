@@ -85,7 +85,7 @@ test:
     - tqdm
     
 about:
-  home: https://github.com/ravipurohit1991/lauetoolsnn
+  home: https://github.com/BM32ESRF/LaueNN
   summary: LaueNN- neural network training and prediction routine to index single and polycrystalline Laue diffraction patterns
   license: MIT
 
