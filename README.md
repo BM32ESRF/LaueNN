@@ -8,8 +8,6 @@
 [![PyPI](https://img.shields.io/pypi/v/lauetoolsnn)](https://pypi.python.org/pypi/lauetoolsnn/)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/lauetoolsnn.svg)](https://pypi.python.org/pypi/lauetoolsnn/)
 
-
-[![Publish_Conda](https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_conda.yml/badge.svg)](https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_conda.yml)
 [![Anaconda-Server Badge](https://anaconda.org/bm32esrf/lauetoolsnn/badges/license.svg)](https://anaconda.org/bm32esrf/lauetoolsnn)
 [![Conda](https://img.shields.io/conda/v/bm32esrf/lauetoolsnn?style=flat-square)](https://anaconda.org/bm32esrf/lauetoolsnn)
 
