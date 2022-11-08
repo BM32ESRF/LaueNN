@@ -10,12 +10,6 @@
 
 .. |GitHub tag| image:: https://img.shields.io/github/v/tag/BM32ESRF/LaueNN?color=blue&label=Github%20tag
    :target: https://github.com/BM32ESRF/LaueNN
-   
-.. |Python package| image:: https://github.com/BM32ESRF/LaueNN/actions/workflows/python-package.yml/badge.svg
-   :target: https://github.com/BM32ESRF/LaueNN/actions/workflows/python-package.yml
-   
-.. |Publish_PYPI| image:: https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_PYPI.yml/badge.svg
-   :target: https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_PYPI.yml
 
 .. |PyPI| image:: https://img.shields.io/pypi/v/lauetoolsnn
    :target: https://pypi.python.org/pypi/lauetoolsnn/
@@ -23,8 +17,8 @@
 .. |PyPI pyversions| image:: https://img.shields.io/pypi/pyversions/lauetoolsnn.svg
    :target: https://pypi.python.org/pypi/lauetoolsnn/
 
-.. |Publish_Conda| image:: https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_conda.yml/badge.svg
-   :target: https://github.com/BM32ESRF/LaueNN/actions/workflows/publish_conda.yml
+.. |Publish_Conda_PyPI| image:: https://github.com/BM32ESRF/LaueNN/actions/workflows/complete_workflow.yml/badge.svg
+   :target: (https://github.com/BM32ESRF/LaueNN/actions/workflows/complete_workflow.yml
 
 .. |Conda| image:: https://img.shields.io/conda/v/bm32esrf/lauetoolsnn?style=flat-square
    :target: https://anaconda.org/bm32esrf/lauetoolsnn
