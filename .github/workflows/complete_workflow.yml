@@ -71,12 +71,12 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
-      - uses: actions/checkout@v2.1.1
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - uses: conda-incubator/setup-miniconda@v2.1.0
         with:
-          python-version: 3.9
+          python-version: '3.9'
           channels: conda-forge
       - name: install conda build
         shell: bash -l {0}
@@ -92,7 +92,7 @@ jobs:
           echo "::set-output name=package_paths::$PACKAGE_PATHS"
       - name: run build
         shell: bash -l {0}
-        run: conda mambabuild -c conda-forge .
+        run: conda build -c conda-forge -c bioconda .
       - name: convert packages
         shell: bash -l {0}
         run: |
