@@ -71,7 +71,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.1.1
         with:
           fetch-depth: 0
       - uses: conda-incubator/setup-miniconda@v2.1.0
@@ -92,7 +92,7 @@ jobs:
           echo "::set-output name=package_paths::$PACKAGE_PATHS"
       - name: run build
         shell: bash -l {0}
-        run: conda build -c conda-forge --output-folder . .
+        run: conda mambabuild -c conda-forge .
       - name: convert packages
         shell: bash -l {0}
         run: |
