@@ -78,7 +78,6 @@ jobs:
         with:
           python-version: 3.9
           channels: conda-forge
-          environment-file: environment.yml
       - name: install conda build
         shell: bash -l {0}
         run: conda install conda-build conda-verify anaconda-client
