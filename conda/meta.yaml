@@ -38,7 +38,7 @@ requirements:
     - fabio >=0.11.0
     - networkx >=2.6.3
     - scikit-image >=0.18.0
-    - tqdm >=4.60.0
+    - conda-forge::tqdm >=4.60.0
 
 test:
   imports:
