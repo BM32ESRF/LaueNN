@@ -4449,16 +4449,16 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
         
         if input_params["mat"] == 1:
             list_ = np.where(np.abs(tab_angulardist_temp-dist123) < input_params["tolerance"])
-            final_crystal=crystal
+            # final_crystal=crystal
 
         elif input_params["mat"] == 2:
             list_ = np.where(np.abs(tab_angulardist_temp-dist123) < input_params["tolerance1"])
-            final_crystal=crystal1
+            # final_crystal=crystal1
 
-        if final_crystal != None:
-            symm_operator = final_crystal._hklsym
-        else:
-            symm_operator = np.eye(3)
+        # if final_crystal != None:
+        #     symm_operator = final_crystal._hklsym
+        # else:
+        #     symm_operator = np.eye(3)
 
         if len(list_[0]) == 0:
             return None, True, 0, 0
@@ -13791,11 +13791,11 @@ def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist12
         tab_angulardist_temp = CP.AngleBetweenNormals(hkl1_list, hkl2_list, Gstar_metric)
         list_ = np.where(np.abs(tab_angulardist_temp-dist123) < input_params["tolerance"][input_params["mat"]-1])
         
-        if crystal != None:
-            final_crystal=crystal[input_params["mat"]-1]
-            symm_operator = final_crystal._hklsym
-        else:
-            symm_operator = np.eye(3)
+        # if crystal != None:
+        #     final_crystal=crystal[input_params["mat"]-1]
+        #     symm_operator = final_crystal._hklsym
+        # else:
+        #     symm_operator = np.eye(3)
         
         if len(list_[0]) == 0:
             return None, True, 0, 0
@@ -15380,6 +15380,13 @@ class WalkerRandomSampling(object):
         j = np.random.randint(self.n, size=count)
         k = np.where(u <= self.prob[j], j, self.inx[j])
         return self.keys[k] if self.keys is not None else k
+
+# =============================================================================
+# Procedure for calculating average UBs in a LaueImage
+# Only tested for Cubic and not for other symmetries
+# =============================================================================
+
+
 
 
 def convert_pickle_to_hdf5():
