@@ -1,8 +1,8 @@
 .. image:: ./images/frame.png
 
 |Supported Platforms| |GitHub tag|
-|Python package| |Publish_PYPI| |PyPI| |PyPI pyversions|
-|Publish_Conda| |Conda|
+|PyPI| |PyPI pyversions|
+|Publish_Conda_PyPI| |Conda|
 |contributions welcome|
 
 .. |Supported Platforms| image:: https://img.shields.io/conda/pn/bm32esrf/lauetoolsnn?color=green&label=supported%20platform
