@@ -88,8 +88,6 @@ def disorientation(orientation_matrix, orientation_matrix1, symmetry_operators=N
         numpy vector (crystal coordinates), the axis as a numpy vector
         (sample coordinates).
     """
-    # gA = move_rotation_to_FZ(orientation_matrix, symmetry_operators=symmetry_operators)
-    # gB = move_rotation_to_FZ(orientation_matrix1, symmetry_operators=symmetry_operators)
     the_angle = np.pi
     symmetries = symmetry_operators
     (gA, gB) = (orientation_matrix, orientation_matrix1)  # nicknames
@@ -212,7 +210,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from tqdm import trange
 
 folder = os.getcwd()
-with open("results.pickle", "rb") as input_file:
+with open("D:\some_projects\GaN\Si_GaN_nanowires\results_Si_2022-07-08_18-22-15\results.pickle", "rb") as input_file:
     best_match, \
     mat_global, rotation_matrix1, strain_matrix, strain_matrixs,\
         col, colx, coly, match_rate, files_treated,\

@@ -169,6 +169,26 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
     # global_path: path where all model related files will be saved
     global_path = input_params["global_path"]
     
+    ## verify the length of material key
+    if len(input_params["material_"]) > 2:
+        print("This script uses modules of LaueNN that only supports maximum of two materials; please use multi-material script incase of more than 2phases")
+        print("The script will run, however, will only use the first 2 materials")
+    
+    if len(input_params["material_"]) == 1:
+        print("only one material is defined")
+        ## modify the dictionary for two phase
+        input_params["material_"].append(input_params["material_"][0])
+        input_params["symmetry"].append(input_params["symmetry"][0])
+        input_params["SG"].append(input_params["SG"][0])
+        input_params["hkl_max_identify"].append(input_params["hkl_max_identify"][0])
+        input_params["nb_grains_per_lp_mat"].append(input_params["nb_grains_per_lp_mat"][0])
+        
+        input_params["classes_with_frequency_to_remove"].append(input_params["classes_with_frequency_to_remove"][0])
+        input_params["desired_classes_output"].append(input_params["desired_classes_output"][0])
+        input_params["matrix_tolerance"].append(input_params["matrix_tolerance"][0])
+        input_params["material_limit"].append(input_params["material_limit"][0])
+        input_params["tolerance_strain_refinement"].append(input_params["tolerance_strain_refinement"][0])
+        
     if write_config_GUI:
         ## write config file for GUI 
         if input_params["material_"][0] != input_params["material_"][1]:

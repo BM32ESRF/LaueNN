@@ -97,7 +97,7 @@ try:
         predict_preprocessMP, global_plots, texttstr1, get_material_data,\
         write_training_testing_dataMTEX, SGLattice, simulate_spots, mse_images, \
         generate_classHKL, rmv_freq_class, array_generator, vali_array, array_generator_verify,\
-        worker, predict_preprocessMP_vsingle,\
+        worker, predict_preprocessMP_vsingle,write_average_orientation,\
         computeGnomonicImage, OrientationMatrix2Euler #save_sst
 except:
     from utils_lauenn import Symmetry,Lattice,\
@@ -106,7 +106,7 @@ except:
         predict_preprocessMP, global_plots, texttstr1, get_material_data,\
         write_training_testing_dataMTEX, SGLattice, simulate_spots, mse_images, \
         generate_classHKL, rmv_freq_class, array_generator, vali_array, array_generator_verify,\
-        worker, predict_preprocessMP_vsingle,\
+        worker, predict_preprocessMP_vsingle,write_average_orientation,\
         computeGnomonicImage, OrientationMatrix2Euler #save_sst
 
 try:
@@ -4203,7 +4203,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
             
         self.strain_plot = QComboBox()
         choices = ["11_sample","22_sample","33_sample","12_sample","13_sample","23_sample",\
-                   "11_crystal","22_crystal","33_crystal","12_crystal","13_crystal","23_crystal"]
+                   "11_crystal","22_crystal","33_crystal","12_crystal","13_crystal","23_crystal","misorientation"]
         for s in choices:
             self.strain_plot.addItem(s)
         
@@ -5227,7 +5227,16 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                               self.lim_x, self.lim_y, self.spots_len, self.iR_pix, self.fR_pix,
                               self.material_, self.material1_, self.lattice_, self.lattice1_,
                               self.symmetry, self.symmetry1, self.crystal, self.crystal1], output_file)     
-
+            
+        ## Lets save also a set of average UB matrix in text file to be used with user_OM setting    
+        try:
+            write_average_orientation(save_directory_, self.mat_global, self.rotation_matrix,
+                                          self.match_rate, self.lim_x, self.lim_y, 
+                                          threshold=0.1, grain_ang=1)
+        except:
+            print("Error with Average orientation and grain index calculation")
+            
+            
         try:
             ## Write global text file with all results
             if self.material_ != self.material1_:
@@ -6267,10 +6276,13 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                             "pixelsize": pixelsize}
                 
                 path = os.path.normpath(files)
-                IOLT.writefile_cor(cor_file_directory+"//"+path.split(os.sep)[-1].split(".")[0], twicetheta, 
-                                   chi, peak_XY[:,0], peak_XY[:,1], peak_XY[:,2],
-                                   param=CCDcalib, sortedexit=0)
-                
+                try:
+                    IOLT.writefile_cor(cor_file_directory+"//"+path.split(os.sep)[-1].split(".")[0], twicetheta, 
+                                       chi, peak_XY[:,0], peak_XY[:,1], peak_XY[:,2],
+                                       param=CCDcalib, sortedexit=0)
+                except:
+                    print("Error writing the cor file", path)
+                    
             elif files.split(".")[-1] == "cor":
                 seednumber = "Experimental COR file"
                 allres = IOLT.readfile_cor(files, True)

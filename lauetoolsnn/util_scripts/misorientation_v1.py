@@ -130,6 +130,204 @@ def calc_disorient(y_true, y_pred):
 def replacenan(t):
     t[np.isnan(t)] = 0
     return t
+
+
+###other symmetry misorientations
+# Step_1: get the symmetry operators
+# sym_ops = sym_operator(lattice)
+# Step_2: make sure both are in the same frame
+# Step_3: calculate misorientations among all possible pairs
+# _drs = [other.q.conjugate * self.q * op for op in sym_ops]
+# # Step_4: Locate the one pair with the smallest rotation angle
+# _dr = _drs[np.argmin([me.rot_angle for me in _drs])]
+# return (_dr.rot_angle, _dr.rot_axis)
+
+def misorientation_axis_from_delta(delta):
+    """Compute the misorientation axis from the misorientation matrix.
+
+    :param delta: The 3x3 misorientation matrix.
+    :returns: the misorientation axis (normalised vector).
+    """
+    n = np.array([delta[1, 2] - delta[2, 1], delta[2, 0] -
+                  delta[0, 2], delta[0, 1] - delta[1, 0]])
+    n /= np.sqrt((delta[1, 2] - delta[2, 1]) ** 2 +
+                 (delta[2, 0] - delta[0, 2]) ** 2 +
+                 (delta[0, 1] - delta[1, 0]) ** 2)
+    return n
+
+def misorientation_angle_from_delta(delta):
+    """Compute the misorientation angle from the misorientation matrix.
+
+    Compute the angle associated with this misorientation matrix :math:`\\Delta g`.
+    It is defined as :math:`\\omega = \\arccos(\\text{trace}(\\Delta g)/2-1)`.
+    To avoid float rounding error, the argument is rounded to 1.0 if it is
+    within 1 and 1 plus 32 bits floating point precison.
+
+    .. note::
+
+      This does not account for the crystal symmetries. If you want to
+      find the disorientation between two orientations, use the
+      :py:meth:`~pymicro.crystal.microstructure.Orientation.disorientation`
+      method.
+
+    :param delta: The 3x3 misorientation matrix.
+    :returns float: the misorientation angle in radians.
+    """
+    cw = 0.5 * (delta.trace() - 1)
+    if cw > 1. and cw - 1. < 10 * np.finfo('float32').eps:
+        cw = 1.
+    omega = np.arccos(cw)
+    return omega
+
+def disorientation(orientation_matrix, orientation_matrix1, symmetry_operators=None):
+    """Compute the disorientation another crystal orientation.
+
+    Considering all the possible crystal symmetries, the disorientation
+    is defined as the combination of the minimum misorientation angle
+    and the misorientation axis lying in the fundamental zone, which
+    can be used to bring the two lattices into coincidence.
+
+    .. note::
+
+     Both orientations are supposed to have the same symmetry. This is not
+     necessarily the case in multi-phase materials.
+
+    :param orientation: an instance of
+        :py:class:`~pymicro.crystal.microstructure.Orientation` class
+        describing the other crystal orientation from which to compute the
+        angle.
+    :param crystal_structure: an instance of the `Symmetry` class
+        describing the crystal symmetry, triclinic (no symmetry) by
+        default.
+    :returns tuple: the misorientation angle in radians, the axis as a
+        numpy vector (crystal coordinates), the axis as a numpy vector
+        (sample coordinates).
+    """
+    the_angle = np.pi
+    symmetries = symmetry_operators
+    (gA, gB) = (orientation_matrix, orientation_matrix1)  # nicknames
+    for (g1, g2) in [(gA, gB), (gB, gA)]:
+        for j in range(symmetries.shape[0]):
+            sym_j = symmetries[j]
+            oj = np.dot(sym_j, g1)  # the crystal symmetry operator is left applied
+            for i in range(symmetries.shape[0]):
+                sym_i = symmetries[i]
+                oi = np.dot(sym_i, g2)
+                delta = np.dot(oi, oj.T)
+                mis_angle = misorientation_angle_from_delta(delta)
+                if mis_angle < the_angle:
+                    # now compute the misorientation axis, should check if it lies in the fundamental zone
+                    mis_axis = misorientation_axis_from_delta(delta)
+                    the_angle = mis_angle
+                    the_axis = mis_axis
+                    the_axis_xyz = np.dot(oi.T, the_axis)
+    return np.rad2deg(the_angle), the_axis, the_axis_xyz
+
+def disorientation_array(orientation_matrix, orientation_matrix1, symmetry_operators=None):
+    """Compute the disorientation another crystal orientation.
+
+    Considering all the possible crystal symmetries, the disorientation
+    is defined as the combination of the minimum misorientation angle
+    and the misorientation axis lying in the fundamental zone, which
+    can be used to bring the two lattices into coincidence.
+
+    .. note::
+
+     Both orientations are supposed to have the same symmetry. This is not
+     necessarily the case in multi-phase materials.
+
+    :param orientation: an instance of
+        :py:class:`~pymicro.crystal.microstructure.Orientation` class
+        describing the other crystal orientation from which to compute the
+        angle.
+    :param crystal_structure: an instance of the `Symmetry` class
+        describing the crystal symmetry, triclinic (no symmetry) by
+        default.
+    :returns tuple: the misorientation angle in radians, the axis as a
+        numpy vector (crystal coordinates), the axis as a numpy vector
+        (sample coordinates).
+    """
+    the_angle = np.pi
+    symmetries = symmetry_operators
+    (g1, g2) = (orientation_matrix, orientation_matrix1)  # nicknames
+
+    ##vectorize
+    oj = np.dot(symmetries, g1) #shape of len(symm),3,3
+    ojT = np.transpose(oj, axes=(0,2,1))
+    oi = np.dot(symmetries, g2)
+    # delta = np.dot(oi, ojT)
+    delta = np.einsum('ijkl,nlm->kinjm', oi, ojT)
+    #### misorientation_angle_from_delta
+    # tr = np.trace(delta, axis1=1, axis2=3)
+    tr = np.trace(delta, axis1=3, axis2=4)
+    cw = 0.5 * (tr - 1)
+    cond = (cw>1.) * (cw - 1. < 10 * np.finfo('float32').eps)
+    cw[cond] = 1.0
+    mis_angle = np.arccos(cw)
+    mis_angle[np.isnan(mis_angle)] = np.pi
+    
+    the_angle = mis_angle.min(axis=(1,2))
+    the_angle = np.rad2deg(the_angle)
+    return the_angle
+
+def OrientationMatrix2Rodrigues(g):
+    """
+    Compute the rodrigues vector from the orientation matrix.
+
+    :param g: The 3x3 orientation matrix representing the rotation.
+    :returns: The Rodrigues vector as a 3 components array.
+    """
+    t = g.trace() + 1
+    if np.abs(t) < np.finfo(g.dtype).eps:
+        print('warning, returning [0., 0., 0.], consider using axis, angle '
+              'representation instead')
+        return np.zeros(3)
+    else:
+        r1 = (g[1, 2] - g[2, 1]) / t
+        r2 = (g[2, 0] - g[0, 2]) / t
+        r3 = (g[0, 1] - g[1, 0]) / t
+    return np.array([r1, r2, r3])
+
+def Rodrigues2OrientationMatrix(rod):
+    """
+    Compute the orientation matrix from the Rodrigues vector.
+
+    :param rod: The Rodrigues vector as a 3 components array.
+    :returns: The 3x3 orientation matrix representing the rotation.
+    """
+    r = np.linalg.norm(rod)
+    I = np.diagflat(np.ones(3))
+    if r < np.finfo(r.dtype).eps:
+        # the rodrigues vector is zero, return the identity matrix
+        return I
+    theta = 2 * np.arctan(r)
+    n = rod / r
+    omega = np.array([[0.0, n[2], -n[1]],
+                      [-n[2], 0.0, n[0]],
+                      [n[1], -n[0], 0.0]])
+    g = I + np.sin(theta) * omega + (1 - np.cos(theta)) * omega.dot(omega)
+    return g
+
+def compute_mean_orientation(orientation_matrix, symmetry_operators=None):
+    """Compute the mean orientation.
+
+    This function computes a mean orientation from several data points
+    representing orientations. Each orientation is first moved to the
+    fundamental zone, then the corresponding Rodrigues vectors can be
+    averaged to compute the mean orientation.
+
+    :param ndarray rods: a (n, 3) shaped array containing the Rodrigues
+    vectors of the orientations.
+    :param `Symmetry` symmetry: the symmetry used to move orientations
+    to their fundamental zone (cubic by default)
+    :returns: the mean orientation as an `Orientation` instance.
+    """
+    rods_fz = np.zeros((len(orientation_matrix),3))
+    for i in range(len(orientation_matrix)):
+        # g_fz = move_rotation_to_FZ(orientation_matrix[i], symmetry_operators=symmetry_operators)
+        rods_fz[i] = OrientationMatrix2Rodrigues(orientation_matrix[i])
+    mean_orientation = Rodrigues2OrientationMatrix(np.mean(rods_fz, axis=0))
+    return mean_orientation
 #%%
 import matplotlib.pyplot as plt
 import os
@@ -138,7 +336,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from tqdm import trange
 
 folder = os.getcwd()
-with open(r"C:\Users\purushot\Desktop\SiC\results_triangle_5UBs\results.pickle", "rb") as input_file:
+with open(r"D:\some_projects\GaN\Si_GaN_nanowires\results_Si_2022-07-08_18-22-15\results.pickle", "rb") as input_file:
     best_match, \
     mat_global, rotation_matrix1, strain_matrix, strain_matrixs,\
         col, colx, coly, match_rate, files_treated,\
@@ -154,110 +352,164 @@ bins = 100
 rangeval = len(match_rate)
 material_id = [material_, material1_]
 
-print("Number of Phases present", len(np.unique(np.array(mat_global)))-1)
+print("Number of Phases present (includes non indexed phase zero also)", len(np.unique(np.array(mat_global))))
 
     
 #%%
-for matid in range(matnumber):
-    for index in range(len(rotation_matrix1)):
+average_UB = []
+nb_pixels = []
+mat_index = []
+
+for index in range(len(rotation_matrix1)):
+    for val in np.unique(mat_global[index][0]):
+        if val == 0:
+            continue ##skipping no indexed patterns
+        
+        if val == 1:
+            crystal_symm = np.array(crystal._hklsym)
+        elif val == 2:
+            crystal_symm = np.array(crystal1._hklsym)
+            
+        mat_index1 = mat_global[index][0]
+        mask_ = np.where(mat_index1 != val)[0]
+        
         quats = []
-        rotation_matrix_transformed = []
         for om_ind in range(len(rotation_matrix1[index][0])):
             ##convert the UB matrix to sample reference frame
             orientation_matrix = rotation_matrix1[index][0][om_ind]
-            ##Transformation not needed, so we dont have to reapply this to index in Lauetools frame
-            # ## rotate orientation by 40degrees to bring in Sample RF
-            # omega = np.deg2rad(-40)
-            # cw = np.cos(omega)
-            # sw = np.sin(omega)
-            # mat_from_lab_to_sample_frame = np.array([[cw, 0.0, sw], [0.0, 1.0, 0.0], [-sw, 0, cw]]) #Y
-            # orientation_matrix = np.dot(mat_from_lab_to_sample_frame.T, orientation_matrix)
-    
-            # if np.linalg.det(orientation_matrix) < 0:
-            #     orientation_matrix = -orientation_matrix
             #make quaternion from UB matrix
             quats.append(rmat_2_quat(orientation_matrix))
-            rotation_matrix_transformed.append(orientation_matrix)
         quats = np.array(quats)
-        
-        misori = []
-        for ii in trange(len(quats)):
-            misori.append(calc_disorient(quats[ii,:], quats))
-        
-        misori = np.array(misori)
         
         mr = match_rate[index][0]
         mr = mr.flatten()
+        
+        mr[mask_] = 0
         if np.max(mr) == 0:
             continue
         
         ref_index = np.where(mr == np.max(mr))[0][0] ##choose from best matching rate
+        ##Quats approach
+        misori_quats = calc_disorient(quats[ref_index,:], quats)
+        ##Pymicro approach
+        misori_UB = disorientation_array(rotation_matrix1[index][0][ref_index,:,:],
+                                                    rotation_matrix1[index][0],
+                                                    np.unique(crystal_symm, axis=0))
+        misori = misori_UB
         
         ##Lets bin the angles to know how many significant grains are present
-        max_ang = int(np.max(misori[ref_index,:])) + 1
-        zz, binzz = np.histogram(misori[ref_index,:], bins=max_ang) #1°bin
+        max_ang = int(np.max(replacenan(misori))) + 5
         
-        bin_index = np.where(zz> 0.05*np.max(zz))[0]
+        misori[mask_] = -1
+        bins = np.arange(0,max_ang, 1)
+        zz, binzz = np.histogram(misori, bins=bins) #1°bin
+        
+        bin_index = np.where(zz> 0.1*np.max(zz))[0]
         bin_angles = binzz[bin_index]
-        
-        
-        rotation_matrix_transformed = np.array(rotation_matrix_transformed)
-        
-        average_UB = []
-        grains = np.copy(misori[ref_index,:])
-        for kk, jj in enumerate(bin_angles):
-            if jj ==0:
-                cond = (grains<jj+1)
-            else:
-                cond = (grains<jj+1) * (grains>jj-1)
                 
-            grain_om = rotation_matrix_transformed[cond, :, :]
+        grains = np.copy(misori)
+        grains_segmentation = np.zeros_like(misori)
+        
+        grain_tol = 2.5
+        for kk, jj in enumerate(bin_angles):
+            if jj == 0:
+                cond = (grains<=jj+grain_tol)* (grains>=90-grain_tol)
+            else:
+                cond = (grains<=jj+grain_tol) * (grains>=jj-grain_tol)            
+            
+            ### Apply more filters to select good data only here
+            if np.all(cond == False):
+                continue
+            
+            grain_om = rotation_matrix1[index][0][cond,:,:]
+            avg_om_grain = compute_mean_orientation(grain_om)
+            
             grain_quats = quats[cond, :]
             avg_quat_grain = average_quaternions(grain_quats)
             avg_quat_grain = normalize(avg_quat_grain)
             avg_euler_grain = quats_as_eulers(avg_quat_grain)
-            avg_om_grain = euler_as_matrix(avg_euler_grain).T
+            avg_om_grain_quat = euler_as_matrix(avg_euler_grain).T
             average_UB.append(avg_om_grain)
+            nb_pixels.append(len(cond[cond]))
+            mat_index.append(val)
             ## mask the grain pixels
-            grains[cond] = 360 + kk
+            for ll in range(len(cond)):
+                if cond[ll]:
+                    if grains_segmentation[ll] == 0:
+                        grains_segmentation[ll] = kk
         
-        grains[grains<350] = np.nan
-        grains = grains.reshape((lim_x,lim_y))
-        grains = grains - 360
-        
-        ####Average UBs misorientation with each other
-        average_UB = np.array(average_UB)
-        quats_UB = []
-        for om_ind in range(len(average_UB)):
-            quats_UB.append(rmat_2_quat(average_UB[om_ind, :, :]))
-        quats_UB = np.array(quats_UB)
-        misori_avg = []
-        for ii in range(len(quats_UB)):
-            misori_avg.append(calc_disorient(quats_UB[ii,:], quats_UB))
-        misori_avg = np.array(misori_avg)
+        grains = grains_segmentation.reshape((lim_x,lim_y))
         
         fig = plt.figure(figsize=(11.69,8.27), dpi=100)
         bottom, top = 0.1, 0.9
         left, right = 0.1, 0.8
         fig.subplots_adjust(top=top, bottom=bottom, left=left, right=right, hspace=0.15, wspace=0.25)
-        axs = fig.subplots(1, 1)
-        axs.set_title(r"Grain map", loc='center', fontsize=8)
-        im=axs.imshow(grains, origin='lower', cmap=plt.cm.jet)
-        axs.set_xticks([])
-        axs.set_yticks([])
-        divider = make_axes_locatable(axs)
+        axs = fig.subplots(1, 2)
+        axs[0].set_title(r"Grain map", loc='center', fontsize=8)
+        im=axs[0].imshow(grains, origin='lower', cmap=plt.cm.jet)
+        axs[0].set_xticks([])
+        axs[0].set_yticks([])
+        divider = make_axes_locatable(axs[0])
         cax = divider.append_axes('right', size='5%', pad=0.05)
         cbar = fig.colorbar(im, cax=cax, orientation='vertical')
         cbar.ax.tick_params(labelsize=8) 
-        axs.label_outer()
+        axs[0].label_outer()
+        
+        axs[1].set_title(r"Misorientation map", loc='center', fontsize=8)
+        im=axs[1].imshow(misori.reshape((lim_x,lim_y)), origin='lower', cmap=plt.cm.jet)
+        axs[1].set_xticks([])
+        axs[1].set_yticks([])
+        divider = make_axes_locatable(axs[1])
+        cax = divider.append_axes('right', size='5%', pad=0.05)
+        cbar = fig.colorbar(im, cax=cax, orientation='vertical')
+        cbar.ax.tick_params(labelsize=8) 
+        axs[1].label_outer()
+        
         plt.show()
         # plt.savefig(folder+ "//"+'figure_misorientation_'+str(matid)+"_"+str(index)+'.png', 
         #             bbox_inches='tight',format='png', dpi=1000) 
         # plt.close(fig)
         
+####Average UBs misorientation with each other
+average_UB = np.array(average_UB)
+nb_pixels = np.array(nb_pixels)
+mat_index = np.array(mat_index)
+quats_UB = []
+for om_ind in range(len(average_UB)):
+    quats_UB.append(rmat_2_quat(average_UB[om_ind, :, :]))
+quats_UB = np.array(quats_UB)
+misori_avg = []
+for ii in range(len(quats_UB)):
+    misori_avg.append(calc_disorient(quats_UB[ii,:], quats_UB))
+misori_avg = np.array(misori_avg)
 
 
+s_ix = np.argsort(nb_pixels)[::-1]
+average_UB = average_UB[s_ix]
+nb_pixels = nb_pixels[s_ix]
+#############################
+save_directory_ = r"D:\some_projects\GaN\Si_GaN_nanowires\results_Si_2022-07-08_18-22-15"
+## save a average_rot_mat.txt file
+text_file = open(os.path.join(save_directory_,"average_rot_mat.txt"), "w")
+text_file.write("# ********** Average UB matrix from Misorientation computation *************\n")
 
+for imat in range(len(average_UB)):
+    local_ub = average_UB[imat,:,:].flatten()
+    string_ = ",".join(map(str, local_ub))
+    string_ = string_ + ","+str(mat_index[imat])
+    text_file.write("# ********** UB MATRIX "+str(imat+1)+" ********** \n")
+    text_file.write("# Nb of pixel occupied "+str(nb_pixels[imat])+"/"+str(lim_x*lim_y)+" ********** \n")
+    text_file.write(string_ + " \n")
+text_file.close()
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 
 
