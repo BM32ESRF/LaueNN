@@ -4225,7 +4225,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
             self.matrix_plot_tech.addItem(s)        
         
         self.analysis_plot_tech = QComboBox()
-        choices = ["slow", "graphmode", "update_reupdate", "houghmode"]#, "houghgraphmode"]
+        choices = ["slow", "graphmode", "update_reupdate"]
         for s in choices:
             self.analysis_plot_tech.addItem(s)
         

@@ -50,7 +50,7 @@ import configparser
 from multiprocessing import Process, Queue, cpu_count
 from tqdm import tqdm
 
-from skimage.transform import (hough_line, hough_line_peaks)
+# from skimage.transform import (hough_line, hough_line_peaks)
 # =============================================================================
 # Additonal networkx module
 import networkx as nx
@@ -2976,65 +2976,6 @@ def predict_ubmatrix(seednumber, spots_in_center, classhkl, hkl_all_class0,
                                                                         igrain=igrain,
                                                                         material_phase_always_present=material_phase_always_present,
                                                                         strain_free_parameters=strain_free_parameters)
-            elif mode_spotCycle == "houghmode":
-                # print("Slow mode of analysis")
-                first_match, max_mr, min_mr, spots, \
-                        case, mat, strain_crystal, \
-                            strain_sample, iR, fR  = get_orient_mat_HM(s_tth1, s_chi1,
-                                                                        material_, material1_, classhkl,
-                                                                        class_predicted1, predicted_hkl1,
-                                                                        input_params, hkl_all_class0, hkl_all_class1,
-                                                                        max_pred1, dict_dp, 
-                                                                        spots1, dist, 
-                                                                        Gstar_metric0, Gstar_metric1, B0, B1,
-                                                                        softmax_threshold=softmax_threshold_global123,
-                                                                        mr_threshold=mr_threshold_global123,
-                                                                        tab_distance_classhkl_data0=tab_distance_classhkl_data0,
-                                                                        tab_distance_classhkl_data1=tab_distance_classhkl_data1,
-                                                                        spots1_global = spots1_global,
-                                                                        coeff_overlap = coeff_overlap,
-                                                                        ind_mat=ind_mat, ind_mat1=ind_mat1, 
-                                                                        strain_calculation=strain_calculation,
-                                                                        cap_matchrate123=cap_matchrate123,
-                                                                        material0_count=material0_count,
-                                                                        material1_count=material1_count,
-                                                                        material0_limit=material0_limit,
-                                                                        material1_limit=material1_limit,
-                                                                        igrain=igrain,
-                                                                        material_phase_always_present=material_phase_always_present,
-                                                                        strain_free_parameters=strain_free_parameters)
-            elif mode_spotCycle == "houghgraphmode":
-                # print("Fast mode of analysis")
-                first_match, max_mr, min_mr, spots, \
-                        case, mat, strain_crystal, \
-                            strain_sample, iR, fR,\
-                            objective_function1  = get_orient_mat_graphv1HM(s_tth1, s_chi1,
-                                                                        material_, material1_, classhkl,
-                                                                        class_predicted1, predicted_hkl1,
-                                                                        input_params, hkl_all_class0, hkl_all_class1,
-                                                                        max_pred1, dict_dp, 
-                                                                        spots1, dist, 
-                                                                        Gstar_metric0, Gstar_metric1, B0, B1,
-                                                                        softmax_threshold=softmax_threshold_global123,
-                                                                        mr_threshold=mr_threshold_global123,
-                                                                        tab_distance_classhkl_data0=tab_distance_classhkl_data0,
-                                                                        tab_distance_classhkl_data1=tab_distance_classhkl_data1,
-                                                                        spots1_global = spots1_global,
-                                                                        coeff_overlap = coeff_overlap,
-                                                                        ind_mat=ind_mat, ind_mat1=ind_mat1, 
-                                                                        strain_calculation=strain_calculation,
-                                                                        cap_matchrate123=cap_matchrate123,
-                                                                        material0_count=material0_count,
-                                                                        material1_count=material1_count,
-                                                                        material0_limit=material0_limit,
-                                                                        material1_limit=material1_limit,
-                                                                        igrain=igrain,
-                                                                        material_phase_always_present=material_phase_always_present,
-                                                                        objective_function= objective_function1,
-                                                                        crystal=crystal,
-                                                                        crystal1=crystal1,
-                                                                        strain_free_parameters=strain_free_parameters)
-
             elif mode_spotCycle == "graphmode":
                 # print("Fast mode of analysis")
                 first_match, max_mr, min_mr, spots, \
@@ -3474,325 +3415,6 @@ def get_orient_mat_repredict(s_tth, s_chi, material0_, material1_, classhkl, cla
     return all_stats, max_mr, min_mr, spot_ind, case, mat, np.zeros((3,3)), np.zeros((3,3)), 0, 0, objective_function,\
             s_tth, s_chi, class_predicted, predicted_hkl, max_pred, dist
 
-
-def get_orient_mat_graphv1HM(s_tth, s_chi, material0_, material1_, classhkl, class_predicted, predicted_hkl,
-                       input_params, hkl_all_class0, hkl_all_class1, max_pred, dict_dp, spots, 
-                       dist, Gstar_metric0, Gstar_metric1, B0, B1, softmax_threshold=0.85, mr_threshold=0.85, 
-                       tab_distance_classhkl_data0=None, tab_distance_classhkl_data1=None, spots1_global=None,
-                       coeff_overlap = None, ind_mat=None, ind_mat1=None, strain_calculation=None, cap_matchrate123=None,
-                       material0_count=None, material1_count=None, material0_limit=None, material1_limit=None,
-                       igrain=None, material_phase_always_present=None, objective_function=None, crystal=None,
-                       crystal1=None, strain_free_parameters=None):
-    
-    if objective_function == None:
-        call_global()
-        
-        init_mr = 0
-        init_mat = 0
-        init_material = "None"
-        init_case = "None"
-        init_B = None
-        final_match_rate = 0
-        match_rate_mma = []
-        final_rmv_ind = []
-        
-        #calculate the gnemonic projection space
-        imageGNO, nbpeaks, halfdiagonal = computeGnomonicImage(s_tth, s_chi)
-        hough, theta_h, d_h = hough_line(imageGNO)
-        
-        if material0_ == material1_:
-            list_of_sets = []
-            for ii in range(0, min(nb_spots_consider, len(dist))):
-                if max_pred[ii] < softmax_threshold:
-                    continue 
-                a1 = np.round(dist[ii],3)
-                
-                for i in range(0, min(nb_spots_consider, len(dist))):
-                    if ii==i:
-                        continue
-                    if (ii,i) in list_of_sets or (i,ii) in list_of_sets:
-                        continue
-                    
-                    if max_pred[i] < softmax_threshold:
-                        continue
-                    hkl1 = hkl_all_class0[str(predicted_hkl[ii])]
-                    hkl1_list = np.array(hkl1)
-                    hkl2 = hkl_all_class0[str(predicted_hkl[i])]
-                    hkl2_list = np.array(hkl2)
-                    Gstar_metric = Gstar_metric0
-                    
-                    tab_angulardist_temp = CP.AngleBetweenNormals(hkl1_list, hkl2_list, Gstar_metric)
-                    np.putmask(tab_angulardist_temp, np.abs(tab_angulardist_temp) < 0.001, 400)
-                    
-                    list_ = np.where(np.abs(tab_angulardist_temp-a1[i]) < input_params["tolerance"])
-                    if len(list_[0]) != 0:
-                        list_of_sets.append((ii,i))
-
-        else:
-            list_of_sets = []
-            for ii in range(0, min(nb_spots_consider, len(dist))):
-                if max_pred[ii] < softmax_threshold:
-                    continue 
-                
-                a1 = np.round(dist[ii],3)
-
-                for i in range(0, min(nb_spots_consider, len(dist))):
-                    if ii==i:
-                        continue
-                    if (ii,i) in list_of_sets or (i,ii) in list_of_sets:
-                        continue
-                    
-                    if max_pred[i] < softmax_threshold:
-                        continue
-                    if class_predicted[ii] < ind_mat and class_predicted[i] < ind_mat:
-                        tab_distance_classhkl_data = tab_distance_classhkl_data0
-                        tolerance_new = input_params["tolerance"]
-                        hkl1 = hkl_all_class0[str(predicted_hkl[ii])]
-                        hkl1_list = np.array(hkl1)
-                        hkl2 = hkl_all_class0[str(predicted_hkl[i])]
-                        hkl2_list = np.array(hkl2)
-                        Gstar_metric = Gstar_metric0
-                        
-                    elif (ind_mat <= class_predicted[ii] < (ind_mat+ind_mat1)) and \
-                                        (ind_mat <= class_predicted[i] < (ind_mat+ind_mat1)):
-                        tab_distance_classhkl_data = tab_distance_classhkl_data1
-                        tolerance_new = input_params["tolerance1"]
-                        hkl1 = hkl_all_class1[str(predicted_hkl[ii])]
-                        hkl1_list = np.array(hkl1)
-                        hkl2 = hkl_all_class1[str(predicted_hkl[i])]
-                        hkl2_list = np.array(hkl2)
-                        Gstar_metric = Gstar_metric1
-                        
-                    else:
-                        continue
-                    
-                    tab_angulardist_temp = CP.AngleBetweenNormals(hkl1_list, hkl2_list, Gstar_metric)
-                    np.putmask(tab_angulardist_temp, np.abs(tab_angulardist_temp) < 0.001, 400)
-                    list_ = np.where(np.abs(tab_angulardist_temp-a1[i]) < tolerance_new)
-                    if len(list_[0]) != 0:
-                        list_of_sets.append((ii,i))
-
-        ## build a direct connection graph object
-        graph_obj = nx.DiGraph(list_of_sets)
-        connected_nodes_length = []
-        connected_nodes = [[] for i in range(len(graph_obj))]
-        for i,line in enumerate(nx.generate_adjlist(graph_obj)):
-            connected_nodes_length.append(len(line.split(" ")))
-            connected_nodes[i].append([int(jj) for jj in line.split(" ")])
-        
-        ## sort by maximum node occurance
-        connected_nodes_length = np.array(connected_nodes_length)
-        connected_nodes_length_sort_ind = np.argsort(connected_nodes_length)[::-1]
-  
-        mat = 0
-        case = "None"
-        tried_spots = []
-        
-        objective_function = []
-        for toplist in range(len(graph_obj)):
-            # ## continue if less than 3 connections are found for a graph
-            # if connected_nodes_length[connected_nodes_length_sort_ind[toplist]] < 2:
-            #     continue
-            
-            for j in connected_nodes[connected_nodes_length_sort_ind[toplist]][0]:
-                init_mr = 0
-                final_match_rate = 0
-                final_rmv_ind = []
-                all_stats = []
-                for i in connected_nodes[connected_nodes_length_sort_ind[toplist]][0]:
-                    if j == i:
-                        continue
-                    
-                    if j in tried_spots and i in tried_spots:
-                        continue
-                    
-                    ## condition to check if spots lie on the same line
-                    in_hough_line = False
-                    for _, anglehs, disths in zip(*hough_line_peaks(hough, theta_h, d_h)):
-                        y0 = (disths - 0 * np.cos(anglehs)) / np.sin(anglehs)
-                        y1 = (disths - imageGNO.shape[1] * np.cos(anglehs)) / np.sin(anglehs)
-                        p1 = np.array((0,y0))
-                        p2 = np.array((imageGNO.shape[1], y1))
-                        
-                        p3_0 = ComputeGnomon_singledata(s_tth[i], s_chi[i])
-                        p3_1 = ComputeGnomon_singledata(s_tth[j], s_chi[j])
-                
-                        distance_0 = np.abs(np.cross(p2-p1, p3_0-p1)) / np.linalg.norm(p2-p1)
-                        distance_1 = np.abs(np.cross(p2-p1, p3_1-p1)) / np.linalg.norm(p2-p1)
-                        
-                        if distance_0 < dist_threshold and distance_1 < dist_threshold:
-                            # print(distance_0, distance_1)
-                            in_hough_line = True
-                            
-                        if in_hough_line:
-                            break
-                
-                    if not in_hough_line:
-                        continue
-                    
-                    if material0_ == material1_:
-                        tab_distance_classhkl_data = tab_distance_classhkl_data0
-                        hkl_all_class = hkl_all_class0
-                        material_ = material0_
-                        B = B0
-                        Gstar_metric = Gstar_metric0
-                        case = material_
-                        mat = 1
-                        input_params["mat"] = mat
-                        input_params["Bmat"] = B
-                    else:
-                        if class_predicted[i] < ind_mat and class_predicted[j] < ind_mat:
-                            tab_distance_classhkl_data = tab_distance_classhkl_data0
-                            hkl_all_class = hkl_all_class0
-                            material_ = material0_
-                            B = B0
-                            Gstar_metric = Gstar_metric0
-                            case = material_
-                            mat = 1
-                            input_params["mat"] = mat
-                            input_params["Bmat"] = B
-                        elif (ind_mat <= class_predicted[i] < (ind_mat+ind_mat1)) and \
-                                            (ind_mat <= class_predicted[j] < (ind_mat+ind_mat1)):
-                            tab_distance_classhkl_data = tab_distance_classhkl_data1
-                            hkl_all_class = hkl_all_class1
-                            material_ = material1_
-                            B = B1
-                            Gstar_metric = Gstar_metric1
-                            case = material_  
-                            mat = 2
-                            input_params["mat"] = mat
-                            input_params["Bmat"] = B
-                        else:
-                            mat = 0
-                            case = "None"
-                            input_params["mat"] = mat
-                            input_params["Bmat"] = None
-                    
-                    if mat == 0:
-                        continue                    
-                    
-                    tth_chi_spot1 = np.array([s_tth[i], s_chi[i]])
-                    tth_chi_spot2 = np.array([s_tth[j], s_chi[j]])         
-        
-                    hkl1 = hkl_all_class[str(predicted_hkl[i])]
-                    hkl1_list = np.array(hkl1)
-                    hkl2 = hkl_all_class[str(predicted_hkl[j])]
-                    hkl2_list = np.array(hkl2)
-                    actual_mat, flagAM, \
-                    spot1_hkl, spot2_hkl = propose_UB_matrix(hkl1_list, hkl2_list, 
-                                                            Gstar_metric, input_params, 
-                                                            dist[i,j],
-                                                            tth_chi_spot1, tth_chi_spot2, 
-                                                            B, method=0, crystal=crystal,
-                                                            crystal1=crystal1)
-                    
-                    if flagAM:
-                        continue
-                    
-                    for iind in range(len(actual_mat)):
-                        rot_mat123 = actual_mat[iind]
-
-                        rmv_ind, theospots = remove_spots(s_tth, s_chi, rot_mat123, 
-                                                                material_, input_params, 
-                                                                dict_dp['detectorparameters'], dict_dp)
-                        
-                        match_rate = np.round(100 * len(rmv_ind)/theospots, 3)
-                        
-                        match_rate_mma.append(match_rate)
-
-                        if match_rate > init_mr:
-                            final_rmv_ind = rmv_ind                    
-                            init_mat = np.copy(mat)
-                            input_params["mat"] = init_mat
-                            init_material = np.copy(material_)
-                            init_case = np.copy(case)
-                            init_B = np.copy(B)  
-                            input_params["Bmat"] = init_B                                     
-                            final_match_rate = np.copy(match_rate)
-                            init_mr = np.copy(match_rate)                   
-                            all_stats = [i, j, \
-                                         spot1_hkl[iind], spot2_hkl[iind], \
-                                        tth_chi_spot1, tth_chi_spot2, \
-                                        dist[i,j], tab_distance_classhkl_data[i,j], np.round(max_pred[i]*100,3), \
-                                        np.round(max_pred[j]*100,3), len(rmv_ind), theospots,\
-                                        match_rate, 0.0, rot_mat123, init_mat, init_material, init_B, init_case]
-                    tried_spots.append(i)                 
-                    
-                if (final_match_rate <= cap_matchrate123): ## Nothing found!! 
-                    ## Either peaks are not well defined or not found within tolerance and prediction accuracy
-                    all_stats = [0, 0, 0, 0, 0, 0, 0, 0, 0, \
-                                        0, 0, 0, 0, 0, np.zeros((3,3))]
-                    max_mr, min_mr = 0, 0
-                    spot_ind = []
-                    mat = 0
-                    input_params["mat"] = 0
-                    case = "None"
-                    objective_function.append([0, [], []])
-                else:
-                    objective_function.append([final_match_rate, final_rmv_ind, all_stats])     
-                tried_spots.append(j)
- 
-    sort_ind = []
-    for ijk in objective_function:
-        sort_ind.append(ijk[0])
-    sort_ind = np.array(sort_ind)
-    sort_ind = np.argsort(sort_ind)[::-1]
-    
-    for gr_count123 in range(len(sort_ind)):           
-        max_mr = objective_function[sort_ind[gr_count123]][0]
-        rmv_ind = objective_function[sort_ind[gr_count123]][1]
-        all_stats = objective_function[sort_ind[gr_count123]][2]
-        
-        if len(rmv_ind) == 0 or max_mr==0:
-            continue
-        
-        mat = all_stats[15]
-        if mat == 1:
-            if igrain==0 and material_phase_always_present ==2:
-                mat = 0
-                case="None"
-            if material0_count >= material0_limit:
-                mat = 0
-                case="None"
-        elif mat == 2:
-            if igrain==0 and material_phase_always_present ==1:
-                mat = 0
-                case="None"
-            if material1_count >= material1_limit:
-                mat = 0
-                case="None"
-        
-        if mat == 0:
-            continue
-
-        current_spots = [len(list(set(rmv_ind) & set(spots1_global[igr])))> coeff_overlap*len(spots1_global[igr]) for igr in range(len(spots1_global))]
-        
-        if np.any(current_spots):
-            continue
-                  
-        input_params["mat"] = all_stats[15]
-        if strain_calculation:
-            dev_strain, strain_sample, iR, fR, rot_mat_UB = calculate_strains_fromUB(s_tth, s_chi, all_stats[14], str(all_stats[16]), 
-                                                                 input_params, dict_dp['detectorparameters'], 
-                                                                 dict_dp, spots, all_stats[17],
-                                                                 strain_free_parameters)
-        else:
-            dev_strain, strain_sample, iR, fR = np.zeros((3,3)), np.zeros((3,3)), 0, 0
-            rot_mat_UB = np.copy(all_stats[14])
-        all_stats[14] = rot_mat_UB     
-        
-        return all_stats, np.max(max_mr), np.min(max_mr), \
-                rmv_ind, str(all_stats[18]), all_stats[15], dev_strain, strain_sample, iR, fR, objective_function
-    
-    all_stats = [0, 0, 0, 0, 0, 0, 0, 0, 0, \
-                        0, 0, 0, 0, 0, np.zeros((3,3))]
-    max_mr, min_mr = 0, 0
-    spot_ind = []
-    mat = 0
-    input_params["mat"] = 0
-    case = "None"
-    return all_stats, max_mr, min_mr, spot_ind, case, mat, np.zeros((3,3)), np.zeros((3,3)), 0, 0, objective_function
-
 def get_orient_mat_graphv1(s_tth, s_chi, material0_, material1_, classhkl, class_predicted, predicted_hkl,
                        input_params, hkl_all_class0, hkl_all_class1, max_pred, dict_dp, spots, 
                        dist, Gstar_metric0, Gstar_metric1, B0, B1, softmax_threshold=0.85, mr_threshold=0.85, 
@@ -4085,217 +3707,6 @@ def get_orient_mat_graphv1(s_tth, s_chi, material0_, material1_, classhkl, class
     case = "None"
     return all_stats, max_mr, min_mr, spot_ind, case, mat, np.zeros((3,3)), np.zeros((3,3)), 0, 0, objective_function
 
-def get_orient_mat_HM(s_tth, s_chi, material0_, material1_, classhkl, class_predicted, predicted_hkl,
-                   input_params, hkl_all_class0, hkl_all_class1, max_pred, dict_dp, spots, 
-                   dist, Gstar_metric0, Gstar_metric1, B0, B1, softmax_threshold=0.85, mr_threshold=0.85, 
-                   tab_distance_classhkl_data0=None, tab_distance_classhkl_data1=None, spots1_global=None,
-                   coeff_overlap = None, ind_mat=None, ind_mat1=None, strain_calculation=None,cap_matchrate123=None,
-                   material0_count=None, material1_count=None, material0_limit=None, material1_limit=None,
-                   igrain=None, material_phase_always_present=None, strain_free_parameters=None):
-    call_global()
-    
-    init_mr = 0
-    init_mat = 0
-    init_material = "None"
-    init_case = "None"
-    init_B = None
-    final_match_rate = 0
-    match_rate_mma = []
-    final_rmv_ind = []
-    current_spots1 = [0 for igr in range(len(spots1_global))]
-    mat = 0
-    case = "None"
-    all_stats = []
-    
-    
-    #calculate the gnemonic projection space
-    imageGNO, nbpeaks, halfdiagonal = computeGnomonicImage(s_tth, s_chi)
-    hough, theta_h, d_h = hough_line(imageGNO)
-
-    for i in range(0, min(nb_spots_consider, len(s_tth))):
-        for j in range(i+1, min(nb_spots_consider, len(s_tth))):
-            overlap = False
-            
-            ## condition to check if spots lie on the same line
-            in_hough_line = False
-            for _, anglehs, disths in zip(*hough_line_peaks(hough, theta_h, d_h)):
-                y0 = (disths - 0 * np.cos(anglehs)) / np.sin(anglehs)
-                y1 = (disths - imageGNO.shape[1] * np.cos(anglehs)) / np.sin(anglehs)
-                p1 = np.array((0,y0))
-                p2 = np.array((imageGNO.shape[1], y1))
-                
-                p3_0 = ComputeGnomon_singledata(s_tth[i], s_chi[i])
-                p3_1 = ComputeGnomon_singledata(s_tth[j], s_chi[j])
-
-                distance_0 = np.abs(np.cross(p2-p1, p3_0-p1)) / np.linalg.norm(p2-p1)
-                distance_1 = np.abs(np.cross(p2-p1, p3_1-p1)) / np.linalg.norm(p2-p1)
-                
-                if distance_0 < dist_threshold and distance_1 < dist_threshold:
-                    # print(distance_0, distance_1)
-                    in_hough_line = True
-                    
-                if in_hough_line:
-                    break
-            
-            if not in_hough_line:
-                continue
-            
-            if (max_pred[j] < softmax_threshold) or (j in spots) or \
-                (max_pred[i] < softmax_threshold) or (i in spots):
-                continue
-            
-            if material0_ == material1_:
-                tab_distance_classhkl_data = tab_distance_classhkl_data0
-                hkl_all_class = hkl_all_class0
-                material_ = material0_
-                B = B0
-                Gstar_metric = Gstar_metric0
-                case = material_
-                mat = 1
-                input_params["mat"] = mat
-                input_params["Bmat"] = B
-            else:
-                if class_predicted[i] < ind_mat and class_predicted[j] < ind_mat:
-                    tab_distance_classhkl_data = tab_distance_classhkl_data0
-                    hkl_all_class = hkl_all_class0
-                    material_ = material0_
-                    B = B0
-                    Gstar_metric = Gstar_metric0
-                    case = material_
-                    mat = 1
-                    if igrain==0 and material_phase_always_present == 2:
-                        mat = 0
-                        case="None"
-                    if material0_count >= material0_limit:
-                        mat = 0
-                        case="None"
-                    input_params["mat"] = mat
-                    input_params["Bmat"] = B
-                elif (ind_mat <= class_predicted[i] < (ind_mat+ind_mat1)) and \
-                                    (ind_mat <= class_predicted[j] < (ind_mat+ind_mat1)):
-                    tab_distance_classhkl_data = tab_distance_classhkl_data1
-                    hkl_all_class = hkl_all_class1
-                    material_ = material1_
-                    B = B1
-                    Gstar_metric = Gstar_metric1
-                    case = material_  
-                    mat = 2
-                    if igrain==0 and material_phase_always_present == 1:
-                        mat = 0
-                        case="None"
-                    if material1_count >= material1_limit:
-                        mat = 0
-                        case="None"
-                    input_params["mat"] = mat
-                    input_params["Bmat"] = B
-                else:
-                    mat = 0
-                    case = "None"
-                    input_params["mat"] = mat
-                    input_params["Bmat"] = None
-            
-            if mat == 0:
-                continue
-            
-            tth_chi_spot1 = np.array([s_tth[i], s_chi[i]])
-            tth_chi_spot2 = np.array([s_tth[j], s_chi[j]])
-
-            hkl1 = hkl_all_class[str(predicted_hkl[i])]
-            hkl1_list = np.array(hkl1)
-            hkl2 = hkl_all_class[str(predicted_hkl[j])]
-            hkl2_list = np.array(hkl2)
-            
-            actual_mat, flagAM, \
-            spot1_hkl, spot2_hkl = propose_UB_matrix(hkl1_list, hkl2_list, 
-                                                    Gstar_metric, input_params, 
-                                                    dist[i,j],
-                                                    tth_chi_spot1, tth_chi_spot2, 
-                                                    B, method=0)
-            
-            if flagAM:
-                continue
-
-            for iind in range(len(actual_mat)): 
-                rot_mat123 = actual_mat[iind]
-
-                rmv_ind, theospots = remove_spots(s_tth, s_chi, rot_mat123, 
-                                                    material_, input_params, 
-                                                    dict_dp['detectorparameters'], dict_dp)
-                
-                overlap = False
-                current_spots = [len(list(set(rmv_ind) & set(spots1_global[igr]))) for igr in range(len(spots1_global))]
-                for igr in range(len(spots1_global)):
-                    if current_spots[igr] > coeff_overlap*len(spots1_global[igr]):
-                        overlap = True
-                        break
-                
-                if overlap:
-                    continue
-    
-                match_rate = np.round(100 * len(rmv_ind)/theospots,3)
-                
-                match_rate_mma.append(match_rate)
-                if match_rate > init_mr:
-                    current_spots1 = current_spots                       
-                    init_mat = np.copy(mat)
-                    input_params["mat"] = init_mat
-                    init_material = np.copy(material_)
-                    init_case = np.copy(case)
-                    init_B = np.copy(B)
-                    input_params["Bmat"] = init_B  
-                    final_rmv_ind = rmv_ind                            
-                    final_match_rate = np.copy(match_rate)
-                    init_mr = np.copy(match_rate)
-                    all_stats = [i, j, \
-                                 spot1_hkl[iind], spot2_hkl[iind], \
-                                tth_chi_spot1, tth_chi_spot2, \
-                                dist[i,j], tab_distance_classhkl_data[i,j], np.round(max_pred[i]*100,3), \
-                                np.round(max_pred[j]*100,3), len(rmv_ind), theospots,\
-                                match_rate, 0.0, rot_mat123]
-    
-                if (final_match_rate >= mr_threshold*100.) and not overlap:
-                    if strain_calculation:
-                        dev_strain, strain_sample, iR, fR, rot_mat_UB = calculate_strains_fromUB(s_tth, s_chi, all_stats[14], str(init_material), 
-                                                                             input_params, dict_dp['detectorparameters'], 
-                                                                             dict_dp, spots, init_B,
-                                                                             strain_free_parameters)
-                    else:
-                        dev_strain, strain_sample, iR, fR = np.zeros((3,3)), np.zeros((3,3)), 0, 0
-                        rot_mat_UB = np.copy(all_stats[14])
-                    
-                    all_stats[14] = rot_mat_UB
-                    return all_stats, np.max(match_rate_mma), np.min(match_rate_mma), \
-                            final_rmv_ind, str(init_case), init_mat, dev_strain, strain_sample, iR, fR
-
-    overlap = False
-    for igr in range(len(spots1_global)):
-        if current_spots1[igr] > coeff_overlap*len(spots1_global[igr]):
-            overlap = True
-            
-    if (final_match_rate <= cap_matchrate123) or overlap: ## Nothing found!! 
-        ## Either peaks are not well defined or not found within tolerance and prediction accuracy
-        all_stats = [0, 0, 0, 0, 0, 0, 0, 0, 0, \
-                            0, 0, 0, 0, 0, np.zeros((3,3))]
-        max_mr, min_mr = 0, 0
-        spot_ind = []
-        mat = 0
-        input_params["mat"] = 0
-        case = "None"
-        return all_stats, max_mr, min_mr, spot_ind, case, mat, np.zeros((3,3)), np.zeros((3,3)), 0, 0
-
-    input_params["mat"] = init_mat
-    if strain_calculation:
-        dev_strain, strain_sample, iR, fR, rot_mat_UB = calculate_strains_fromUB(s_tth, s_chi, all_stats[14], str(init_material), 
-                                                             input_params, dict_dp['detectorparameters'], 
-                                                             dict_dp, spots, init_B,
-                                                             strain_free_parameters)
-    else:
-        dev_strain, strain_sample, iR, fR = np.zeros((3,3)), np.zeros((3,3)), 0, 0
-        rot_mat_UB = np.copy(all_stats[14])
-    all_stats[14] = rot_mat_UB  
-    return all_stats, np.max(match_rate_mma), np.min(match_rate_mma), \
-            final_rmv_ind, str(init_case), init_mat, dev_strain, strain_sample, iR, fR
-
 def get_orient_mat(s_tth, s_chi, material0_, material1_, classhkl, class_predicted, predicted_hkl,
                    input_params, hkl_all_class0, hkl_all_class1, max_pred, dict_dp, spots, 
                    dist, Gstar_metric0, Gstar_metric1, B0, B1, softmax_threshold=0.85, mr_threshold=0.85, 
@@ -4483,7 +3894,6 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
                       crystal1=None):
     
     ## TODO add quaternion method to get SST OM for each proposal
-    
     if method == 0:
         tab_angulardist_temp = CP.AngleBetweenNormals(hkl1_list, hkl2_list, Gstar_metric)
         
@@ -4559,6 +3969,8 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkls[ii][0], tth_chi_spot1, \
                                                         hkls[ii][1], tth_chi_spot2,
                                                         B)
+                ##calling the quaternion function to dela with symmetry
+                # om = Orientation(matrix=orientation_matrix, symmetry=symmetry).reduced()
             except:
                 continue                    
             
@@ -4578,28 +3990,28 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
             spot1_hkl.append(hkls[ii][0])
             spot2_hkl.append(hkls[ii][1])
     
-    ## just fixing a* to x seems ok; if not think of aligning b* to xy plane
-    sum_sign = []
-    for nkl in range(len(actual_mat)):
-        temp_mat = np.dot(actual_mat[nkl], B)
-        ## fix could be to choose a matrix that aligns best the b* vector to Y axis or a* to X axis
-        # if np.argmax(np.abs(temp_mat[:2,0])) == 0 and \
-        #         np.argmax(np.abs(temp_mat[:2,1])) == 1: ##a* along x, b*along y
-        if np.argmax(np.abs(temp_mat[:2,0])) == 0: ##a* along x
-            sum_sign.append(2)
-        elif np.argmax(np.abs(temp_mat[:2,0])) ==  np.argmax(np.abs(temp_mat[:2,1])):
-            sum_sign.append(0)
-        else:
-            sum_sign.append(1)
-    ind_sort = np.argsort(sum_sign)[::-1]
-    ## re-arrange
-    actual_mat1 = []
-    spot1_hkl1, spot2_hkl1 = [], []
-    for inin in ind_sort:
-        actual_mat1.append(actual_mat[inin])
-        spot1_hkl1.append(spot1_hkl[inin])
-        spot2_hkl1.append(spot2_hkl[inin])
-    actual_mat, spot1_hkl, spot2_hkl = actual_mat1, spot1_hkl1, spot2_hkl1
+    # ## just fixing a* to x seems ok; if not think of aligning b* to xy plane
+    # sum_sign = []
+    # for nkl in range(len(actual_mat)):
+    #     temp_mat = np.dot(actual_mat[nkl], B)
+    #     ## fix could be to choose a matrix that aligns best the b* vector to Y axis or a* to X axis
+    #     # if np.argmax(np.abs(temp_mat[:2,0])) == 0 and \
+    #     #         np.argmax(np.abs(temp_mat[:2,1])) == 1: ##a* along x, b*along y
+    #     if np.argmax(np.abs(temp_mat[:2,0])) == 0: ##a* along x
+    #         sum_sign.append(2)
+    #     elif np.argmax(np.abs(temp_mat[:2,0])) ==  np.argmax(np.abs(temp_mat[:2,1])):
+    #         sum_sign.append(0)
+    #     else:
+    #         sum_sign.append(1)
+    # ind_sort = np.argsort(sum_sign)[::-1]
+    # ## re-arrange
+    # actual_mat1 = []
+    # spot1_hkl1, spot2_hkl1 = [], []
+    # for inin in ind_sort:
+    #     actual_mat1.append(actual_mat[inin])
+    #     spot1_hkl1.append(spot1_hkl[inin])
+    #     spot2_hkl1.append(spot2_hkl[inin])
+    # actual_mat, spot1_hkl, spot2_hkl = actual_mat1, spot1_hkl1, spot2_hkl1
     return actual_mat, False, spot1_hkl, spot2_hkl
 
 def remove_spots(s_tth, s_chi, first_match123, material_, input_params, detectorparameters, dict_dp):
@@ -13181,7 +12593,8 @@ def get_orient_mat_repredict_MM(s_tth, s_chi, material0_, classhkl, class_predic
                                                             Gstar_metric, input_params, 
                                                             dist[i,j],
                                                             tth_chi_spot1, tth_chi_spot2, 
-                                                            B, method=0)
+                                                            B, method=0,
+                                                            crystal =crystal)
 
                     if flagAM:
                         continue
@@ -13770,10 +13183,10 @@ def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist12
         list_ = np.where(np.abs(tab_angulardist_temp-dist123) < input_params["tolerance"][input_params["mat"]-1])
         
         # if crystal != None:
-        #     final_crystal=crystal[input_params["mat"]-1]
-        #     symm_operator = final_crystal._hklsym
+        #     symmetry_obj = crystal[input_params["mat"]-1]
+        #     symmetry = symmetry_obj.crystal_system
         # else:
-        #     symm_operator = np.eye(3)
+        #     symmetry = None
         
         if len(list_[0]) == 0:
             return None, True, 0, 0
@@ -13794,6 +13207,8 @@ def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist12
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkl1_list[ii], tth_chi_spot1, \
                                                         hkl2_list[jj], tth_chi_spot2,
                                                         B)
+                # om = Orientation(matrix=rot_mat1, symmetry=symmetry).reduced()
+                # rot_mat1 = om.asMatrix()
             except:
                 continue                    
             
@@ -13836,6 +13251,8 @@ def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist12
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkls[ii][0], tth_chi_spot1, \
                                                         hkls[ii][1], tth_chi_spot2,
                                                         B)
+                # om = Orientation(matrix=rot_mat1, symmetry=symmetry).reduced()
+                # rot_mat1 = om.asMatrix()
             except:
                 continue                    
             
@@ -13855,28 +13272,28 @@ def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist12
             spot1_hkl.append(hkls[ii][0])
             spot2_hkl.append(hkls[ii][1])
     
-    ## just fixing a* to x seems ok; if not think of aligning b* to xy plane
-    sum_sign = []
-    for nkl in range(len(actual_mat)):
-        temp_mat = np.dot(actual_mat[nkl], B)
-        ## fix could be to choose a matrix that aligns best the b* vector to Y axis or a* to X axis
-        # if np.argmax(np.abs(temp_mat[:2,0])) == 0 and \
-        #         np.argmax(np.abs(temp_mat[:2,1])) == 1: ##a* along x, b*along y
-        if np.argmax(np.abs(temp_mat[:2,0])) == 0: ##a* along x
-            sum_sign.append(2)
-        elif np.argmax(np.abs(temp_mat[:2,0])) ==  np.argmax(np.abs(temp_mat[:2,1])):
-            sum_sign.append(0)
-        else:
-            sum_sign.append(1)
-    ind_sort = np.argsort(sum_sign)[::-1]
-    ## re-arrange
-    actual_mat1 = []
-    spot1_hkl1, spot2_hkl1 = [], []
-    for inin in ind_sort:
-        actual_mat1.append(actual_mat[inin])
-        spot1_hkl1.append(spot1_hkl[inin])
-        spot2_hkl1.append(spot2_hkl[inin])
-    actual_mat, spot1_hkl, spot2_hkl = actual_mat1, spot1_hkl1, spot2_hkl1
+    # ## just fixing a* to x seems ok; if not think of aligning b* to xy plane
+    # sum_sign = []
+    # for nkl in range(len(actual_mat)):
+    #     temp_mat = np.dot(actual_mat[nkl], B)
+    #     ## fix could be to choose a matrix that aligns best the b* vector to Y axis or a* to X axis
+    #     # if np.argmax(np.abs(temp_mat[:2,0])) == 0 and \
+    #     #         np.argmax(np.abs(temp_mat[:2,1])) == 1: ##a* along x, b*along y
+    #     if np.argmax(np.abs(temp_mat[:2,0])) == 0: ##a* along x
+    #         sum_sign.append(2)
+    #     elif np.argmax(np.abs(temp_mat[:2,0])) ==  np.argmax(np.abs(temp_mat[:2,1])):
+    #         sum_sign.append(0)
+    #     else:
+    #         sum_sign.append(1)
+    # ind_sort = np.argsort(sum_sign)[::-1]
+    # ## re-arrange
+    # actual_mat1 = []
+    # spot1_hkl1, spot2_hkl1 = [], []
+    # for inin in ind_sort:
+    #     actual_mat1.append(actual_mat[inin])
+    #     spot1_hkl1.append(spot1_hkl[inin])
+    #     spot2_hkl1.append(spot2_hkl[inin])
+    # actual_mat, spot1_hkl, spot2_hkl = actual_mat1, spot1_hkl1, spot2_hkl1
     return actual_mat, False, spot1_hkl, spot2_hkl
 
 

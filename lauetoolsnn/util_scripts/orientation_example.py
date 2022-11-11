@@ -133,9 +133,7 @@ for index in range(len(rotation_matrix1)):
         # Let us compute the average orientation of grain definition
         # =============================================================================
         ####Average UB per grains
-        
         grainIDs = np.where(np.array(memberCounts) >= pixel_grain_definition)[0]   # identify "live" grain identifiers
-        
         for gi_ in grainIDs:
             pixel_indices = np.where(grainID==gi_)[0]
             om_object_mod = []
@@ -147,8 +145,6 @@ for index in range(len(rotation_matrix1)):
             nb_pixels.append(len(pixel_indices))
             mat_index.append(val)        
 
-        
-        
         fig = plt.figure(figsize=(11.69,8.27), dpi=100)
         bottom, top = 0.1, 0.9
         left, right = 0.1, 0.8
