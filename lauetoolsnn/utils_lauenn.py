@@ -5,6 +5,16 @@ Created on Sat Nov  6 14:47:33 2021
 @author: PURUSHOT
 
 Functions for lauetoolsneuralnetwork
+
+Credits:
+Lattice and symmetry routines are extracted and adapted from the PYMICRO and Xrayutilities repository
+
+
+TODO:
+    FIX OrientMatrix_from_2hkl call with quaternion approach
+    complete function : write_average_orientation, convert_pickle_to_hdf5
+    Fix: 2D plots call
+    
 """
 __author__ = "Ravi raj purohit PURUSHOTTAM RAJ PUROHIT, CRG-IF BM32 @ ESRF"
 
@@ -58,6 +68,7 @@ try:
     import lauetoolsnn.lauetools.findorient as FindO
     import lauetoolsnn.lauetools.IOimagefile as IOimage
     import lauetoolsnn.lauetools.imageprocessing as ImProc
+    from lauetoolsnn.lauetools.quaternions import Orientation, Quaternion
 except:
     from lauetools import dict_LaueTools as dictLT
     from lauetools import IOLaueTools as IOLT
@@ -70,7 +81,8 @@ except:
     from lauetools import findorient as FindO
     from lauetools import IOimagefile as IOimage
     from lauetools import imageprocessing as ImProc
-
+    from lauetools.quaternions import Orientation, Quaternion
+    
 from collections import OrderedDict
 from math import cos, radians, sin, sqrt
 import fractions
@@ -2519,6 +2531,11 @@ def predict_ubmatrix(seednumber, spots_in_center, classhkl, hkl_all_class0,
                                     0, 0, 0, 0, 0, np.zeros((3,3))]
                 spots = []
                 max_mr, min_mr = 0, 0
+                mat = 0
+                Keymaterial_ = None
+                Bkey = None
+                input_params["mat"] = 0
+                input_params["Bmat"] = None
             else:
                 if strain_calculation:
                     strain_crystal, strain_sample, iR, fR, rot_mat_UB = calculate_strains_fromUB(s_tth1, s_chi1, 
@@ -4456,6 +4473,8 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
                       tth_chi_spot1, tth_chi_spot2, B, method=0, crystal=None,
                       crystal1=None):
     
+    ## TODO add quaternion method to get SST OM for each proposal
+    
     if method == 0:
         tab_angulardist_temp = CP.AngleBetweenNormals(hkl1_list, hkl2_list, Gstar_metric)
         
@@ -4466,12 +4485,7 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
         elif input_params["mat"] == 2:
             list_ = np.where(np.abs(tab_angulardist_temp-dist123) < input_params["tolerance1"])
             # final_crystal=crystal1
-
-        # if final_crystal != None:
-        #     symm_operator = final_crystal._hklsym
-        # else:
-        #     symm_operator = np.eye(3)
-
+            
         if len(list_[0]) == 0:
             return None, True, 0, 0
 
@@ -5263,7 +5277,7 @@ def getProximityv0(TwicethetaChi, data_theta, data_chi, data_hkl, angtol=0.5):
     linkResidues_link = linkResidues
     return linkedspots_link, linkExpMiller_link, linkResidues_link
 
-def get_ipf_colour(orientation_matrix1, axis=np.array([0., 0., 1.]), symmetry=None, symm_operator=None):
+def get_ipf_colour(orientation_matrix, axis=np.array([0., 0., 1.]), symmetry=None, symm_operator=None):
     """Compute the IPF (inverse pole figure) colour for this orientation.
     Given a particular axis expressed in the laboratory coordinate system,
     one can compute the so called IPF colour based on that direction
@@ -5276,11 +5290,10 @@ def get_ipf_colour(orientation_matrix1, axis=np.array([0., 0., 1.]), symmetry=No
     :param Symmetry symmetry: the symmetry operator to use.
     :return tuple: a tuple contining the RGB values.
     """
-    if not np.all(orientation_matrix1==0):
-        orientation_matrix = orientation_matrix1
-    else:
+    if np.all(orientation_matrix==0):
         return 0,0,0
-    # ## rotate orientation by 40degrees to bring in Sample RF
+    
+    ## first we need to rotate the crystal around the 40deg to bring it to sample RF
     omega = np.deg2rad(-40.0)
     # rotation de -omega autour de l'axe x (or Y?) pour repasser dans Rsample
     cw = np.cos(omega)
@@ -5289,85 +5302,10 @@ def get_ipf_colour(orientation_matrix1, axis=np.array([0., 0., 1.]), symmetry=No
     orientation_matrix = np.dot(mat_from_lab_to_sample_frame.T, orientation_matrix)
     if np.linalg.det(orientation_matrix) < 0:
         orientation_matrix = -orientation_matrix
-    axis /= np.linalg.norm(axis)
-    
-    # rgb = get_field_color(orientation_matrix, axis, symmetry=symmetry, syms=syms)            
-    # return rgb
-
-    Vc = np.dot(orientation_matrix, axis)
-    # get the symmetry operators
-    syms = np.array(symm_operator) #symmetry.symmetry_operators()
-    syms = np.concatenate((syms, -syms))
-    syms = np.unique(syms, axis=0)
-    
-    if symmetry == symmetry.cubic:
-        rgb = get_field_color(orientation_matrix, axis, symmetry, syms)            
-        return rgb
-        # angleR = 45 - Vc_chi  # red color proportional to (45 - chi)
-        # minAngleR = 0
-        # maxAngleR = 45
-        # angleB = Vc_phi  # blue color proportional to phi
-        # minAngleB = 0
-        # maxAngleB = 45
-    elif symmetry == symmetry.hexagonal:
-        Vc_syms = np.dot(syms, Vc)
-        # phi: rotation around 001 axis, from 100 axis to Vc vector, projected on (100,010) plane
-        Vc_phi = np.arctan2(Vc_syms[:, 1], Vc_syms[:, 0]) * 180 / np.pi
-        # chi: rotation around 010 axis, from 001 axis to Vc vector, projected on (100,001) plane
-        # Vc_chi = np.arctan2(Vc_syms[:, 0], Vc_syms[:, 2]) * 180 / np.pi
-        # psi : angle from 001 axis to Vc vector
-        Vc_psi = np.arccos(Vc_syms[:, 2]) * 180 / np.pi
         
-        angleR = 90 - Vc_psi  # red color proportional to (90 - psi)
-        minAngleR = 0
-        maxAngleR = 90
-        angleB = Vc_phi  # blue color proportional to phi
-        minAngleB = 0
-        maxAngleB = 30
-    else:
-        rgb = get_field_color(orientation_matrix, axis, symmetry, syms)            
-        return rgb
-    # find the axis lying in the fundamental zone
-    fz_list = ((angleR >= minAngleR) & (angleR < maxAngleR) &
-                (angleB >= minAngleB) & (angleB < maxAngleB)).tolist()
-    if not fz_list.count(True) == 1:
-        # print("funda problem")
-        rgb = get_field_color(orientation_matrix, axis, symmetry, syms)            
-        return rgb
-    i_SST = fz_list.index(True)
-    r = angleR[i_SST] / maxAngleR
-    g = (maxAngleR - angleR[i_SST]) / maxAngleR * (maxAngleB - angleB[i_SST]) / maxAngleB
-    b = (maxAngleR - angleR[i_SST]) / maxAngleR * angleB[i_SST] / maxAngleB
-    rgb = np.array([r, g, b])
-    rgb = rgb / rgb.max()
-    return rgb 
-
-def get_field_color(orientation_matrix, axis=np.array([0., 0., 1.]), symmetry=None, syms=None):
-    """Compute the IPF (inverse pole figure) colour for this orientation.
-    Given a particular axis expressed in the laboratory coordinate system,
-    one can compute the so called IPF colour based on that direction
-    expressed in the crystal coordinate system as :math:`[x_c,y_c,z_c]`.
-    There is only one tuple (u,v,w) such that:
-    .. math::
-      [x_c,y_c,z_c]=u.[0,0,1]+v.[0,1,1]+w.[1,1,1]
-    and it is used to assign the RGB colour.
-    :param ndarray axis: the direction to use to compute the IPF colour.
-    :param Symmetry symmetry: the symmetry operator to use.
-    :return tuple: a tuple contining the RGB values.
-    """
-    for sym in syms:
-        Osym = np.dot(sym, orientation_matrix)
-        Vc = np.dot(Osym, axis)
-        if Vc[2] < 0:
-            Vc *= -1.  # using the upward direction
-        uvw = np.array([Vc[2] - Vc[1], Vc[1] - Vc[0], Vc[0]])
-        uvw /= np.linalg.norm(uvw)
-        uvw /= max(uvw)
-        if (uvw[0] >= 0. and uvw[0] <= 1.0) and (uvw[1] >= 0. and uvw[1] <= 1.0) and (
-                uvw[2] >= 0. and uvw[2] <= 1.0):
-            break
-    uvw = uvw / uvw.max()
-    return uvw
+    om = Orientation(matrix=orientation_matrix, symmetry=symmetry).reduced()
+    
+    return om.IPFcolor(axis=axis)
 
 class Symmetry(enum.Enum):
     """
@@ -6089,311 +6027,311 @@ class HklPlane(HklObject):
         """
         return len(HklPlane.get_family(self.miller_indices(), include_friedel_pairs=True, crystal_structure=symmetry))        
 
-class PoleFigure:
-    """A class to handle pole figures.
+# class PoleFigure:
+#     """A class to handle pole figures.
 
-    A pole figure is a popular tool to plot multiple crystal orientations,
-    either in the sample coordinate system (direct pole figure) or
-    alternatively plotting a particular direction in the crystal
-    coordinate system (inverse pole figure).
-    """
-    def __init__(self, lattice=None, axis='Z', hkl='111', proj='stereo'):
-        """
-        Create an empty PoleFigure object associated with an empty Microstructure.
-        :param microstructure: the :py:class:`~pymicro.crystal.microstructure.Microstructure` containing the collection of orientations to plot (None by default).
-        :param lattice: the crystal :py:class:`~pymicro.crystal.lattice.Lattice`.
-        :param str axis: the pole figure axis ('Z' by default), vertical axis in the direct pole figure and direction plotted on the inverse pole figure.
-        .. warning::
-           Any crystal structure is now supported (you have to set the proper
-           crystal lattice) but it has only really be tested for cubic.
-        :param str hkl: slip plane family ('111' by default)
-        :param str proj: projection type, can be either 'stereo' (default) or 'flat'
-        """
-        self.proj = proj
-        self.axis = axis
+#     A pole figure is a popular tool to plot multiple crystal orientations,
+#     either in the sample coordinate system (direct pole figure) or
+#     alternatively plotting a particular direction in the crystal
+#     coordinate system (inverse pole figure).
+#     """
+#     def __init__(self, lattice=None, axis='Z', hkl='111', proj='stereo'):
+#         """
+#         Create an empty PoleFigure object associated with an empty Microstructure.
+#         :param microstructure: the :py:class:`~pymicro.crystal.microstructure.Microstructure` containing the collection of orientations to plot (None by default).
+#         :param lattice: the crystal :py:class:`~pymicro.crystal.lattice.Lattice`.
+#         :param str axis: the pole figure axis ('Z' by default), vertical axis in the direct pole figure and direction plotted on the inverse pole figure.
+#         .. warning::
+#            Any crystal structure is now supported (you have to set the proper
+#            crystal lattice) but it has only really be tested for cubic.
+#         :param str hkl: slip plane family ('111' by default)
+#         :param str proj: projection type, can be either 'stereo' (default) or 'flat'
+#         """
+#         self.proj = proj
+#         self.axis = axis
         
-        if self.axis == 'Z':
-            self.axis_crystal = np.array([0, 0, 1])
-        elif self.axis == 'Y':
-            self.axis_crystal = np.array([0, 1, 0])
-        else:
-            self.axis_crystal = np.array([1, 0, 0])
+#         if self.axis == 'Z':
+#             self.axis_crystal = np.array([0, 0, 1])
+#         elif self.axis == 'Y':
+#             self.axis_crystal = np.array([0, 1, 0])
+#         else:
+#             self.axis_crystal = np.array([1, 0, 0])
 
-        if lattice:
-            self.lattice = lattice
-        else:
-            self.lattice = Lattice.cubic(1.0)
-        self.family = None
-        self.poles = []
-        self.set_hkl_poles(hkl)
-        self.mksize = 50
-        self.x = np.array([1., 0., 0.])
-        self.y = np.array([0., 1., 0.])
-        self.z = np.array([0., 0., 1.])
+#         if lattice:
+#             self.lattice = lattice
+#         else:
+#             self.lattice = Lattice.cubic(1.0)
+#         self.family = None
+#         self.poles = []
+#         self.set_hkl_poles(hkl)
+#         self.mksize = 50
+#         self.x = np.array([1., 0., 0.])
+#         self.y = np.array([0., 1., 0.])
+#         self.z = np.array([0., 0., 1.])
 
-    def set_hkl_poles(self, hkl='111'):
-        """Set the pole (aka hkl planes) list to to use in the `PoleFigure`.
+#     def set_hkl_poles(self, hkl='111'):
+#         """Set the pole (aka hkl planes) list to to use in the `PoleFigure`.
 
-        The list of poles can be given by the family type or directly by a list of `HklPlanes` objects.
+#         The list of poles can be given by the family type or directly by a list of `HklPlanes` objects.
 
-        :params str/list hkl: slip plane family ('111' by default)
-        """
-        if type(hkl) is str:
-            self.family = hkl  # keep a record of this
-            hkl_planes = self.lattice.get_hkl_family(self.family)
-        elif type(hkl) is list:
-            self.family = None
-            hkl_planes = hkl
-        self.poles = hkl_planes  #[p.normal() for p in hkl_planes]
+#         :params str/list hkl: slip plane family ('111' by default)
+#         """
+#         if type(hkl) is str:
+#             self.family = hkl  # keep a record of this
+#             hkl_planes = self.lattice.get_hkl_family(self.family)
+#         elif type(hkl) is list:
+#             self.family = None
+#             hkl_planes = hkl
+#         self.poles = hkl_planes  #[p.normal() for p in hkl_planes]
 
-    def plot_line_between_crystal_dir(self, c1, c2, ax=None, steps=25, col='k'):
-        '''Plot a curve between two crystal directions.
+#     def plot_line_between_crystal_dir(self, c1, c2, ax=None, steps=25, col='k'):
+#         '''Plot a curve between two crystal directions.
 
-        The curve is actually composed of several straight lines segments to
-        draw from direction 1 to direction 2.
+#         The curve is actually composed of several straight lines segments to
+#         draw from direction 1 to direction 2.
 
-        :param c1: vector describing crystal direction 1
-        :param c2: vector describing crystal direction 2
-        :param ax: a reference to a pyplot ax to draw the line
-        :param int steps: number of straight lines composing the curve (11 by default)
-        :param col: line color (black by default)
-        '''
-        path = np.zeros((steps, 2), dtype=float)
-        for j, i in enumerate(np.linspace(0., 1., steps)):
-            ci = i * c1 + (1 - i) * c2
-            ci /= np.linalg.norm(ci)
-            if self.proj == 'stereo':
-                ci += self.z
-                ci /= ci[2]
-            path[j, 0] = ci[0]
-            path[j, 1] = ci[1]
-        ax.plot(path[:, 0], path[:, 1], color=col, markersize=self.mksize, linewidth=0.5, zorder=0)
-        plt.axis("off")
+#         :param c1: vector describing crystal direction 1
+#         :param c2: vector describing crystal direction 2
+#         :param ax: a reference to a pyplot ax to draw the line
+#         :param int steps: number of straight lines composing the curve (11 by default)
+#         :param col: line color (black by default)
+#         '''
+#         path = np.zeros((steps, 2), dtype=float)
+#         for j, i in enumerate(np.linspace(0., 1., steps)):
+#             ci = i * c1 + (1 - i) * c2
+#             ci /= np.linalg.norm(ci)
+#             if self.proj == 'stereo':
+#                 ci += self.z
+#                 ci /= ci[2]
+#             path[j, 0] = ci[0]
+#             path[j, 1] = ci[1]
+#         ax.plot(path[:, 0], path[:, 1], color=col, markersize=self.mksize, linewidth=0.5, zorder=0)
+#         plt.axis("off")
         
-    def plot_pf_background(self, ax, labels=True):
-        '''Function to plot the background of the pole figure.
-        :param ax: a reference to a pyplot ax to draw the backgroud.
-        :param bool labels: add lables to axes (True by default).
-        '''
-        an = np.linspace(0, 2 * np.pi, 100)
-        ax.plot(np.cos(an), np.sin(an), 'k-', zorder=0)
-        ax.plot([-1, 1], [0, 0], 'k-', zorder=0)
-        ax.plot([0, 0], [-1, 1], 'k-', zorder=0)
-        axe_labels = ['X', 'Y', 'Z']
-        if self.axis == 'Z':
-            (h, v, _) = (0, 1, 2)
-        elif self.axis == 'Y':
-            (h, v, _) = (0, 2, 1)
-        else:
-            (h, v, _) = (1, 2, 0)
-        if labels:
-            ax.annotate(axe_labels[h], (1.01, 0.0), xycoords='data', fontsize=8,
-                        horizontalalignment='left', verticalalignment='center')
-            ax.annotate(axe_labels[v], (0.0, 1.01), xycoords='data', fontsize=8,
-                        horizontalalignment='center', verticalalignment='bottom')
+#     def plot_pf_background(self, ax, labels=True):
+#         '''Function to plot the background of the pole figure.
+#         :param ax: a reference to a pyplot ax to draw the backgroud.
+#         :param bool labels: add lables to axes (True by default).
+#         '''
+#         an = np.linspace(0, 2 * np.pi, 100)
+#         ax.plot(np.cos(an), np.sin(an), 'k-', zorder=0)
+#         ax.plot([-1, 1], [0, 0], 'k-', zorder=0)
+#         ax.plot([0, 0], [-1, 1], 'k-', zorder=0)
+#         axe_labels = ['X', 'Y', 'Z']
+#         if self.axis == 'Z':
+#             (h, v, _) = (0, 1, 2)
+#         elif self.axis == 'Y':
+#             (h, v, _) = (0, 2, 1)
+#         else:
+#             (h, v, _) = (1, 2, 0)
+#         if labels:
+#             ax.annotate(axe_labels[h], (1.01, 0.0), xycoords='data', fontsize=8,
+#                         horizontalalignment='left', verticalalignment='center')
+#             ax.annotate(axe_labels[v], (0.0, 1.01), xycoords='data', fontsize=8,
+#                         horizontalalignment='center', verticalalignment='bottom')
 
-    def sst_symmetry(self, v, symms):
-        """Transform a given vector according to the lattice symmetry associated
-        with the pole figure.
+#     def sst_symmetry(self, v, symms):
+#         """Transform a given vector according to the lattice symmetry associated
+#         with the pole figure.
 
-        This function transform a vector so that it lies in the smallest
-        symmetry equivalent zone.
+#         This function transform a vector so that it lies in the smallest
+#         symmetry equivalent zone.
 
-        :param v: the vector to transform.
-        :return: the transformed vector.
-        """
-        # get the symmetry from the lattice associated with the pole figure
-        symmetry = self.lattice._symmetry
-        if symmetry == symmetry.cubic:
-            return PoleFigure.sst_symmetry_cubic(v)
-        elif symmetry == symmetry.hexagonal:
-            #syms = symmetry.symmetry_operators()
-            # syms = np.concatenate((symms, -symms))
-            syms = np.unique(symms, axis=0)
-            for i in range(len(syms)):
-                sym = syms[i]
-                v_sym = np.dot(sym, v)
-                # look at vectors pointing up
-                if v_sym[2] < 0:
-                    v_sym *= -1
-                # now evaluate if projection is in the sst
-                if v_sym[1] < 0 or v_sym[0] < 0:
-                    continue
-                elif v_sym[1] / v_sym[0] > np.tan(np.pi / 6):
-                    continue
-                else:
-                    break
-            return v_sym
-        else:
-            print('unsupported symmetry: %s' % symmetry)
-            return None
+#         :param v: the vector to transform.
+#         :return: the transformed vector.
+#         """
+#         # get the symmetry from the lattice associated with the pole figure
+#         symmetry = self.lattice._symmetry
+#         if symmetry == symmetry.cubic:
+#             return PoleFigure.sst_symmetry_cubic(v)
+#         elif symmetry == symmetry.hexagonal:
+#             #syms = symmetry.symmetry_operators()
+#             # syms = np.concatenate((symms, -symms))
+#             syms = np.unique(symms, axis=0)
+#             for i in range(len(syms)):
+#                 sym = syms[i]
+#                 v_sym = np.dot(sym, v)
+#                 # look at vectors pointing up
+#                 if v_sym[2] < 0:
+#                     v_sym *= -1
+#                 # now evaluate if projection is in the sst
+#                 if v_sym[1] < 0 or v_sym[0] < 0:
+#                     continue
+#                 elif v_sym[1] / v_sym[0] > np.tan(np.pi / 6):
+#                     continue
+#                 else:
+#                     break
+#             return v_sym
+#         else:
+#             print('unsupported symmetry: %s' % symmetry)
+#             return None
 
-    @staticmethod
-    def sst_symmetry_cubic(z_rot):
-        '''Transform a given vector according to the cubic symmetry.
+#     @staticmethod
+#     def sst_symmetry_cubic(z_rot):
+#         '''Transform a given vector according to the cubic symmetry.
 
-        This function transform a vector so that it lies in the unit SST triangle.
+#         This function transform a vector so that it lies in the unit SST triangle.
 
-        :param z_rot: vector to transform.
-        :return: the transformed vector.
-        '''
-        if z_rot[0] < 0: z_rot[0] = -z_rot[0]
-        if z_rot[1] < 0: z_rot[1] = -z_rot[1]
-        if z_rot[2] < 0: z_rot[2] = -z_rot[2]
-        if (z_rot[2] > z_rot[1]):
-            z_rot[1], z_rot[2] = z_rot[2], z_rot[1]
-        if (z_rot[1] > z_rot[0]):
-            z_rot[0], z_rot[1] = z_rot[1], z_rot[0]
-        if (z_rot[2] > z_rot[1]):
-            z_rot[1], z_rot[2] = z_rot[2], z_rot[1]
-        return np.array([z_rot[1], z_rot[2], z_rot[0]])
+#         :param z_rot: vector to transform.
+#         :return: the transformed vector.
+#         '''
+#         if z_rot[0] < 0: z_rot[0] = -z_rot[0]
+#         if z_rot[1] < 0: z_rot[1] = -z_rot[1]
+#         if z_rot[2] < 0: z_rot[2] = -z_rot[2]
+#         if (z_rot[2] > z_rot[1]):
+#             z_rot[1], z_rot[2] = z_rot[2], z_rot[1]
+#         if (z_rot[1] > z_rot[0]):
+#             z_rot[0], z_rot[1] = z_rot[1], z_rot[0]
+#         if (z_rot[2] > z_rot[1]):
+#             z_rot[1], z_rot[2] = z_rot[2], z_rot[1]
+#         return np.array([z_rot[1], z_rot[2], z_rot[0]])
         
-    def plot_pf(self, col, orient_data, ax=None, mk='o', ann=False, ftsize=6):
-        """Create the direct pole figure.
+#     def plot_pf(self, col, orient_data, ax=None, mk='o', ann=False, ftsize=6):
+#         """Create the direct pole figure.
 
-        :param ax: a reference to a pyplot ax to draw the poles.
-        :param mk: marker used to plot the poles (disc by default).
-        :param bool ann: Annotate the pole with the coordinates of the vector
-            if True (False by default).
+#         :param ax: a reference to a pyplot ax to draw the poles.
+#         :param mk: marker used to plot the poles (disc by default).
+#         :param bool ann: Annotate the pole with the coordinates of the vector
+#             if True (False by default).
             
-        """
-        self.plot_pf_background(ax)
-        cp_0, cp_1 = [], []
-        colors = []
-        for igr, g in enumerate(orient_data):
-            if np.isnan(g).all() or np.all(g==0):
-                continue
+#         """
+#         self.plot_pf_background(ax)
+#         cp_0, cp_1 = [], []
+#         colors = []
+#         for igr, g in enumerate(orient_data):
+#             if np.isnan(g).all() or np.all(g==0):
+#                 continue
             
-            gt = g.transpose()
-            for i, hkl_plane in enumerate(self.poles):
-                c = hkl_plane.normal()
-                c_rot = gt.dot(c)
-                color = col[igr]
+#             gt = g.transpose()
+#             for i, hkl_plane in enumerate(self.poles):
+#                 c = hkl_plane.normal()
+#                 c_rot = gt.dot(c)
+#                 color = col[igr]
                 
-                if self.axis == 'Z':
-                    (h, v, u) = (0, 1, 2)
-                elif self.axis == 'Y':
-                    (h, v, u) = (0, 2, 1)
-                else:
-                    (h, v, u) = (1, 2, 0)
+#                 if self.axis == 'Z':
+#                     (h, v, u) = (0, 1, 2)
+#                 elif self.axis == 'Y':
+#                     (h, v, u) = (0, 2, 1)
+#                 else:
+#                     (h, v, u) = (1, 2, 0)
                     
-                axis_rot = c_rot[[h, v, u]]
-                # the direction to plot is given by c_dir[h,v,u]
+#                 axis_rot = c_rot[[h, v, u]]
+#                 # the direction to plot is given by c_dir[h,v,u]
                 
-                if axis_rot[2] < 0:
-                    axis_rot *= -1  # make unit vector have z>0
-                if self.proj == 'flat':
-                    cp = axis_rot
-                elif self.proj == 'stereo':
-                    c = axis_rot + self.z
-                    c /= c[2]  # SP'/SP = r/z with r=1
-                    cp = c
-                    # cp = np.cross(c, self.z)
-                else:
-                    raise ValueError('Error, unsupported projection type', self.proj)
+#                 if axis_rot[2] < 0:
+#                     axis_rot *= -1  # make unit vector have z>0
+#                 if self.proj == 'flat':
+#                     cp = axis_rot
+#                 elif self.proj == 'stereo':
+#                     c = axis_rot + self.z
+#                     c /= c[2]  # SP'/SP = r/z with r=1
+#                     cp = c
+#                     # cp = np.cross(c, self.z)
+#                 else:
+#                     raise ValueError('Error, unsupported projection type', self.proj)
                 
-                cp_0.append(cp[0])
-                cp_1.append(cp[1])
-                colors.append(color)
-                # Next 3 lines are necessary in case c_dir[2]=0, as for Euler angles [45, 45, 0]
-                if axis_rot[2] < 0.000001:
-                    cp_0.append(-cp[0])
-                    cp_1.append(-cp[1])
-                    colors.append(color)
-                    # ax.scatter(-cp[0], -cp[1], linewidth=0, c=color, marker='o', s=axis_rot)
-        ax.scatter(cp_0, cp_1, c=colors, s=self.mksize, zorder=2)
+#                 cp_0.append(cp[0])
+#                 cp_1.append(cp[1])
+#                 colors.append(color)
+#                 # Next 3 lines are necessary in case c_dir[2]=0, as for Euler angles [45, 45, 0]
+#                 if axis_rot[2] < 0.000001:
+#                     cp_0.append(-cp[0])
+#                     cp_1.append(-cp[1])
+#                     colors.append(color)
+#                     # ax.scatter(-cp[0], -cp[1], linewidth=0, c=color, marker='o', s=axis_rot)
+#         ax.scatter(cp_0, cp_1, c=colors, s=self.mksize, zorder=2)
                 
-        ax.axis([-1.1, 1.1, -1.1, 1.1])
-        ax.axis('off')
-        ax.set_title('{%s} direct %s projection' % (self.family, self.proj), fontsize = ftsize)
+#         ax.axis([-1.1, 1.1, -1.1, 1.1])
+#         ax.axis('off')
+#         ax.set_title('{%s} direct %s projection' % (self.family, self.proj), fontsize = ftsize)
         
-    def plot_sst_color(self, col, orient_data, ax=None, mk='s', \
-                          ann=False, ftsize=6, phase = 0, symms=None):
-        """ Create the inverse pole figure in the unit standard triangle.
-        :param ax: a reference to a pyplot ax to draw the poles.
-        :param mk: marker used to plot the poles (square by default).
-        :param bool ann: Annotate the pole with the coordinates of the vector if True (False by default).
-        """
-        system = None
-        symmetry = self.lattice._symmetry
-        if phase==0:
-            sst_poles = [(0, 0, 1), (1, 0, 1), (1, 1, 1)]
-            ax.axis([-0.05, 0.45, -0.05, 0.40])
-            system = 'cubic'
-        elif phase==1:
-            sst_poles = [(0, 0, 1), (2, -1, 0), (1, 0, 0)]
-            ax.axis([-0.05, 1.05, -0.05, 0.6])
-            system = 'hexa'
-        else:
-            print('unssuported symmetry: %s' % symmetry)
-        A = HklPlane(*sst_poles[0], lattice=self.lattice)
-        B = HklPlane(*sst_poles[1], lattice=self.lattice)
-        C = HklPlane(*sst_poles[2], lattice=self.lattice)
-        if system == 'cubic':
-            self.plot_line_between_crystal_dir(A.normal(), B.normal(), ax=ax, steps=int(1+(45/5)), col='k')
-            self.plot_line_between_crystal_dir(B.normal(), C.normal(), ax=ax, steps=int(1+(35/5)), col='k')
-            self.plot_line_between_crystal_dir(C.normal(), A.normal(), ax=ax, steps=int(1+(55/5)), col='k')
-        elif system == 'hexa':
-            self.plot_line_between_crystal_dir(A.normal(), B.normal(), ax=ax, steps=int(1+(90/5)), col='k')
-            self.plot_line_between_crystal_dir(B.normal(), C.normal(), ax=ax, steps=int(1+(30/5)), col='k')
-            self.plot_line_between_crystal_dir(C.normal(), A.normal(), ax=ax, steps=int(1+(90/5)), col='k')
-        else:
-            self.plot_line_between_crystal_dir(A.normal(), B.normal(), ax=ax, col='k')
-            self.plot_line_between_crystal_dir(B.normal(), C.normal(), ax=ax, col='k')
-            self.plot_line_between_crystal_dir(C.normal(), A.normal(), ax=ax, col='k')
-        # display the 3 crystal axes
-        poles = [A, B, C]
-        v_align = ['top', 'top', 'bottom']
-        for i in range(3):
-            hkl = poles[i]
-            c_dir = hkl.normal()
-            c = c_dir + self.z
-            c /= c[2]  # SP'/SP = r/z with r=1
-            pole_str = '%d%d%d' % hkl.miller_indices()
-            if phase==1:
-                pole_str = '%d%d%d%d' % HklPlane.three_to_four_indices(*hkl.miller_indices())
-            ax.annotate(pole_str, (c[0], c[1] - (2 * (i < 2) - 1) * 0.01), xycoords='data',
-                        fontsize=8, horizontalalignment='center', verticalalignment=v_align[i])
-        # now plot the sample axis
-        cp_0, cp_1 = [], []
-        colors = []
-        for igr, g in enumerate(orient_data):
-            if np.isnan(g).all() or np.all(g==0):
-                continue
-            # compute axis and apply SST symmetry
-            if self.axis == 'Z':
-                axis = self.z
-            elif self.axis == 'Y':
-                axis = self.y
-            else:
-                axis = self.x
+#     def plot_sst_color(self, col, orient_data, ax=None, mk='s', \
+#                           ann=False, ftsize=6, phase = 0, symms=None):
+#         """ Create the inverse pole figure in the unit standard triangle.
+#         :param ax: a reference to a pyplot ax to draw the poles.
+#         :param mk: marker used to plot the poles (square by default).
+#         :param bool ann: Annotate the pole with the coordinates of the vector if True (False by default).
+#         """
+#         system = None
+#         symmetry = self.lattice._symmetry
+#         if phase==0:
+#             sst_poles = [(0, 0, 1), (1, 0, 1), (1, 1, 1)]
+#             ax.axis([-0.05, 0.45, -0.05, 0.40])
+#             system = 'cubic'
+#         elif phase==1:
+#             sst_poles = [(0, 0, 1), (2, -1, 0), (1, 0, 0)]
+#             ax.axis([-0.05, 1.05, -0.05, 0.6])
+#             system = 'hexa'
+#         else:
+#             print('unssuported symmetry: %s' % symmetry)
+#         A = HklPlane(*sst_poles[0], lattice=self.lattice)
+#         B = HklPlane(*sst_poles[1], lattice=self.lattice)
+#         C = HklPlane(*sst_poles[2], lattice=self.lattice)
+#         if system == 'cubic':
+#             self.plot_line_between_crystal_dir(A.normal(), B.normal(), ax=ax, steps=int(1+(45/5)), col='k')
+#             self.plot_line_between_crystal_dir(B.normal(), C.normal(), ax=ax, steps=int(1+(35/5)), col='k')
+#             self.plot_line_between_crystal_dir(C.normal(), A.normal(), ax=ax, steps=int(1+(55/5)), col='k')
+#         elif system == 'hexa':
+#             self.plot_line_between_crystal_dir(A.normal(), B.normal(), ax=ax, steps=int(1+(90/5)), col='k')
+#             self.plot_line_between_crystal_dir(B.normal(), C.normal(), ax=ax, steps=int(1+(30/5)), col='k')
+#             self.plot_line_between_crystal_dir(C.normal(), A.normal(), ax=ax, steps=int(1+(90/5)), col='k')
+#         else:
+#             self.plot_line_between_crystal_dir(A.normal(), B.normal(), ax=ax, col='k')
+#             self.plot_line_between_crystal_dir(B.normal(), C.normal(), ax=ax, col='k')
+#             self.plot_line_between_crystal_dir(C.normal(), A.normal(), ax=ax, col='k')
+#         # display the 3 crystal axes
+#         poles = [A, B, C]
+#         v_align = ['top', 'top', 'bottom']
+#         for i in range(3):
+#             hkl = poles[i]
+#             c_dir = hkl.normal()
+#             c = c_dir + self.z
+#             c /= c[2]  # SP'/SP = r/z with r=1
+#             pole_str = '%d%d%d' % hkl.miller_indices()
+#             if phase==1:
+#                 pole_str = '%d%d%d%d' % HklPlane.three_to_four_indices(*hkl.miller_indices())
+#             ax.annotate(pole_str, (c[0], c[1] - (2 * (i < 2) - 1) * 0.01), xycoords='data',
+#                         fontsize=8, horizontalalignment='center', verticalalignment=v_align[i])
+#         # now plot the sample axis
+#         cp_0, cp_1 = [], []
+#         colors = []
+#         for igr, g in enumerate(orient_data):
+#             if np.isnan(g).all() or np.all(g==0):
+#                 continue
+#             # compute axis and apply SST symmetry
+#             if self.axis == 'Z':
+#                 axis = self.z
+#             elif self.axis == 'Y':
+#                 axis = self.y
+#             else:
+#                 axis = self.x
                 
-            axis_rot = self.sst_symmetry(g.dot(axis), symms)
-            color = np.round(col[igr],5)
-            if axis_rot[2] < 0:
-                axis_rot *= -1  # make unit vector have z>0
-            if self.proj == 'flat':
-                cp = axis_rot
-            elif self.proj == 'stereo':
-                c = axis_rot + self.z
-                c /= c[2]  # SP'/SP = r/z with r=1
-                cp = c
-                # cp = np.cross(c, self.z)
-            else:
-                raise ValueError('Error, unsupported projection type', self.proj)
+#             axis_rot = self.sst_symmetry(g.dot(axis), symms)
+#             color = np.round(col[igr],5)
+#             if axis_rot[2] < 0:
+#                 axis_rot *= -1  # make unit vector have z>0
+#             if self.proj == 'flat':
+#                 cp = axis_rot
+#             elif self.proj == 'stereo':
+#                 c = axis_rot + self.z
+#                 c /= c[2]  # SP'/SP = r/z with r=1
+#                 cp = c
+#                 # cp = np.cross(c, self.z)
+#             else:
+#                 raise ValueError('Error, unsupported projection type', self.proj)
             
-            cp_0.append(cp[0])
-            cp_1.append(cp[1])
-            colors.append(color)
-            # Next 3 lines are necessary in case c_dir[2]=0, as for Euler angles [45, 45, 0]
-            if axis_rot[2] < 0.000001:
-                cp_0.append(-cp[0])
-                cp_1.append(-cp[1])
-                colors.append(color)
-                # ax.scatter(-cp[0], -cp[1], linewidth=0, c=color, marker='o', s=axis_rot)
-        ax.scatter(cp_0, cp_1, c=colors, s=self.mksize, zorder=2)        
-        ax.set_title('%s-axis SST inverse %s projection' % (self.axis, self.proj), fontsize = ftsize)
-        plt.axis("off")
+#             cp_0.append(cp[0])
+#             cp_1.append(cp[1])
+#             colors.append(color)
+#             # Next 3 lines are necessary in case c_dir[2]=0, as for Euler angles [45, 45, 0]
+#             if axis_rot[2] < 0.000001:
+#                 cp_0.append(-cp[0])
+#                 cp_1.append(-cp[1])
+#                 colors.append(color)
+#                 # ax.scatter(-cp[0], -cp[1], linewidth=0, c=color, marker='o', s=axis_rot)
+#         ax.scatter(cp_0, cp_1, c=colors, s=self.mksize, zorder=2)        
+#         ax.set_title('%s-axis SST inverse %s projection' % (self.axis, self.proj), fontsize = ftsize)
+#         plt.axis("off")
 
 
 # =============================================================================
@@ -8516,174 +8454,174 @@ def global_plots(lim_x, lim_y, rotation_matrix1, strain_matrix, strain_matrixs, 
                 except:
                     pass
                 
-def sst_texture(orient_data=None, col_array=None, direc="", symmetry=None, symmetry_name=None, lattice=None,
-                axis="Z", fn="", symms=None):
+# def sst_texture(orient_data=None, col_array=None, direc="", symmetry=None, symmetry_name=None, lattice=None,
+#                 axis="Z", fn="", symms=None):
     
-    print("symmetry of the current phase is : "+symmetry_name)
+#     print("symmetry of the current phase is : "+symmetry_name)
     
-    if np.max(col_array) > 1:
-        col_array[np.where(col_array>1)]=1
+#     if np.max(col_array) > 1:
+#         col_array[np.where(col_array>1)]=1
         
-    fig = plt.figure(1)
-    if symmetry_name == "cubic":
-        pole_hkls = ['111','110','100']            
-        ax1 = fig.add_subplot(221, aspect='equal')
-        ax2 = fig.add_subplot(222, aspect='equal')
-        ax3 = fig.add_subplot(223, aspect='equal')
-        ax4 = fig.add_subplot(224, aspect='equal')
-    elif symmetry_name == "hexagonal":
-        pole_hkls = ['001','100','101','102','110']
-        ax1 = fig.add_subplot(231, aspect='equal')
-        ax2 = fig.add_subplot(232, aspect='equal')
-        ax3 = fig.add_subplot(233, aspect='equal')
-        ax4 = fig.add_subplot(234, aspect='equal')
-        ax5 = fig.add_subplot(235, aspect='equal')
-        ax6 = fig.add_subplot(236, aspect='equal')
-    else:
-        print("PF and IPF plots are only supported for Cubic and Hexagonal systems for now")
-        return
+#     fig = plt.figure(1)
+#     if symmetry_name == "cubic":
+#         pole_hkls = ['111','110','100']            
+#         ax1 = fig.add_subplot(221, aspect='equal')
+#         ax2 = fig.add_subplot(222, aspect='equal')
+#         ax3 = fig.add_subplot(223, aspect='equal')
+#         ax4 = fig.add_subplot(224, aspect='equal')
+#     elif symmetry_name == "hexagonal":
+#         pole_hkls = ['001','100','101','102','110']
+#         ax1 = fig.add_subplot(231, aspect='equal')
+#         ax2 = fig.add_subplot(232, aspect='equal')
+#         ax3 = fig.add_subplot(233, aspect='equal')
+#         ax4 = fig.add_subplot(234, aspect='equal')
+#         ax5 = fig.add_subplot(235, aspect='equal')
+#         ax6 = fig.add_subplot(236, aspect='equal')
+#     else:
+#         print("PF and IPF plots are only supported for Cubic and Hexagonal systems for now")
+#         return
     
-    for pfs in range(len(pole_hkls)):
-        pf1 = PoleFigure(hkl=pole_hkls[pfs], proj='stereo', lattice=lattice, axis=axis)     
-        pf1.mksize = 1.
-        if pfs == 0:
-            pf1.plot_pf(col_array, orient_data, ax=ax1, ftsize=6)
-        elif pfs == 1:
-            pf1.plot_pf(col_array, orient_data, ax=ax2, ftsize=6)
-        elif pfs == 2:
-            pf1.plot_pf(col_array, orient_data, ax=ax3, ftsize=6)                    
-        elif pfs == 3:
-            pf1.plot_pf(col_array, orient_data, ax=ax4, ftsize=6)
-        elif pfs == 4:
-            pf1.plot_pf(col_array, orient_data, ax=ax5, ftsize=6)                    
-    if symmetry_name == "cubic":
-        pf1.plot_sst_color(col_array, orient_data, ax=ax4, ftsize=6, phase=0, symms=symms)
-    elif symmetry_name == "hexagonal":
-        pf1.plot_sst_color(col_array, orient_data, ax=ax6, ftsize=6, phase=1, symms=symms)
-    plt.savefig(direc+"//PF_IPF_"+fn+".png", bbox_inches='tight',format='png', dpi=1000)
-    plt.close() 
+#     for pfs in range(len(pole_hkls)):
+#         pf1 = PoleFigure(hkl=pole_hkls[pfs], proj='stereo', lattice=lattice, axis=axis)     
+#         pf1.mksize = 1.
+#         if pfs == 0:
+#             pf1.plot_pf(col_array, orient_data, ax=ax1, ftsize=6)
+#         elif pfs == 1:
+#             pf1.plot_pf(col_array, orient_data, ax=ax2, ftsize=6)
+#         elif pfs == 2:
+#             pf1.plot_pf(col_array, orient_data, ax=ax3, ftsize=6)                    
+#         elif pfs == 3:
+#             pf1.plot_pf(col_array, orient_data, ax=ax4, ftsize=6)
+#         elif pfs == 4:
+#             pf1.plot_pf(col_array, orient_data, ax=ax5, ftsize=6)                    
+#     if symmetry_name == "cubic":
+#         pf1.plot_sst_color(col_array, orient_data, ax=ax4, ftsize=6, phase=0, symms=symms)
+#     elif symmetry_name == "hexagonal":
+#         pf1.plot_sst_color(col_array, orient_data, ax=ax6, ftsize=6, phase=1, symms=symms)
+#     plt.savefig(direc+"//PF_IPF_"+fn+".png", bbox_inches='tight',format='png', dpi=1000)
+#     plt.close() 
     
-def save_sst(lim_x, lim_y, strain_matrix, strain_matrixs, col, colx, coly,
-                      match_rate, mat_global, spots_len, iR_pix, fR_pix,
-                      model_direc, material_, material1_, lattice_, lattice1_, 
-                      symmetry_, symmetry1_, crystal, crystal1, rotation_matrix1, symmetry_name, symmetry1_name,
-                      mac_axis = [0., 0., 1.],axis_text="Z",match_rate_threshold = 5):
+# def save_sst(lim_x, lim_y, strain_matrix, strain_matrixs, col, colx, coly,
+#                       match_rate, mat_global, spots_len, iR_pix, fR_pix,
+#                       model_direc, material_, material1_, lattice_, lattice1_, 
+#                       symmetry_, symmetry1_, crystal, crystal1, rotation_matrix1, symmetry_name, symmetry1_name,
+#                       mac_axis = [0., 0., 1.],axis_text="Z",match_rate_threshold = 5):
 
-    rotation_matrix_sst = [[] for i in range(len(rotation_matrix1))]
-    for i in range(len(rotation_matrix1)):
-        rotation_matrix_sst[i].append(np.zeros((lim_x*lim_y,3,3)))
+#     rotation_matrix_sst = [[] for i in range(len(rotation_matrix1))]
+#     for i in range(len(rotation_matrix1)):
+#         rotation_matrix_sst[i].append(np.zeros((lim_x*lim_y,3,3)))
         
-    for i in range(len(rotation_matrix1)):
-        temp_mat = rotation_matrix1[i][0]
-        for j in range(len(temp_mat)):
-            orientation_matrix123 = temp_mat[j,:,:]
-            # ## rotate orientation by 40degrees to bring in Sample RF
-            omega = np.deg2rad(-40.0)
-            # rotation de -omega autour de l'axe x (or Y?) pour repasser dans Rsample
-            cw = np.cos(omega)
-            sw = np.sin(omega)
-            mat_from_lab_to_sample_frame = np.array([[cw, 0.0, sw], [0.0, 1.0, 0.0], [-sw, 0, cw]])
-            orientation_matrix123 = np.dot(mat_from_lab_to_sample_frame.T, orientation_matrix123)
-            if np.linalg.det(orientation_matrix123) < 0:
-                orientation_matrix123 = -orientation_matrix123
-            rotation_matrix_sst[i][0][j,:,:] = orientation_matrix123
+#     for i in range(len(rotation_matrix1)):
+#         temp_mat = rotation_matrix1[i][0]
+#         for j in range(len(temp_mat)):
+#             orientation_matrix123 = temp_mat[j,:,:]
+#             # ## rotate orientation by 40degrees to bring in Sample RF
+#             omega = np.deg2rad(-40.0)
+#             # rotation de -omega autour de l'axe x (or Y?) pour repasser dans Rsample
+#             cw = np.cos(omega)
+#             sw = np.sin(omega)
+#             mat_from_lab_to_sample_frame = np.array([[cw, 0.0, sw], [0.0, 1.0, 0.0], [-sw, 0, cw]])
+#             orientation_matrix123 = np.dot(mat_from_lab_to_sample_frame.T, orientation_matrix123)
+#             if np.linalg.det(orientation_matrix123) < 0:
+#                 orientation_matrix123 = -orientation_matrix123
+#             rotation_matrix_sst[i][0][j,:,:] = orientation_matrix123
     
-    rangeval = len(match_rate)
-    if material_ == material1_:
-        for index in range(rangeval):
-            ### index for nans
-            nan_index = np.where(match_rate[index][0] <= match_rate_threshold)[0]
-            if index == 0:
-                rotation_matrix_plot = np.copy(rotation_matrix_sst[index][0])
-                col_plot = np.copy(col[index][0])
-                col_plot[nan_index,:] = np.nan 
-                rotation_matrix_plot[nan_index,:,:] = np.nan 
+#     rangeval = len(match_rate)
+#     if material_ == material1_:
+#         for index in range(rangeval):
+#             ### index for nans
+#             nan_index = np.where(match_rate[index][0] <= match_rate_threshold)[0]
+#             if index == 0:
+#                 rotation_matrix_plot = np.copy(rotation_matrix_sst[index][0])
+#                 col_plot = np.copy(col[index][0])
+#                 col_plot[nan_index,:] = np.nan 
+#                 rotation_matrix_plot[nan_index,:,:] = np.nan 
                 
-                sst_texture(orient_data=rotation_matrix_plot, 
-                            col_array=col_plot, 
-                            direc=model_direc, 
-                            symmetry=symmetry_, 
-                            symmetry_name = symmetry_name,
-                            lattice=lattice_, axis=axis_text, fn="UB_"+str(index),
-                            symms=crystal._hklsym)
-            else:
-                tempori = np.copy(rotation_matrix_sst[index][0])
-                tempori[nan_index,:,:] = np.nan
-                rotation_matrix_plot = np.vstack((rotation_matrix_plot,tempori))
-                tempcol = np.copy(col[index][0])
-                tempcol[nan_index,:] = np.nan
-                col_plot = np.vstack((col_plot,tempcol))   
+#                 sst_texture(orient_data=rotation_matrix_plot, 
+#                             col_array=col_plot, 
+#                             direc=model_direc, 
+#                             symmetry=symmetry_, 
+#                             symmetry_name = symmetry_name,
+#                             lattice=lattice_, axis=axis_text, fn="UB_"+str(index),
+#                             symms=crystal._hklsym)
+#             else:
+#                 tempori = np.copy(rotation_matrix_sst[index][0])
+#                 tempori[nan_index,:,:] = np.nan
+#                 rotation_matrix_plot = np.vstack((rotation_matrix_plot,tempori))
+#                 tempcol = np.copy(col[index][0])
+#                 tempcol[nan_index,:] = np.nan
+#                 col_plot = np.vstack((col_plot,tempcol))   
                 
-                sst_texture(orient_data=tempori, 
-                            col_array=tempcol, 
-                            direc=model_direc, 
-                            symmetry=symmetry_, 
-                            symmetry_name = symmetry_name,
-                            lattice=lattice_, axis=axis_text, fn="UB_"+str(index),
-                            symms=crystal._hklsym)
-        ### Plot pole figures and IPF (cubic and hexagonal are supported for now)
-        sst_texture(orient_data=rotation_matrix_plot, 
-                    col_array=col_plot, 
-                    direc=model_direc, 
-                    symmetry=symmetry_, 
-                    symmetry_name = symmetry_name,
-                    lattice=lattice_, axis=axis_text, fn="all_UBs",
-                    symms=crystal._hklsym)
-    else:
-        for matid in range(2):
-            if matid == 0:
-                symmetry_name_plot = symmetry_name
-                symmetry_plot = symmetry_
-                lattice_plot = lattice_
-                symms = crystal._hklsym
-            else:
-                symmetry_name_plot = symmetry1_name
-                symmetry_plot = symmetry1_
-                lattice_plot = lattice1_
-                symms = crystal1._hklsym
+#                 sst_texture(orient_data=tempori, 
+#                             col_array=tempcol, 
+#                             direc=model_direc, 
+#                             symmetry=symmetry_, 
+#                             symmetry_name = symmetry_name,
+#                             lattice=lattice_, axis=axis_text, fn="UB_"+str(index),
+#                             symms=crystal._hklsym)
+#         ### Plot pole figures and IPF (cubic and hexagonal are supported for now)
+#         sst_texture(orient_data=rotation_matrix_plot, 
+#                     col_array=col_plot, 
+#                     direc=model_direc, 
+#                     symmetry=symmetry_, 
+#                     symmetry_name = symmetry_name,
+#                     lattice=lattice_, axis=axis_text, fn="all_UBs",
+#                     symms=crystal._hklsym)
+#     else:
+#         for matid in range(2):
+#             if matid == 0:
+#                 symmetry_name_plot = symmetry_name
+#                 symmetry_plot = symmetry_
+#                 lattice_plot = lattice_
+#                 symms = crystal._hklsym
+#             else:
+#                 symmetry_name_plot = symmetry1_name
+#                 symmetry_plot = symmetry1_
+#                 lattice_plot = lattice1_
+#                 symms = crystal1._hklsym
             
-            for index in range(rangeval):
-                ### index for nans
-                nan_index1 = np.where(match_rate[index][0] <= match_rate_threshold)[0]
-                mat_id_index = np.where(mat_global[index][0] != matid+1)[0]
-                nan_index = np.hstack((mat_id_index,nan_index1))
-                nan_index = np.unique(nan_index)
-                if index == 0:
-                    rotation_matrix_plot = np.copy(rotation_matrix_sst[index][0])
-                    rotation_matrix_plot[nan_index,:,:] = np.nan 
-                    col_plot = np.copy(col[index][0])
-                    col_plot[nan_index,:] = np.nan
+#             for index in range(rangeval):
+#                 ### index for nans
+#                 nan_index1 = np.where(match_rate[index][0] <= match_rate_threshold)[0]
+#                 mat_id_index = np.where(mat_global[index][0] != matid+1)[0]
+#                 nan_index = np.hstack((mat_id_index,nan_index1))
+#                 nan_index = np.unique(nan_index)
+#                 if index == 0:
+#                     rotation_matrix_plot = np.copy(rotation_matrix_sst[index][0])
+#                     rotation_matrix_plot[nan_index,:,:] = np.nan 
+#                     col_plot = np.copy(col[index][0])
+#                     col_plot[nan_index,:] = np.nan
                     
-                    sst_texture(orient_data=rotation_matrix_plot, 
-                                col_array=col_plot, 
-                                direc=model_direc, 
-                                symmetry=symmetry_plot, 
-                                symmetry_name = symmetry_name_plot,
-                                lattice=lattice_plot, axis=axis_text, fn="mat_"+str(matid)+"_UB_"+str(index),
-                                symms=symms)
-                else:
-                    tempori = np.copy(rotation_matrix_sst[index][0])
-                    tempori[nan_index,:,:] = np.nan
-                    rotation_matrix_plot = np.vstack((rotation_matrix_plot,tempori))
-                    tempcol = np.copy(col[index][0])
-                    tempcol[nan_index,:] = np.nan
-                    col_plot = np.vstack((col_plot,tempcol))
+#                     sst_texture(orient_data=rotation_matrix_plot, 
+#                                 col_array=col_plot, 
+#                                 direc=model_direc, 
+#                                 symmetry=symmetry_plot, 
+#                                 symmetry_name = symmetry_name_plot,
+#                                 lattice=lattice_plot, axis=axis_text, fn="mat_"+str(matid)+"_UB_"+str(index),
+#                                 symms=symms)
+#                 else:
+#                     tempori = np.copy(rotation_matrix_sst[index][0])
+#                     tempori[nan_index,:,:] = np.nan
+#                     rotation_matrix_plot = np.vstack((rotation_matrix_plot,tempori))
+#                     tempcol = np.copy(col[index][0])
+#                     tempcol[nan_index,:] = np.nan
+#                     col_plot = np.vstack((col_plot,tempcol))
                     
-                    sst_texture(orient_data=tempori, 
-                                col_array=tempcol, 
-                                direc=model_direc, 
-                                symmetry=symmetry_plot, 
-                                symmetry_name = symmetry_name_plot,
-                                lattice=lattice_plot, axis=axis_text, fn="mat_"+str(matid)+"_UB_"+str(index),
-                                symms=symms)
+#                     sst_texture(orient_data=tempori, 
+#                                 col_array=tempcol, 
+#                                 direc=model_direc, 
+#                                 symmetry=symmetry_plot, 
+#                                 symmetry_name = symmetry_name_plot,
+#                                 lattice=lattice_plot, axis=axis_text, fn="mat_"+str(matid)+"_UB_"+str(index),
+#                                 symms=symms)
                     
-            sst_texture(orient_data=rotation_matrix_plot, 
-                            col_array=col_plot, 
-                            direc=model_direc, 
-                            symmetry=symmetry_plot, 
-                            symmetry_name = symmetry_name_plot,
-                            lattice=lattice_plot, axis=axis_text, fn="mat_"+str(matid)+"_all_UBs",
-                            symms=symms)
+#             sst_texture(orient_data=rotation_matrix_plot, 
+#                             col_array=col_plot, 
+#                             direc=model_direc, 
+#                             symmetry=symmetry_plot, 
+#                             symmetry_name = symmetry_name_plot,
+#                             lattice=lattice_plot, axis=axis_text, fn="mat_"+str(matid)+"_all_UBs",
+#                             symms=symms)
 
 
 texttstr1 = "\n\
@@ -9799,109 +9737,109 @@ def _round_indices(indices, max_index=12):
 
     return new_indices
 
-# =============================================================================
-# PYMICRO FUNCTION IMPORTS
-# =============================================================================
+# # =============================================================================
+# # PYMICRO FUNCTION IMPORTS
+# # =============================================================================
 
-def move_rotation_to_FZ(g, symmetry_operators = None):
-    """Compute the rotation matrix in the Fundamental Zone of a given
-    `Symmetry` instance.
+# def move_rotation_to_FZ(g, symmetry_operators = None):
+#     """Compute the rotation matrix in the Fundamental Zone of a given
+#     `Symmetry` instance.
 
-    :param g: a 3x3 matrix representing the rotation.
-    :param verbose: flag for verbose mode.
-    :return: a new 3x3 matrix for the rotation in the fundamental zone.
-    """
-    omegas = []  # list to store all the rotation angles
-    syms = symmetry_operators
-    for sym in syms:
-        # apply the symmetry operator
-        om = np.dot(sym, g)
-        cw = 0.5 * (om.trace() - 1)
-        omega = np.arccos(cw)
-        omegas.append(omega)
-    index = np.argmin(omegas)
-    return np.dot(syms[index], g)
+#     :param g: a 3x3 matrix representing the rotation.
+#     :param verbose: flag for verbose mode.
+#     :return: a new 3x3 matrix for the rotation in the fundamental zone.
+#     """
+#     omegas = []  # list to store all the rotation angles
+#     syms = symmetry_operators
+#     for sym in syms:
+#         # apply the symmetry operator
+#         om = np.dot(sym, g)
+#         cw = 0.5 * (om.trace() - 1)
+#         omega = np.arccos(cw)
+#         omegas.append(omega)
+#     index = np.argmin(omegas)
+#     return np.dot(syms[index], g)
 
-def misorientation_axis_from_delta(delta):
-    """Compute the misorientation axis from the misorientation matrix.
+# def misorientation_axis_from_delta(delta):
+#     """Compute the misorientation axis from the misorientation matrix.
 
-    :param delta: The 3x3 misorientation matrix.
-    :returns: the misorientation axis (normalised vector).
-    """
-    n = np.array([delta[1, 2] - delta[2, 1], delta[2, 0] -
-                  delta[0, 2], delta[0, 1] - delta[1, 0]])
-    n /= np.sqrt((delta[1, 2] - delta[2, 1]) ** 2 +
-                 (delta[2, 0] - delta[0, 2]) ** 2 +
-                 (delta[0, 1] - delta[1, 0]) ** 2)
-    return n
+#     :param delta: The 3x3 misorientation matrix.
+#     :returns: the misorientation axis (normalised vector).
+#     """
+#     n = np.array([delta[1, 2] - delta[2, 1], delta[2, 0] -
+#                   delta[0, 2], delta[0, 1] - delta[1, 0]])
+#     n /= np.sqrt((delta[1, 2] - delta[2, 1]) ** 2 +
+#                  (delta[2, 0] - delta[0, 2]) ** 2 +
+#                  (delta[0, 1] - delta[1, 0]) ** 2)
+#     return n
 
-def misorientation_angle_from_delta(delta):
-    """Compute the misorientation angle from the misorientation matrix.
+# def misorientation_angle_from_delta(delta):
+#     """Compute the misorientation angle from the misorientation matrix.
 
-    Compute the angle associated with this misorientation matrix :math:`\\Delta g`.
-    It is defined as :math:`\\omega = \\arccos(\\text{trace}(\\Delta g)/2-1)`.
-    To avoid float rounding error, the argument is rounded to 1.0 if it is
-    within 1 and 1 plus 32 bits floating point precison.
+#     Compute the angle associated with this misorientation matrix :math:`\\Delta g`.
+#     It is defined as :math:`\\omega = \\arccos(\\text{trace}(\\Delta g)/2-1)`.
+#     To avoid float rounding error, the argument is rounded to 1.0 if it is
+#     within 1 and 1 plus 32 bits floating point precison.
 
-    .. note::
+#     .. note::
 
-      This does not account for the crystal symmetries. If you want to
-      find the disorientation between two orientations, use the
-      :py:meth:`~pymicro.crystal.microstructure.Orientation.disorientation`
-      method.
+#       This does not account for the crystal symmetries. If you want to
+#       find the disorientation between two orientations, use the
+#       :py:meth:`~pymicro.crystal.microstructure.Orientation.disorientation`
+#       method.
 
-    :param delta: The 3x3 misorientation matrix.
-    :returns float: the misorientation angle in radians.
-    """
-    cw = 0.5 * (delta.trace() - 1)
-    if cw > 1. and cw - 1. < 10 * np.finfo('float32').eps:
-        cw = 1.
-    omega = np.arccos(cw)
-    return omega
+#     :param delta: The 3x3 misorientation matrix.
+#     :returns float: the misorientation angle in radians.
+#     """
+#     cw = 0.5 * (delta.trace() - 1)
+#     if cw > 1. and cw - 1. < 10 * np.finfo('float32').eps:
+#         cw = 1.
+#     omega = np.arccos(cw)
+#     return omega
 
-def disorientation(orientation_matrix, orientation_matrix1, crystal_structure=None):
-    """Compute the disorientation another crystal orientation.
+# def disorientation(orientation_matrix, orientation_matrix1, crystal_structure=None):
+#     """Compute the disorientation another crystal orientation.
 
-    Considering all the possible crystal symmetries, the disorientation
-    is defined as the combination of the minimum misorientation angle
-    and the misorientation axis lying in the fundamental zone, which
-    can be used to bring the two lattices into coincidence.
+#     Considering all the possible crystal symmetries, the disorientation
+#     is defined as the combination of the minimum misorientation angle
+#     and the misorientation axis lying in the fundamental zone, which
+#     can be used to bring the two lattices into coincidence.
 
-    .. note::
+#     .. note::
 
-     Both orientations are supposed to have the same symmetry. This is not
-     necessarily the case in multi-phase materials.
+#      Both orientations are supposed to have the same symmetry. This is not
+#      necessarily the case in multi-phase materials.
 
-    :param orientation: an instance of
-        :py:class:`~pymicro.crystal.microstructure.Orientation` class
-        describing the other crystal orientation from which to compute the
-        angle.
-    :param crystal_structure: an instance of the `Symmetry` class
-        describing the crystal symmetry, triclinic (no symmetry) by
-        default.
-    :returns tuple: the misorientation angle in radians, the axis as a
-        numpy vector (crystal coordinates), the axis as a numpy vector
-        (sample coordinates).
-    """
-    the_angle = np.pi
-    symmetries = crystal_structure.symmetry_operators()
-    (gA, gB) = (orientation_matrix, orientation_matrix1)  # nicknames
-    for (g1, g2) in [(gA, gB), (gB, gA)]:
-        for j in range(symmetries.shape[0]):
-            sym_j = symmetries[j]
-            oj = np.dot(sym_j, g1)  # the crystal symmetry operator is left applied
-            for i in range(symmetries.shape[0]):
-                sym_i = symmetries[i]
-                oi = np.dot(sym_i, g2)
-                delta = np.dot(oi, oj.T)
-                mis_angle = misorientation_angle_from_delta(delta)
-                if mis_angle < the_angle:
-                    # now compute the misorientation axis, should check if it lies in the fundamental zone
-                    mis_axis = misorientation_axis_from_delta(delta)
-                    the_angle = mis_angle
-                    the_axis = mis_axis
-                    the_axis_xyz = np.dot(oi.T, the_axis)
-    return the_angle, the_axis, the_axis_xyz
+#     :param orientation: an instance of
+#         :py:class:`~pymicro.crystal.microstructure.Orientation` class
+#         describing the other crystal orientation from which to compute the
+#         angle.
+#     :param crystal_structure: an instance of the `Symmetry` class
+#         describing the crystal symmetry, triclinic (no symmetry) by
+#         default.
+#     :returns tuple: the misorientation angle in radians, the axis as a
+#         numpy vector (crystal coordinates), the axis as a numpy vector
+#         (sample coordinates).
+#     """
+#     the_angle = np.pi
+#     symmetries = crystal_structure.symmetry_operators()
+#     (gA, gB) = (orientation_matrix, orientation_matrix1)  # nicknames
+#     for (g1, g2) in [(gA, gB), (gB, gA)]:
+#         for j in range(symmetries.shape[0]):
+#             sym_j = symmetries[j]
+#             oj = np.dot(sym_j, g1)  # the crystal symmetry operator is left applied
+#             for i in range(symmetries.shape[0]):
+#                 sym_i = symmetries[i]
+#                 oi = np.dot(sym_i, g2)
+#                 delta = np.dot(oi, oj.T)
+#                 mis_angle = misorientation_angle_from_delta(delta)
+#                 if mis_angle < the_angle:
+#                     # now compute the misorientation axis, should check if it lies in the fundamental zone
+#                     mis_axis = misorientation_axis_from_delta(delta)
+#                     the_angle = mis_angle
+#                     the_axis = mis_axis
+#                     the_axis_xyz = np.dot(oi.T, the_axis)
+#     return the_angle, the_axis, the_axis_xyz
 
 # =============================================================================
 # Notebook functions
@@ -12549,6 +12487,11 @@ def predict_ub_MM(seednumber, spots_in_center, classhkl, hkl_all_class0,
                                     0, 0, 0, 0, 0, np.zeros((3,3))]
                 spots = []
                 max_mr, min_mr = 0, 0
+                mat = 0
+                Keymaterial_ = None
+                Bkey = None
+                input_params["mat"] = 0
+                input_params["Bmat"] = None
             else:
                 if strain_calculation:
                     strain_crystal, strain_sample, \
@@ -15343,271 +15286,124 @@ def global_plots_MM(lim_x, lim_y, rotation_matrix1, strain_matrix, strain_matrix
                 plt.close(fig)
             except:
                 continue
-# =============================================================================
-# For 2D histogram sampling 
-# =============================================================================
-class WalkerRandomSampling(object):
-    """Walker's alias method for random objects with different probablities.
-    Based on the implementation of Denis Bzowy at the following URL:
-    http://code.activestate.com/recipes/576564-walkers-alias-method-for-random-objects-with-diffe/
-    """
-    def __init__(self, weights, keys=None):
-        """Builds the Walker tables ``prob`` and ``inx`` for calls to `random()`.
-        The weights (a list or tuple or iterable) can be in any order and they
-        do not even have to sum to 1."""
-        n = self.n = len(weights)
-        if keys is None:
-            self.keys = keys
-        else:
-            self.keys = np.array(keys)
-
-        if isinstance(weights, (list, tuple)):
-            weights = np.array(weights, dtype=float)
-        elif isinstance(weights, np.ndarray):
-            if weights.dtype != float:
-                weights = weights.astype(float)
-        else:
-            weights = np.array(list(weights), dtype=float)
-
-        if weights.ndim != 1:
-            raise ValueError("weights must be a vector")
-
-        weights = weights * n / weights.sum()
-
-        inx = -np.ones(n, dtype=int)
-        short = np.where(weights < 1)[0].tolist()
-        long = np.where(weights > 1)[0].tolist()
-        while short and long:
-            j = short.pop()
-            k = long[-1]
-
-            inx[j] = k
-            weights[k] -= (1 - weights[j])
-            if weights[k] < 1:
-                short.append( k )
-                long.pop()
-
-        self.prob = weights
-        self.inx = inx
-
-    def random(self, count=None):
-        """Returns a given number of random integers or keys, with probabilities
-        being proportional to the weights supplied in the constructor.
-        When `count` is ``None``, returns a single integer or key, otherwise
-        returns a NumPy array with a length given in `count`.
-        """
-        if count is None:
-            u = np.random.random()
-            j = np.random.randint(self.n)
-            k = j if u <= self.prob[j] else self.inx[j]
-            return self.keys[k] if self.keys is not None else k
-
-        u = np.random.random(count)
-        j = np.random.randint(self.n, size=count)
-        k = np.where(u <= self.prob[j], j, self.inx[j])
-        return self.keys[k] if self.keys is not None else k
 
 # =============================================================================
 # Procedure for calculating average UBs in a LaueImage
-# Only tested for Cubic and not for other symmetries
 # =============================================================================
-def euler_as_matrix(angles):
-    """
-    Return the active rotation matrix
-    """
-    # NOTE:
-    #   It is not recommended to directly associated Euler angles with
-    #   other common transformation concept due to its unique passive
-    #   nature.
-    phi2, phi, phi1 = angles
-    c1, s1 = np.cos(phi1), np.sin(phi1)
-    c, s = np.cos(phi), np.sin(phi)
-    c2, s2 = np.cos(phi2), np.sin(phi2)
-    return np.array([
-                        [c1 * c2 - s1 * c * s2, -c1 * s2 - s1 * c * c2, s1 * s],
-                        [s1 * c2 + c1 * c * s2, -s1 * s2 + c1 * c * c2, -c1 * s],
-                        [s * s2, s * c2, c],
-                    ])
-
-def quats_as_eulers(qs):
-    """
-    Quaternion to Euler angles
-    """
-    # NOTE: assuming Bunge Euler angle (z->x->z)
-    #   w = cos(Phi/2) * cos(phi1/2 + phi2/2)
-    #   x = sin(Phi/2) * cos(phi1/2 - phi2/2)
-    #   y = sin(Phi/2) * sin(phi1/2 - phi2/2)
-    #   z = cos(Phi/2) * sin(phi1/2 + phi2/2)
-    w,x,y,z = qs
-    phi2 = np.arctan2(z, w) - np.arctan2(y, x)
-    PHI = 2 * np.arcsin(np.sqrt(x ** 2 + y ** 2))
-    phi1 = np.arctan2(z, w) + np.arctan2(y, x)
-    return phi2, PHI, phi1
-    
-def normalize(qs):
-    # standardize the quaternion
-    # 1. rotation angle range: [0, pi] -> self.w >= 0
-    # 2. |q| === 1
-    w,x,y,z = qs
-    _sgn = -1 if w < 0 else 1
-    _norm = np.linalg.norm([w, x, y, z]) * _sgn
-    w /= _norm
-    x /= _norm
-    y /= _norm
-    z /= _norm
-    return (w,x,y,z)
-
-def average_quaternions(qs):
-    _sum = np.sum([np.outer(q, q) for q in qs], axis=0)
-    _eigval, _eigvec = np.linalg.eig(_sum / len(qs))
-    return np.real(_eigvec.T[_eigval.argmax()])
-
-# =============================================================================
-# One scalar and one array
-# =============================================================================
-# compute quaternion product
-def QuadProd(p, q):
-    p0 = p[0] #np.reshape(p[:, 0], (p[:, 0].shape[0], 1))
-    q0 = np.reshape(q[:, 0], (q[:, 0].shape[0], 1))
-    l = np.sum(p[1:]*q[:, 1:], 1) #np.sum(p[:, 1:]*q[:, 1:], 1)
-    prod1 = (p0*q0).flatten() - l
-    prod2 = p0*q[:, 1:] + q0*p[1:] + np.cross(p[1:], q[:, 1:])
-    m = np.transpose(np.stack([prod1, prod2[:,0], prod2[:,1], prod2[:,2]]))
-    return m
-
-# invert quaternion
-def invQuat(p):
-    q = np.transpose(np.stack([-p[0], p[1], p[2], p[3]]))
-    return q
-
-# calculate the disorientation between two sets of quaternions ps and qs
-def calc_disorient(y_true, y_pred):
-    # sort quaternion for cubic symmetry trick
-    p = np.sort(np.abs(QuadProd(invQuat(y_true), y_pred)))
-    # calculate last component of two other options
-    p1 = (p[:,2] + p[:,3]) / 2 ** (1 / 2)
-    p2 = (p[:,0] + p[:,1] + p[:,2] + p[:,3]) / 2
-    vals = np.transpose(np.stack([p[:,-1], p1, p2]))
-    # pick largest value and find angle
-    max_val = np.amax(vals, axis=1)
-    mis = (2 * np.arccos(max_val))
-    return np.degrees(replacenan(mis))
-
-def replacenan(t):
-    t[np.isnan(t)] = 0
-    return t
-
 def write_average_orientation(save_directory_, mat_global, rotation_matrix1,
                               match_rate, lim_x,lim_y, threshold=0.1, grain_ang=1):
-    from scipy.spatial.transform import Rotation
-    # convert euler angles to quaternions
-    def rmat_2_quat(rmat):
-        r = Rotation.from_matrix(rmat)
-        # Invert to match the massif convention, where the Bunge Euler/Rotation is a
-        # transformation from sample to crystal frame.
-        r1 = r.inv()
-        quat = r1.as_quat()
-        if quat[3] < 0:
-            quat = -1.0 * quat
-        quat = np.roll(quat, 1)
-        return quat
+    print("TO replace this call with quaternion call")
+    pass
+    # from scipy.spatial.transform import Rotation
+    # # convert euler angles to quaternions
+    # def rmat_2_quat(rmat):
+    #     r = Rotation.from_matrix(rmat)
+    #     # Invert to match the massif convention, where the Bunge Euler/Rotation is a
+    #     # transformation from sample to crystal frame.
+    #     r1 = r.inv()
+    #     quat = r1.as_quat()
+    #     if quat[3] < 0:
+    #         quat = -1.0 * quat
+    #     quat = np.roll(quat, 1)
+    #     return quat
 
-    print("Number of Phases present (includes non indexed phase zero also)", len(np.unique(np.array(mat_global))))
+    # print("Number of Phases present (includes non indexed phase zero also)", len(np.unique(np.array(mat_global))))
     
-    average_UB = []
-    nb_pixels = []
-    for matid in range(1):
-        for index in range(len(rotation_matrix1)):
-            quats = []
-            rotation_matrix_transformed = []
-            for om_ind in range(len(rotation_matrix1[index][0])):
-                ##convert the UB matrix to sample reference frame
-                orientation_matrix = rotation_matrix1[index][0][om_ind]
-                #make quaternion from UB matrix
-                quats.append(rmat_2_quat(orientation_matrix))
-                rotation_matrix_transformed.append(orientation_matrix)
-            quats = np.array(quats)
+    # average_UB = []
+    # nb_pixels = []
+    # for matid in range(1):
+    #     for index in range(len(rotation_matrix1)):
+    #         quats = []
+    #         rotation_matrix_transformed = []
+    #         for om_ind in range(len(rotation_matrix1[index][0])):
+    #             ##convert the UB matrix to sample reference frame
+    #             orientation_matrix = rotation_matrix1[index][0][om_ind]
+    #             #make quaternion from UB matrix
+    #             quats.append(rmat_2_quat(orientation_matrix))
+    #             rotation_matrix_transformed.append(orientation_matrix)
+    #         quats = np.array(quats)
             
-            misori = []
-            for ii in range(len(quats)):
-                misori.append(calc_disorient(quats[ii,:], quats))
+    #         misori = []
+    #         for ii in range(len(quats)):
+    #             misori.append(calc_disorient(quats[ii,:], quats))
             
-            misori = np.array(misori)
+    #         misori = np.array(misori)
             
-            mr = match_rate[index][0]
-            mr = mr.flatten()
-            if np.max(mr) == 0:
-                continue
+    #         mr = match_rate[index][0]
+    #         mr = mr.flatten()
+    #         if np.max(mr) == 0:
+    #             continue
             
-            ref_index = np.where(mr == np.max(mr))[0][0] ##choose from best matching rate
-            ##Lets bin the angles to know how many significant grains are present
-            max_ang = int(np.max(misori[ref_index,:])) + 1
-            zz, binzz = np.histogram(misori[ref_index,:], bins=max_ang) #1°bin
-            bin_index = np.where(zz> threshold*np.max(zz))[0]
-            bin_angles = binzz[bin_index]
-            rotation_matrix_transformed = np.array(rotation_matrix_transformed)
-            grains = np.copy(misori[ref_index,:])
-            for kk, jj in enumerate(bin_angles):
-                if jj ==0:
-                    cond = (grains<jj+grain_ang)
-                else:
-                    cond = (grains<jj+grain_ang) * (grains>jj-grain_ang)            
+    #         ref_index = np.where(mr == np.max(mr))[0][0] ##choose from best matching rate
+    #         ##Lets bin the angles to know how many significant grains are present
+    #         max_ang = int(np.max(misori[ref_index,:])) + 1
+    #         zz, binzz = np.histogram(misori[ref_index,:], bins=max_ang) #1°bin
+    #         bin_index = np.where(zz> threshold*np.max(zz))[0]
+    #         bin_angles = binzz[bin_index]
+    #         rotation_matrix_transformed = np.array(rotation_matrix_transformed)
+    #         grains = np.copy(misori[ref_index,:])
+    #         for kk, jj in enumerate(bin_angles):
+    #             if jj ==0:
+    #                 cond = (grains<jj+grain_ang)
+    #             else:
+    #                 cond = (grains<jj+grain_ang) * (grains>jj-grain_ang)            
                 
-                # grain_om = rotation_matrix_transformed[cond, :, :]
-                grain_quats = quats[cond, :]
-                avg_quat_grain = average_quaternions(grain_quats)
-                avg_quat_grain = normalize(avg_quat_grain)
-                avg_euler_grain = quats_as_eulers(avg_quat_grain)
-                avg_om_grain = euler_as_matrix(avg_euler_grain).T
-                average_UB.append(avg_om_grain)
-                nb_pixels.append(len(cond[cond]))
-                ## mask the grain pixels
-                grains[cond] = 360 + kk
+    #             # grain_om = rotation_matrix_transformed[cond, :, :]
+    #             grain_quats = quats[cond, :]
+    #             avg_quat_grain = average_quaternions(grain_quats)
+    #             avg_quat_grain = normalize(avg_quat_grain)
+    #             avg_euler_grain = quats_as_eulers(avg_quat_grain)
+    #             avg_om_grain = euler_as_matrix(avg_euler_grain).T
+    #             average_UB.append(avg_om_grain)
+    #             nb_pixels.append(len(cond[cond]))
+    #             ## mask the grain pixels
+    #             grains[cond] = 360 + kk
             
-            grains[grains<350] = np.nan
-            grains = grains.reshape((lim_x,lim_y))
-            grains = grains - 360
+    #         grains[grains<350] = np.nan
+    #         grains = grains.reshape((lim_x,lim_y))
+    #         grains = grains - 360
             
-            fig = plt.figure(figsize=(11.69,8.27), dpi=100)
-            bottom, top = 0.1, 0.9
-            left, right = 0.1, 0.8
-            fig.subplots_adjust(top=top, bottom=bottom, left=left, right=right, hspace=0.15, wspace=0.25)
-            axs = fig.subplots(1, 1)
-            axs.set_title(r"Grain map", loc='center', fontsize=8)
-            im=axs.imshow(grains, origin='lower', cmap=plt.cm.jet)
-            axs.set_xticks([])
-            axs.set_yticks([])
-            divider = make_axes_locatable(axs)
-            cax = divider.append_axes('right', size='5%', pad=0.05)
-            cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-            cbar.ax.tick_params(labelsize=8) 
-            axs.label_outer()
-            plt.savefig(os.path.join(save_directory_,'figure_misorientation_'+str(matid)+"_"+str(index)+'.png'), 
-                        bbox_inches='tight',format='png', dpi=1000) 
-            plt.close(fig)
+    #         fig = plt.figure(figsize=(11.69,8.27), dpi=100)
+    #         bottom, top = 0.1, 0.9
+    #         left, right = 0.1, 0.8
+    #         fig.subplots_adjust(top=top, bottom=bottom, left=left, right=right, hspace=0.15, wspace=0.25)
+    #         axs = fig.subplots(1, 1)
+    #         axs.set_title(r"Grain map", loc='center', fontsize=8)
+    #         im=axs.imshow(grains, origin='lower', cmap=plt.cm.jet)
+    #         axs.set_xticks([])
+    #         axs.set_yticks([])
+    #         divider = make_axes_locatable(axs)
+    #         cax = divider.append_axes('right', size='5%', pad=0.05)
+    #         cbar = fig.colorbar(im, cax=cax, orientation='vertical')
+    #         cbar.ax.tick_params(labelsize=8) 
+    #         axs.label_outer()
+    #         plt.savefig(os.path.join(save_directory_,'figure_misorientation_'+str(matid)+"_"+str(index)+'.png'), 
+    #                     bbox_inches='tight',format='png', dpi=1000) 
+    #         plt.close(fig)
             
-    ####Average UBs misorientation with each other
-    average_UB = np.array(average_UB)
-    nb_pixels = np.array(nb_pixels)
-    s_ix = np.argsort(nb_pixels)[::-1]
-    average_UB = average_UB[s_ix]
-    nb_pixels = nb_pixels[s_ix]
-    #############################
-    ## save a average_rot_mat.txt file
-    text_file = open(os.path.join(save_directory_,"average_rot_mat.txt"), "w")
-    text_file.write("# ********** Average UB matrix from Misorientation computation *************\n")
+    # ####Average UBs misorientation with each other
+    # average_UB = np.array(average_UB)
+    # nb_pixels = np.array(nb_pixels)
+    # s_ix = np.argsort(nb_pixels)[::-1]
+    # average_UB = average_UB[s_ix]
+    # nb_pixels = nb_pixels[s_ix]
+    # #############################
+    # ## save a average_rot_mat.txt file
+    # text_file = open(os.path.join(save_directory_,"average_rot_mat.txt"), "w")
+    # text_file.write("# ********** Average UB matrix from Misorientation computation *************\n")
 
-    for imat in range(len(average_UB)):
-        local_ub = average_UB[imat,:,:].flatten()
-        string_ = ",".join(map(str, local_ub))
-        text_file.write("# ********** UB MATRIX "+str(imat+1)+" ********** \n")
-        text_file.write("# Nb of pixel occupied "+str(nb_pixels[imat])+"/"+str(lim_x*lim_y)+" ********** \n")
-        text_file.write(string_ + " \n")
-    text_file.close()
+    # for imat in range(len(average_UB)):
+    #     local_ub = average_UB[imat,:,:].flatten()
+    #     string_ = ",".join(map(str, local_ub))
+    #     text_file.write("# ********** UB MATRIX "+str(imat+1)+" ********** \n")
+    #     text_file.write("# Nb of pixel occupied "+str(nb_pixels[imat])+"/"+str(lim_x*lim_y)+" ********** \n")
+    #     text_file.write(string_ + " \n")
+    # text_file.close()
 
 
 def convert_pickle_to_hdf5():
     ### a method for writing the data in pickle file to hdf5 format for later query
+    ## main code is in util scripts
     pass
 
 

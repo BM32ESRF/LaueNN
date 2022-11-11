@@ -878,6 +878,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                         crystal1,
                         strain_free_parameters] for ii in range(count_global)]
             
+            ## test singel file prediction
             # results = new_MP_function(valu12[0])
             # best = results[-2][0][0][0]
             

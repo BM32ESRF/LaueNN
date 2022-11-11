@@ -328,6 +328,79 @@ def compute_mean_orientation(orientation_matrix, symmetry_operators=None):
         rods_fz[i] = OrientationMatrix2Rodrigues(orientation_matrix[i])
     mean_orientation = Rodrigues2OrientationMatrix(np.mean(rods_fz, axis=0))
     return mean_orientation
+
+def symmetryQuats(lattice):
+    """List of symmetry operations as quaternions."""
+    import math
+    if lattice == 'cubic':
+        symQuats =  [
+                    [ 1.0,              0.0,              0.0,              0.0              ],
+                    [ 0.0,              1.0,              0.0,              0.0              ],
+                    [ 0.0,              0.0,              1.0,              0.0              ],
+                    [ 0.0,              0.0,              0.0,              1.0              ],
+                    [ 0.0,              0.0,              0.5*math.sqrt(2), 0.5*math.sqrt(2) ],
+                    [ 0.0,              0.0,              0.5*math.sqrt(2),-0.5*math.sqrt(2) ],
+                    [ 0.0,              0.5*math.sqrt(2), 0.0,              0.5*math.sqrt(2) ],
+                    [ 0.0,              0.5*math.sqrt(2), 0.0,             -0.5*math.sqrt(2) ],
+                    [ 0.0,              0.5*math.sqrt(2),-0.5*math.sqrt(2), 0.0              ],
+                    [ 0.0,             -0.5*math.sqrt(2),-0.5*math.sqrt(2), 0.0              ],
+                    [ 0.5,              0.5,              0.5,              0.5              ],
+                    [-0.5,              0.5,              0.5,              0.5              ],
+                    [-0.5,              0.5,              0.5,             -0.5              ],
+                    [-0.5,              0.5,             -0.5,              0.5              ],
+                    [-0.5,             -0.5,              0.5,              0.5              ],
+                    [-0.5,             -0.5,              0.5,             -0.5              ],
+                    [-0.5,             -0.5,             -0.5,              0.5              ],
+                    [-0.5,              0.5,             -0.5,             -0.5              ],
+                    [-0.5*math.sqrt(2), 0.0,              0.0,              0.5*math.sqrt(2) ],
+                    [ 0.5*math.sqrt(2), 0.0,              0.0,              0.5*math.sqrt(2) ],
+                    [-0.5*math.sqrt(2), 0.0,              0.5*math.sqrt(2), 0.0              ],
+                    [-0.5*math.sqrt(2), 0.0,             -0.5*math.sqrt(2), 0.0              ],
+                    [-0.5*math.sqrt(2), 0.5*math.sqrt(2), 0.0,              0.0              ],
+                    [-0.5*math.sqrt(2),-0.5*math.sqrt(2), 0.0,              0.0              ],
+                  ]
+    elif lattice == 'hexagonal':
+        symQuats =  [
+                    [ 1.0,0.0,0.0,0.0 ],
+                    [-0.5*math.sqrt(3), 0.0, 0.0,-0.5 ],
+                    [ 0.5, 0.0, 0.0, 0.5*math.sqrt(3) ],
+                    [ 0.0,0.0,0.0,1.0 ],
+                    [-0.5, 0.0, 0.0, 0.5*math.sqrt(3) ],
+                    [-0.5*math.sqrt(3), 0.0, 0.0, 0.5 ],
+                    [ 0.0,1.0,0.0,0.0 ],
+                    [ 0.0,-0.5*math.sqrt(3), 0.5, 0.0 ],
+                    [ 0.0, 0.5,-0.5*math.sqrt(3), 0.0 ],
+                    [ 0.0,0.0,1.0,0.0 ],
+                    [ 0.0,-0.5,-0.5*math.sqrt(3), 0.0 ],
+                    [ 0.0, 0.5*math.sqrt(3), 0.5, 0.0 ],
+                  ]
+    elif lattice == 'tetragonal':
+        symQuats =  [
+                        [ 1.0,0.0,0.0,0.0 ],
+                        [ 0.0,1.0,0.0,0.0 ],
+                        [ 0.0,0.0,1.0,0.0 ],
+                        [ 0.0,0.0,0.0,1.0 ],
+                        [ 0.0, 0.5*math.sqrt(2), 0.5*math.sqrt(2), 0.0 ],
+                        [ 0.0,-0.5*math.sqrt(2), 0.5*math.sqrt(2), 0.0 ],
+                        [ 0.5*math.sqrt(2), 0.0, 0.0, 0.5*math.sqrt(2) ],
+                        [-0.5*math.sqrt(2), 0.0, 0.0, 0.5*math.sqrt(2) ],
+                      ]
+    elif lattice == 'orthorhombic':
+        symQuats =  [
+                        [ 1.0,0.0,0.0,0.0 ],
+                        [ 0.0,1.0,0.0,0.0 ],
+                        [ 0.0,0.0,1.0,0.0 ],
+                        [ 0.0,0.0,0.0,1.0 ],
+                      ]
+    else:
+        symQuats =  [
+                        [ 1.0,0.0,0.0,0.0 ],
+                      ]
+      
+    return symQuats
+
+
+
 #%%
 import matplotlib.pyplot as plt
 import os
