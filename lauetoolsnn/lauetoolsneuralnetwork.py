@@ -35,14 +35,6 @@ logger = logging.getLogger()
 old_level = logger.level
 logger.setLevel(100)
 
-try:
-    import pkg_resources  # part of setuptools
-    version_package = pkg_resources.require("lauetoolsnn")[0].version
-except:
-    version_package = "3.0.0"
-
-frame_title = "Laue Neural-Network model- v3 @Ravi @Jean-Sebastien \n@author: Ravi raj purohit PURUSHOTTAM RAJ PUROHIT (purushot@esrf.fr) \n@guide: Jean-Sebastien MICHA (micha@esrf.fr)"
-
 import matplotlib
 matplotlib.use('Qt5Agg')
 matplotlib.rcParams.update({'font.size': 14})
@@ -70,7 +62,7 @@ from skimage.transform import (hough_line, hough_line_peaks)
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QSettings, QTimer
-from PyQt5.QtGui import QPixmap, QMovie
+from PyQt5.QtGui import QPixmap, QMovie, QColor
 from PyQt5.QtWidgets import QApplication, QMainWindow,\
                             QPushButton, QWidget, QFormLayout, \
                             QToolBar, QStatusBar, QSlider, \
@@ -98,7 +90,7 @@ try:
         write_training_testing_dataMTEX, SGLattice, simulate_spots, mse_images, \
         generate_classHKL, rmv_freq_class, array_generator, vali_array, array_generator_verify,\
         worker, predict_preprocessMP_vsingle,write_average_orientation,\
-        computeGnomonicImage, OrientationMatrix2Euler #save_sst
+        computeGnomonicImage, OrientationMatrix2Euler, versions
 except:
     from utils_lauenn import Symmetry,Lattice,\
         simulatemultiplepatterns, worker_generation, chunker_list,call_global,\
@@ -107,7 +99,7 @@ except:
         write_training_testing_dataMTEX, SGLattice, simulate_spots, mse_images, \
         generate_classHKL, rmv_freq_class, array_generator, vali_array, array_generator_verify,\
         worker, predict_preprocessMP_vsingle,write_average_orientation,\
-        computeGnomonicImage, OrientationMatrix2Euler #save_sst
+        computeGnomonicImage, OrientationMatrix2Euler, versions
 
 try:
     from lauetoolsnn.NNmodels import read_hdf5, model_arch_general, \
@@ -154,6 +146,17 @@ def resource_path(relative_path, verbose=0):
     if verbose:
         print("Base path of the library: ",base_path)
     return os.path.join(base_path, relative_path)
+
+
+try:
+    import pkg_resources  # part of setuptools
+    version_package = pkg_resources.require("lauetoolsnn")[0].version
+    latest_version = versions("lauetoolsnn")[0]
+except:
+    version_package = "3.0.0"
+    latest_version = versions("lauetoolsnn")[0]
+
+frame_title = "Laue Neural-Network model- v3 @Ravi @Jean-Sebastien \n@author: Ravi raj purohit PURUSHOTTAM RAJ PUROHIT (purushot@esrf.fr) \n@guide: Jean-Sebastien MICHA (micha@esrf.fr)"
 
 Logo = resource_path("lauetoolsnn_logo_bXM_2.png",  verbose=0)
 Logo_splash = resource_path("lauetoolsnn_splash_bXM_2.png",  verbose=0)
@@ -345,6 +348,10 @@ class Window(QMainWindow):
         self._centralWidget.setLayout(self.layout)
         self._createDisplay() ## display screen
         self.setDisplayText("Lauetoolsnn v"+ str(version_package))
+        if version_package != latest_version:
+            self.setDisplayText("New version avilable at PYPI (please update to Lauetoolsnn v"+ str(version_package)+")", colormode="red")
+            ##add a notification to say new update is available
+            
         self.setDisplayText(frame_title)
         self.setDisplayText("Uses base libraries of LaueTools (micha@esrf.fr) to simulate Laue patterns for a given detector geometry \nFollows convention of BM32 beamline at ESRF")
         self.setDisplayText("Polefigure and IPF plot modules are taken and modified from PYMICRO repository; HKL multiplicity and conditions are taken from xrayutilities library")
@@ -400,7 +407,12 @@ class Window(QMainWindow):
         self.display.setReadOnly(True)
         self.layout.addWidget(self.display)
 
-    def setDisplayText(self, text):
+    def setDisplayText(self, text, colormode='black'):
+        if colormode != 'black':
+            textcolor = QColor(255, 0, 0)
+        else:
+            textcolor = QColor(0, 0, 0)
+        self.display.setTextColor(textcolor)
         self.display.append('%s'%text)
         self.display.moveCursor(QtGui.QTextCursor.End)
         self.display.setFocus()
