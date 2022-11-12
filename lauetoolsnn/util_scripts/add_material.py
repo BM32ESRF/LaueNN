@@ -23,6 +23,8 @@ def example_scripts():
     filepath = resource_path('end_to_end_scripts')
     file1 = os.path.join(filepath,"LaueNN_pyScript_1_or_2phase.py")
     file2 = os.path.join(filepath,"LaueNN_pyScript_3_or_more_phase.py")
+    file3 = os.path.join(filepath,"LaueNN_pyScript_1_or_2phase.ipynb")
+    file4 = os.path.join(filepath,"LaueNN_pyScript_3_or_more_phase.ipynb")
     
     current_path = os.getcwd()
     save_directory = os.path.join(current_path, "LaueNN_script")
@@ -31,6 +33,8 @@ def example_scripts():
     import shutil
     shutil.move(file1, save_directory)
     shutil.move(file2, save_directory)
+    shutil.move(file3, save_directory)
+    shutil.move(file4, save_directory)
     print("Files moved to "+save_directory+" successfully")
     
     # import argparse
