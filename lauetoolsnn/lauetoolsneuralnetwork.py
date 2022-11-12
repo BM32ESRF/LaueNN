@@ -351,7 +351,7 @@ class Window(QMainWindow):
         self._createDisplay() ## display screen
         self.setDisplayText("Lauetoolsnn v"+ str(version_package))
         if version_package != latest_version:
-            self.setDisplayText("New version avilable at PYPI (please update to Lauetoolsnn v"+ str(version_package)+")", colormode="red")
+            self.setDisplayText("New version available at PYPI (please update to Lauetoolsnn v"+ str(latest_version)+")", colormode="red")
             ##add a notification to say new update is available
             
         self.setDisplayText(frame_title)

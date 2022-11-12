@@ -4709,22 +4709,38 @@ def get_ipf_colour(orientation_matrix, axis=np.array([0., 0., 1.]), symmetry=Non
     :param Symmetry symmetry: the symmetry operator to use.
     :return tuple: a tuple contining the RGB values.
     """
-    if np.all(orientation_matrix==0):
-        return 0,0,0
-    
-    ## first we need to rotate the crystal around the 40deg to bring it to sample RF
-    omega = np.deg2rad(-40.0)
-    # rotation de -omega autour de l'axe x (or Y?) pour repasser dans Rsample
-    cw = np.cos(omega)
-    sw = np.sin(omega)
-    mat_from_lab_to_sample_frame = np.array([[cw, 0.0, sw], [0.0, 1.0, 0.0], [-sw, 0, cw]])
-    orientation_matrix = np.dot(mat_from_lab_to_sample_frame.T, orientation_matrix)
-    if np.linalg.det(orientation_matrix) < 0:
-        orientation_matrix = -orientation_matrix
-        
-    om = Orientation(matrix=orientation_matrix, symmetry=symmetry).reduced()
-    
-    return om.IPFcolor(axis=axis)
+    if len(orientation_matrix.shape)==3:
+        col = []
+        for ii in range(len(orientation_matrix)):
+            if np.all(orientation_matrix[ii,:,:]==0):
+                col.append(np.array([0,0,0]))
+            else:
+                ## first we need to rotate the crystal around the 40deg to bring it to sample RF
+                omega = np.deg2rad(-40.0)
+                # rotation de -omega autour de l'axe x (or Y?) pour repasser dans Rsample
+                cw = np.cos(omega)
+                sw = np.sin(omega)
+                mat_from_lab_to_sample_frame = np.array([[cw, 0.0, sw], [0.0, 1.0, 0.0], [-sw, 0, cw]])
+                orientation_matrix_temp = np.dot(mat_from_lab_to_sample_frame.T, orientation_matrix[ii,:,:])
+                if np.linalg.det(orientation_matrix_temp) < 0:
+                    orientation_matrix_temp = -orientation_matrix_temp
+                om = Orientation(matrix=orientation_matrix_temp, symmetry=symmetry.name).reduced()
+                col.append(om.IPFcolor(axis=axis))
+        return np.array(col)
+    else:
+        if np.all(orientation_matrix==0):
+            return np.array([0,0,0])
+        ## first we need to rotate the crystal around the 40deg to bring it to sample RF
+        omega = np.deg2rad(-40.0)
+        # rotation de -omega autour de l'axe x (or Y?) pour repasser dans Rsample
+        cw = np.cos(omega)
+        sw = np.sin(omega)
+        mat_from_lab_to_sample_frame = np.array([[cw, 0.0, sw], [0.0, 1.0, 0.0], [-sw, 0, cw]])
+        orientation_matrix = np.dot(mat_from_lab_to_sample_frame.T, orientation_matrix)
+        if np.linalg.det(orientation_matrix) < 0:
+            orientation_matrix = -orientation_matrix
+        om = Orientation(matrix=orientation_matrix, symmetry=symmetry.name).reduced()
+        return om.IPFcolor(axis=axis)
 
 class Symmetry(enum.Enum):
     """
