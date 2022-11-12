@@ -56,7 +56,7 @@ import inspect
 import threading
 import multiprocessing as multip
 from multiprocessing import Process, Queue, cpu_count
-import ast, configparser
+import configparser
 from sklearn.metrics import classification_report
 from skimage.transform import (hough_line, hough_line_peaks)
 
@@ -90,7 +90,7 @@ try:
         write_training_testing_dataMTEX, SGLattice, simulate_spots, mse_images, \
         generate_classHKL, rmv_freq_class, array_generator, vali_array, array_generator_verify,\
         worker, predict_preprocessMP_vsingle,write_average_orientation,\
-        computeGnomonicImage, OrientationMatrix2Euler, versions
+        computeGnomonicImage, OrientationMatrix2Euler, versions, convert_pickle_to_hdf5
 except:
     from utils_lauenn import Symmetry,Lattice,\
         simulatemultiplepatterns, worker_generation, chunker_list,call_global,\
@@ -99,7 +99,7 @@ except:
         write_training_testing_dataMTEX, SGLattice, simulate_spots, mse_images, \
         generate_classHKL, rmv_freq_class, array_generator, vali_array, array_generator_verify,\
         worker, predict_preprocessMP_vsingle,write_average_orientation,\
-        computeGnomonicImage, OrientationMatrix2Euler, versions
+        computeGnomonicImage, OrientationMatrix2Euler, versions, convert_pickle_to_hdf5
 
 try:
     from lauetoolsnn.NNmodels import read_hdf5, model_arch_general, \
@@ -118,6 +118,7 @@ try:
     import lauetoolsnn.lauetools.readmccd as RMCCD
     import lauetoolsnn.lauetools.IOimagefile as IOimage
     import lauetoolsnn.lauetools.imageprocessing as ImProc
+    from lauetoolsnn.lauetools.quaternions import Orientation
 except:
     from lauetools import dict_LaueTools as dictLT
     from lauetools import IOLaueTools as IOLT
@@ -126,6 +127,7 @@ except:
     from lauetools import readmccd as RMCCD
     from lauetools import IOimagefile as IOimage
     from lauetools import imageprocessing as ImProc
+    from lauetools.quaternions import Orientation
 ## GPU Nvidia drivers needs to be installed! Ughh
 ## if wish to use only CPU set the value to -1 else set it to 0 for GPU
 ## CPU training is suggested (as the model requires more RAM)
@@ -470,7 +472,7 @@ class Window(QMainWindow):
         try:
             config.read_file(open(configFile))
         except:
-            self.write_to_console("File not selected, nothing to open")
+            self.write_to_console("File not selected, nothing to open", colormode='red')
             return
             
         material_global = config.get('MATERIAL', 'material')
@@ -479,7 +481,7 @@ class Window(QMainWindow):
         try:
             self.SG = int(config.get('MATERIAL', 'space_group'))
         except:
-            if symmetry_global =="cubic":
+            if symmetry_global == "cubic":
                 self.SG = 230
             elif symmetry_global =="monoclinic":
                 self.SG = 10
@@ -493,13 +495,13 @@ class Window(QMainWindow):
                 self.SG = 162
             elif symmetry_global == "triclinic":
                 self.SG = 2
-            self.write_to_console("Space group is not defined, by default taking the higher order space group number for the specified symmetry")
+            self.write_to_console("Space group is not defined, by default taking the higher order space group number for the specified symmetry", colormode='red')
         
         try:
             self.general_diff_rules = config.get('MATERIAL', 'general_diffraction_rules') == "true"
         except:
             self.general_diff_rules = False
-            self.write_to_console("general_diffraction_rules is not defined, by default False")
+            self.write_to_console("general_diffraction_rules is not defined, by default False", colormode='red')
         
         try:
             cpu_count_user = int(config.get('CPU', 'n_cpu'))
@@ -529,19 +531,19 @@ class Window(QMainWindow):
                     self.SG1 = 162
                 elif symmetry1_global == "triclinic":
                     self.SG1 = 2
-                self.write_to_console("Space group 1 is not defined, by default taking the higher order space group number for the specified symmetry")
+                self.write_to_console("Space group 1 is not defined, by default taking the higher order space group number for the specified symmetry", colormode='red')
                 
             try:
                 self.general_diff_rules1 = config.get('MATERIAL', 'general_diffraction_rules1') == "true"
             except:
                 self.general_diff_rules1 = False
-                self.write_to_console("general_diffraction_rules1 is not defined, by default False")
+                self.write_to_console("general_diffraction_rules1 is not defined, by default False", colormode='red')
         except:
             material1_global = "none"
             symmetry1_global = "none"
             self.SG1 = "none"
             self.general_diff_rules1 = False
-            self.write_to_console("Only one material is defined, by default taking the other one as 'none'")
+            self.write_to_console("Only one material is defined, by default taking the other one as 'none'", colormode='red')
         
         if material1_global == "none" and symmetry1_global =="none":
             material1_global = material_global
@@ -577,7 +579,7 @@ class Window(QMainWindow):
             emax_global = float(config.get('DETECTOR', 'emax'))
             emin_global = float(config.get('DETECTOR', 'emin'))
         except:
-            self.write_to_console("Detector energy range not defined, using default values of 5-23KeV")
+            self.write_to_console("Detector energy range not defined, using default values of 5-23KeV", colormode='red')
         
         if detectorfile != "user_input":
             try:
@@ -597,20 +599,20 @@ class Window(QMainWindow):
                     if line.startswith("# CCDLabel"):
                         ccd_label_global = line.split(":")[1].strip()
                 if ccd_label_global == "":
-                    self.write_to_console("CCD label cannot be read from the calibration file, setting it to latest detector sCMOS")
+                    self.write_to_console("CCD label cannot be read from the calibration file, setting it to latest detector sCMOS", colormode='red')
                     ccd_label_global = "sCMOS"
             except IOError as error:
-                self.write_to_console("Error opening file\n" + str(error))
+                self.write_to_console("Error opening file\n" + str(error), colormode='red')
             except UnicodeDecodeError as error:
-                self.write_to_console("Error opening file\n" + str(error))
+                self.write_to_console("Error opening file\n" + str(error), colormode='red')
             except:
-                self.write_to_console("Error opening file\n")
+                self.write_to_console("Error opening file\n", colormode='red')
         
         try:
             UB_matrix_global = int(config.get('PREDICTION', 'UB_matrix_to_detect'))
         except:
             UB_matrix_global = 2
-            self.write_to_console("UB matrix to identify not defined, can be set in the Prediction window (setting default to 2)")
+            self.write_to_console("UB matrix to identify not defined, can be set in the Prediction window (setting default to 2)", colormode='red')
         
         try:
             image_grid_globalx = int(config.get('EXPERIMENT', 'image_grid_x'))
@@ -618,105 +620,105 @@ class Window(QMainWindow):
         except:
             image_grid_globalx = 10
             image_grid_globaly = 10
-            self.write_to_console("Scan grid not defined, can be set in the Prediction window")
+            self.write_to_console("Scan grid not defined, can be set in the Prediction window", colormode='red')
         
         try:
-            softmax_threshold_global = float(config.get('PREDICTION', 'softmax_threshold_global'))
+            softmax_threshold_global = float(config.get('PREDICTION', 'softmax_threshold_global'), colormode='red')
         except:
             softmax_threshold_global = 0.8
-            self.write_to_console("Softmax threshold not defined, using default 80%")
+            self.write_to_console("Softmax threshold not defined, using default 80%", colormode='red')
         self.softmax_threshold_global = softmax_threshold_global
         
         try:
             mr_threshold_global = float(config.get('PREDICTION', 'mr_threshold_global'))
         except:
             mr_threshold_global = 0.95
-            self.write_to_console("Matching rate threshold not defined, using default 95%")
+            self.write_to_console("Matching rate threshold not defined, using default 95%", colormode='red')
         self.mr_threshold_global = mr_threshold_global
         
         try:
             coeff = float(config.get('PREDICTION', 'coeff'))
         except:
             coeff = 0.25
-            self.write_to_console("Coeff Overlap v0 not defined, using default 25%")
+            self.write_to_console("Coeff Overlap v0 not defined, using default 25%", colormode='red')
         self.coeff=coeff
 
         try:
             coeff_overlap1212 = float(config.get('PREDICTION', 'coeff_overlap'))
         except:
             coeff_overlap1212 = 0.25
-            self.write_to_console("Coeff Overlap not defined, using default 25%")
+            self.write_to_console("Coeff Overlap not defined, using default 25%", colormode='red')
         self.coeff_overlap=coeff_overlap1212
         
         try:
             mode_spotCycle = str(config.get('PREDICTION', 'mode_spotCycle'))
         except:
             mode_spotCycle = "graphmode"
-            self.write_to_console("Analysis mode not defined, using default graphmode, can be set in Prediction window")
+            self.write_to_console("Analysis mode not defined, using default graphmode, can be set in Prediction window", colormode='red')
         self.mode_spotCycleglobal = mode_spotCycle
         
         try:
             material0_limit1212 = int(config.get('PREDICTION', 'material0_limit'))
         except:
-            self.write_to_console("Max Nb of UB per material 0 not defined, using default maximum")
+            self.write_to_console("Max Nb of UB per material 0 not defined, using default maximum", colormode='red')
         self.material0_limit = material0_limit1212
         
         try:
             material1_limit1212 = int(config.get('PREDICTION', 'material1_limit'))
         except:
-            self.write_to_console("Max Nb of UB per material 1 not defined, using default maximum")
+            self.write_to_console("Max Nb of UB per material 1 not defined, using default maximum", colormode='red')
         self.material1_limit = material1_limit1212
         
         try:
             cap_matchrate = float(config.get('PREDICTION', 'cap_matchrate')) * 100
         except:
-            self.write_to_console("Cap_Matching rate not defined, setting default value of 1%")
+            self.write_to_console("Cap_Matching rate not defined, setting default value of 1%", colormode='red')
         self.cap_matchrate=cap_matchrate
         try:
             tolerance_global = float(config.get('PREDICTION', 'matrix_tolerance'))
         except:
             tolerance_global = 0.5
-            self.write_to_console("Angle tolerance to detect grains not defined, using default 0.5")
+            self.write_to_console("Angle tolerance to detect grains not defined, using default 0.5", colormode='red')
         try:
             tolerance_global1 = float(config.get('PREDICTION', 'matrix_tolerance1'))
         except:
             tolerance_global1 = 0.5
-            self.write_to_console("Angle tolerance for Mat 1 to detect grains not defined, using default 0.5")
+            self.write_to_console("Angle tolerance for Mat 1 to detect grains not defined, using default 0.5", colormode='red')
         try:
             use_previous_UBmatrix = config.get('PREDICTION', 'use_previous') == "true"
         except:
             use_previous_UBmatrix = False
-            self.write_to_console("Use previous solutions not defined, using default value False")
+            self.write_to_console("Use previous solutions not defined, using default value False", colormode='red')
         self.use_previous_UBmatrix = use_previous_UBmatrix
         
         try:
             intensity_threshold_global = float(config.get('PEAKSEARCH', 'intensity_threshold'))
         except:
             intensity_threshold_global = 150
-            self.write_to_console("intensity_threshold not defined, using default 150cts after BG correction")
+            self.write_to_console("intensity_threshold not defined, using default 150cts after BG correction", colormode='red')
             
         try:
             boxsize_global = int(config.get('PEAKSEARCH', 'boxsize'))
         except:
             boxsize_global = 15
-            self.write_to_console("boxsize not defined, using default size of 15")
+            self.write_to_console("boxsize not defined, using default size of 15", colormode='red')
             
         try:
             fit_peaks_gaussian_global = int(config.get('PEAKSEARCH', 'fit_peaks_gaussian'))
         except:
-            self.write_to_console("Fitting of peaks not defined, using default Gaussian fitting")
+            self.write_to_console("Fitting of peaks not defined, using default Gaussian fitting", colormode='red')
         self.fit_peaks_gaussian_global = fit_peaks_gaussian_global
         
         try:
             FitPixelDev_global = float(config.get('PEAKSEARCH', 'FitPixelDev'))
         except:
-            self.write_to_console("Fitting PixelDev of peaks not defined, using default 15 pix")
+            self.write_to_console("Fitting PixelDev of peaks not defined, using default 15 pix", colormode='red')
         self.FitPixelDev_global=FitPixelDev_global
         
         try:
             NumberMaxofFits = float(config.get('PEAKSEARCH', 'NumberMaxofFits'))
         except:
-            self.write_to_console("Max fits per LP not defined, using default 3000")
+            self.write_to_console("Max fits per LP not defined, using default 3000", colormode='red')
         self.NumberMaxofFits=NumberMaxofFits
         
         try:
@@ -727,14 +729,14 @@ class Window(QMainWindow):
                 strain_label_global = "NO"
         except:
             strain_label_global = "YES"
-            self.write_to_console("Strain computation not defined, default True")
+            self.write_to_console("Strain computation not defined, default True", colormode='red')
         
         try:
             tolerance_strain_temp = config.get('STRAINCALCULATION', 'tolerance_strain_refinement').split(",")
             tolerance_strain = [float(i) for i in tolerance_strain_temp]
         except:
             tolerance_strain = list(np.linspace(tolerance_global, 0.2, 4))
-            self.write_to_console("Strain tolerance material 0 not defined, taking regular space steps")
+            self.write_to_console("Strain tolerance material 0 not defined, taking regular space steps", colormode='red')
         self.tolerance_strain = tolerance_strain
         
         try:
@@ -742,14 +744,14 @@ class Window(QMainWindow):
             tolerance_strain1 = [float(i) for i in tolerance_strain_temp1]
         except:
             tolerance_strain1 = list(np.linspace(tolerance_global1, 0.2, 4))
-            self.write_to_console("Strain tolerance for material 1 not defined, taking regular space steps")
+            self.write_to_console("Strain tolerance for material 1 not defined, taking regular space steps", colormode='red')
         self.tolerance_strain1 = tolerance_strain1
         
         try:
             strain_free_parameters = config.get('STRAINCALCULATION', 'free_parameters').split(",")
         except:
             strain_free_parameters = ["rotx", "roty", "rotz", "alpha", "beta", "gamma", "b", "c"]
-            self.write_to_console("strain_free_parameters not defined; fixing only 'a' length by default")
+            self.write_to_console("strain_free_parameters not defined; fixing only 'a' length by default", colormode='red')
         self.strain_free_parameters = strain_free_parameters
         
         try:
@@ -950,21 +952,21 @@ class Window(QMainWindow):
         try:
             option_global = config.get('CALLER', 'option_global')
         except:
-            self.write_to_console("option_global not defined, by default v2 for calulating the auto-links")
-            option_global = "v2"
+            self.write_to_console("option_global not defined, by default v1 for calulating the auto-links", colormode='red')
+            option_global = "v1"
         
         try:
             use_om_user_global = config.get('CALLER', 'use_om_user')
         except:
             self.write_to_console("use_om_user not defined, by default False")
             use_om_user_global = "false"
-            
+        
         try:
             nb_spots_consider_global = int(config.get('CALLER', 'nb_spots_consider'))
         except:
             self.write_to_console("nb_spots_consider not defined, by default first 200")
-            nb_spots_consider_global = 200
-            
+            nb_spots_consider_global = 500
+        
         try:
             path_user_OM_global = config.get('CALLER', 'path_user_OM')
         except:
@@ -974,7 +976,7 @@ class Window(QMainWindow):
         try:
             mode_peaksearch = config.get('PEAKSEARCH', 'mode')
         except:
-            self.write_to_console("mode_peaksearch not defined, by default skimage method of peak search")
+            self.write_to_console("mode_peaksearch not defined, by default skimage method of peak search", colormode='red')
             mode_peaksearch = "skimage"
         
         config_setting = configparser.ConfigParser()
@@ -1132,12 +1134,12 @@ class Window(QMainWindow):
         self.formLayout.addRow(self.predict_lnn)
         self.layout.addLayout(self.formLayout)
         
-    def write_to_console(self, line):
+    def write_to_console(self, line, colormode='black'):
         try:
             self.text_file_log.write(line + "\n")
         except:
             print("Log file not yet created: "+ str(line.encode('utf-8','ignore')))
-        self.setDisplayText(str(line.encode('utf-8','ignore'),errors='ignore'))
+        self.setDisplayText(str(line.encode('utf-8','ignore'),errors='ignore'), colormode=colormode)
         QApplication.processEvents() 
     
     def postprocesstrain(self, emit_dict):
@@ -1180,18 +1182,18 @@ class Window(QMainWindow):
         
         ## get the architecture of the model
         self.architecture = self.input_params["architecture"]
-        self.write_to_console("Only FFNN model is optimized for the current indexation problem, other architecture works, but their efficieny is not well tested yet!")
+        self.write_to_console("Only FFNN model is optimized for the current indexation problem, other architecture works, but their efficieny is not well tested yet!", colormode='red')
         # self.write_to_console("Prediction routines for other architecture is not well tested, please verify them, falling back to the default FFNN model")
         if self.input_params["architecture"] == "FFNN":
             self.write_to_console("Using the classical inbuilt FFNN Feed Forward Neural Network model, for user defined model, please define a model in the NNmodels.py file (found in LauetoolsNN installation folder)")
         elif self.input_params["architecture"] == "1D_CNN":
-            self.write_to_console("Using the 1D_CNN pure Convolution Neural Network model, for user defined model, please define a model in the NNmodels.py file (found in LauetoolsNN installation folder)")
+            self.write_to_console("Using the 1D_CNN pure Convolution Neural Network model, for user defined model, please define a model in the NNmodels.py file (found in LauetoolsNN installation folder)", colormode='red')
         elif self.input_params["architecture"] == "1D_CNN_DNN":
-            self.write_to_console("Using the 1D_CNN_DNN Convolution Network with Fully connected layers at the end, for user defined model, please define a model in the NNmodels.py file (found in LauetoolsNN installation folder)")
+            self.write_to_console("Using the 1D_CNN_DNN Convolution Network with Fully connected layers at the end, for user defined model, please define a model in the NNmodels.py file (found in LauetoolsNN installation folder)", colormode='red')
         elif self.input_params["architecture"] == "User_defined":
             self.write_to_console("Using the user defined model from the NNmodels.py file (found in LauetoolsNN installation folder)")
         else:
-            self.write_to_console("Undefined Neural network model requested, falling back to default FFNN model")
+            self.write_to_console("Undefined Neural network model requested, falling back to default FFNN model", colormode='red')
             self.architecture = "FFNN"
             
             
@@ -1372,7 +1374,7 @@ class Window(QMainWindow):
             self.modelp = "random"
         else:
             self.modelp = "experimental"
-            self.write_to_console("# User defined texture to be used: TODO \n") 
+            self.write_to_console("# User defined texture to be used: TODO \n", colormode='red') 
         
         try:
             if not os.path.exists(self.save_directory):
@@ -2273,10 +2275,10 @@ class Window(QMainWindow):
                                             material0_lauegroup, material1_lauegroup)
         except:
             print("Error writing the MTEX file of training and testing data")
-            self.write_to_console("Error writing the MTEX file of training and testing data")
+            self.write_to_console("Error writing the MTEX file of training and testing data", colormode='red')
         
         if self.generate_additional_data:
-            print("In development; generating a combination of existing dataset")        
+            print("In development; generating a combination of existing dataset", colormode='red')        
         
         self.status.showMessage("Training dataset generation completed with multi CPUs!")
         
@@ -3492,20 +3494,31 @@ class sample_config(QWidget):
         app_icon.addFile(Logo, QtCore.QSize(16,16))
         self.setWindowIcon(app_icon)
         self.layout = QVBoxLayout()
-        self.setLayout(self.layout)
         self._createDisplay() ## display screen
         self.setDisplayText(texttstr1)
-
+        self.config_button = QPushButton("Save Config")
+        self.config_button.clicked.connect(self.config_generation)
+        self.layout.addWidget(self.config_button)
+        self.setLayout(self.layout)
+        
     def _createDisplay(self):
         """Create the display."""
         self.display = QTextEdit()
-        self.display.setReadOnly(True)
+        self.display.setReadOnly(False)
         self.layout.addWidget(self.display)
 
     def setDisplayText(self, text):
         self.display.append('%s'%text)
         self.display.moveCursor(QtGui.QTextCursor.End)
         self.display.setFocus()
+        
+    def config_generation(self,):
+        name = QtWidgets.QFileDialog.getSaveFileName(self, "Save Config File", '/', '.lauenn')[0]
+        print("Config filename", name+'.lauenn')
+        textfile = open(name+'.lauenn', 'w')
+        text = self.display.toPlainText()
+        textfile.write(text)
+        textfile.close()
         
 class MyPopup(QWidget):
     def __init__(self, match_rate12, rotation_matrix12, mat_global12, fR_pix12, filename, 
@@ -4885,17 +4898,17 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
             config_setting = configparser.ConfigParser()
             filepath = resource_path('settings.ini')
             config_setting.read(filepath)
-            residues_threshold = float(config_setting.get('CALLER', 'residues_threshold'))
-            nb_spots_global_threshold = int(config_setting.get('CALLER', 'nb_spots_global_threshold'))
-            option_global = config_setting.get('CALLER', 'option_global')
-            nb_spots_consider = int(config_setting.get('CALLER', 'nb_spots_consider'))
+            # residues_threshold = float(config_setting.get('CALLER', 'residues_threshold'))
+            # nb_spots_global_threshold = int(config_setting.get('CALLER', 'nb_spots_global_threshold'))
+            # option_global = config_setting.get('CALLER', 'option_global')
+            # nb_spots_consider = int(config_setting.get('CALLER', 'nb_spots_consider'))
             intensity_threshold = int(float(config_setting.get('CALLER', 'intensity')))
             boxsize = int(float(config_setting.get('CALLER', 'boxsize')))
             FitPixelDev_global123 = int(float(config_setting.get('CALLER', 'pixdev')))
             softmax_threshold_global123 = float(config_setting.get('CALLER', 'cap_softmax'))
             cap_matchrate123 = float(config_setting.get('CALLER', 'cap_mr'))
             strain_free_parameters = config_setting.get('CALLER', 'strain_free_parameters').split(",")
-            additional_expression = config_setting.get('CALLER', 'additional_expression').split(",")
+            # additional_expression = config_setting.get('CALLER', 'additional_expression').split(",")
             mode_peaksearch = str(config_setting.get('CALLER', 'mode_peaksearch'))
             try_settings_param = True
         except:
@@ -5193,32 +5206,38 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
         # w.setGeometry(QRect(100, 100, 400, 200))
         w.show()       
         self.popups.append(w)
+    
+    def convertUB_reduced(self,rotation_matrix1, mat_global, symmetry0, symmetry1):
+        ## use orientation routine here to convert eh UB to FZ and reduced format
+        new_rot_mat = [[np.zeros_like(rotation_matrix1[0][0])] for _ in range(len(rotation_matrix1))]
 
-        #TODO cnt12 is 0 i.e. does not correspond to the image number
-        # cnt_mpdata = cnt12
-        # for i_mpdata in files_treated12:
-        #     self.files_treated.append(i_mpdata)
-
-        # for intmat_mpdata in range(int(self.ubmat.text())):
-        #     self.check[cnt_mpdata,intmat_mpdata] = check12[0,intmat_mpdata]
-        #     self.mat_global[intmat_mpdata][0][cnt_mpdata] = mat_global12[intmat_mpdata][0][0]
-        #     self.strain_matrix[intmat_mpdata][0][cnt_mpdata,:,:] = strain_matrix12[intmat_mpdata][0][0,:,:]
-        #     self.strain_matrixs[intmat_mpdata][0][cnt_mpdata,:,:] = strain_matrixs12[intmat_mpdata][0][0,:,:]
-        #     self.rotation_matrix[intmat_mpdata][0][cnt_mpdata,:,:] = rotation_matrix12[intmat_mpdata][0][0,:,:]
-        #     self.col[intmat_mpdata][0][cnt_mpdata,:] = col12[intmat_mpdata][0][0,:]
-        #     self.colx[intmat_mpdata][0][cnt_mpdata,:] = colx12[intmat_mpdata][0][0,:]
-        #     self.coly[intmat_mpdata][0][cnt_mpdata,:] = coly12[intmat_mpdata][0][0,:]
-        #     self.match_rate[intmat_mpdata][0][cnt_mpdata] = match_rate12[intmat_mpdata][0][0]
-        #     self.spots_len[intmat_mpdata][0][cnt_mpdata] = spots_len12[intmat_mpdata][0][0]
-        #     self.iR_pix[intmat_mpdata][0][cnt_mpdata] = iR_pix12[intmat_mpdata][0][0]
-        #     self.fR_pix[intmat_mpdata][0][cnt_mpdata] = fR_pix12[intmat_mpdata][0][0]
-        #     self.best_match[intmat_mpdata][0][cnt_mpdata] = best_match12[intmat_mpdata][0][0]
-        # self.update_plot()
-
+        for index in range(len(rotation_matrix1)):
+            for om_ind in range(len(rotation_matrix1[index][0])):
+                ## UB matrix in Laue reference frame (or crystal reference frame?)
+                orientation_matrix = rotation_matrix1[index][0][om_ind]
+                val = mat_global[index][0][om_ind]
+                if val == 0 or np.all(orientation_matrix==0):
+                    continue
+                if val == 1:
+                    symmetry = symmetry0.name
+                elif val == 2:
+                    symmetry = symmetry1.name
+                ## convert to orientation object to inherit all properties of Orientation class
+                om = Orientation(matrix=orientation_matrix, symmetry=symmetry).reduced()
+                new_rot_mat[index][0][om_ind] = om.asMatrix()
+        return new_rot_mat
+    
     def save_btn(self,):
         curr_time = time.time()
         now = datetime.datetime.fromtimestamp(curr_time)
         c_time = now.strftime("%Y-%m-%d_%H-%M-%S")
+        
+        ###convert UB to fundamental zone, before saving the data
+        try:
+            self.rotation_matrix = self.convertUB_reduced(self.rotation_matrix,
+                                                    self.mat_global, self.symmetry, self.symmetry1)     
+        except:
+            print("problkem converting UB to fundamental zone based on symmetry")
         
         save_directory_ = self.model_direc+"//results_"+self.material_+"_"+c_time
         if not os.path.exists(save_directory_):
@@ -5243,12 +5262,20 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
         ## Lets save also a set of average UB matrix in text file to be used with user_OM setting    
         try:
             write_average_orientation(save_directory_, self.mat_global, self.rotation_matrix,
-                                          self.match_rate, self.lim_x, self.lim_y, 
-                                          threshold=0.1, grain_ang=1)
+                                          self.match_rate, self.lim_x, self.lim_y, self.crystal, self.crystal1,
+                                          radius=10, grain_ang=5, pixel_grain_definition=3)
         except:
             print("Error with Average orientation and grain index calculation")
             
-            
+        try:
+            convert_pickle_to_hdf5(save_directory_, self.files_treated, self.rotation_matrix, self.strain_matrix, 
+                                   self.strain_matrixs, self.match_rate, self.spots_len, self.iR_pix, 
+                                   self.fR_pix, self.colx, self.coly, self.col, self.mat_global,
+                                   self.material_, self.material1_, self.lim_x, self.lim_y)
+        except:
+            print("Error writting H5 file")
+        
+        
         try:
             ## Write global text file with all results
             if self.material_ != self.material1_:
@@ -5436,32 +5463,8 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                          match_rate_threshold=5, bins=30)
         except:
             print("Error in the global plots module")
-
-        # try:
-        #     save_sst(self.lim_x, self.lim_y, self.strain_matrix, self.strain_matrixs, self.col, 
-        #             self.colx, self.coly, self.match_rate, self.mat_global, self.spots_len, 
-        #             self.iR_pix, self.fR_pix, save_directory_, self.material_, self.material1_,
-        #             self.lattice_, self.lattice1_, self.symmetry, self.symmetry1, self.crystal, self.crystal1,
-        #             self.rotation_matrix, self.symmetry_name, self.symmetry1_name,
-        #                   mac_axis = [0., 0., 1.], axis_text="Z", match_rate_threshold=5)
-        # except:
-        #     print("Error in the SST plots module")
-
-        ## HKL selective plots (in development)
-        hkls_list = ast.literal_eval(self.hkl_plot.text())
-        if self.ipf_axis.currentText() == "Z":
-            mac_axis = [0., 0., 1.]
-        elif self.ipf_axis.currentText() == "Y":
-            mac_axis = [0., 1., 0.]
-        elif self.ipf_axis.currentText() == "X":
-            mac_axis = [1., 0., 0.]
-        print(mac_axis, hkls_list)
-        # save_hkl_stats(self.lim_x, self.lim_y, self.strain_matrix, self.strain_matrixs, self.col, 
-        #               self.colx, self.coly, self.match_rate, self.mat_global, self.spots_len, 
-        #               self.iR_pix, self.fR_pix, save_directory_, self.material_, self.material1_,
-        #               self.lattice_, self.lattice1_, self.symmetry, self.symmetry1, self.rotation_matrix, 
-        #              hkls_list=hkls_list, angle=10., mac_axis = mac_axis, axis_text = self.ipf_axis.currentText())
-
+        print("Files are saved")
+       
     def plot_pc(self):
         ## update matrix plot box?
         if self.matrix_plot.count() < int(self.ubmat.text()):

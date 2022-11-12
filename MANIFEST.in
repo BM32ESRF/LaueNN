@@ -30,6 +30,7 @@ include lauetoolsnn/multi_mat_LaueNN/*.py
 include lauetoolsnn/multi_mat_LaueNN/*.md
 
 include lauetoolsnn/end_to_end_scripts/*.py
+include lauetoolsnn/end_to_end_scripts/*.md
 
 include lauetoolsnn/example_notebook_scripts/*.ipynb
 include lauetoolsnn/example_notebook_scripts/*.md
@@ -42,12 +43,6 @@ include lauetoolsnn/util_scripts/*.ipynb
 
 include lauetoolsnn/lauetools/*.py
 include lauetoolsnn/lauetools/*.json
-
-#include lauetoolsnn/developments/*.py
-#include lauetoolsnn/developments/*.ipynb
-#include lauetoolsnn/developments/bayesian_inference_Laue/*.py
-#include lauetoolsnn/developments/bayesian_inference_Laue/*.ipynb
-#include lauetoolsnn/developments/mayavi_animation_LaueNN/*.py
 
 recursive-include docs/*.*
 

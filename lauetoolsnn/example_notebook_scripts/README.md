@@ -1,4 +1,6 @@
 # lauetoolsnn notebook scripts 
+These scripts are not adapted for the new version of LaueNN and may not function properly. Please check out the end-to-end scripts folder. These scripts are updated to work with the newest updates.
+
 In the github repository of the project example notebook scripts are included to build a neural network model for any crystal symmetry as described in this article.  These notebook scripts aims to provide a general tutorial into the complete flow of LaueNN method. 
 
 ## Step 1: Generation of training dataset script: https://github.com/ravipurohit1991/lauetoolsnn/blob/main/lauetoolsnn/example_notebook_scripts/Step1_Generation_dataset_LaueNN.ipynb

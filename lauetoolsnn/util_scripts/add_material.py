@@ -21,8 +21,8 @@ def example_scripts():
     from lauetoolsnn.utils_lauenn import resource_path
     import os
     filepath = resource_path('end_to_end_scripts')
-    file1 = os.path.join(filepath,"LaueNN_Multi-Material_pyScript.py")
-    file2 = os.path.join(filepath,"LaueNN_pyScript.py")
+    file1 = os.path.join(filepath,"LaueNN_pyScript_1_or_2phase.py")
+    file2 = os.path.join(filepath,"LaueNN_pyScript_3_or_more_phase.py")
     
     current_path = os.getcwd()
     save_directory = os.path.join(current_path, "LaueNN_script")

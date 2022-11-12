@@ -27,6 +27,27 @@ with open(r"C:\Users\purushot\Desktop\SiC\results_triangle_5UBs\results.pickle",
                     crystal, crystal1 = cPickle.load(input_file)
 
 material_id = [material_, material1_]
+#%% convert UB to proper convention
+new_rot_mat = [[np.zeros_like(rotation_matrix1[0][0])] for _ in range(len(rotation_matrix1))]
+
+for index in range(len(rotation_matrix1)):
+    for om_ind in trange(len(rotation_matrix1[index][0])):
+        ## UB matrix in Laue reference frame (or crystal reference frame?)
+        orientation_matrix = rotation_matrix1[index][0][om_ind]
+        val = mat_global[index][0][om_ind]
+        if val == 0 or np.all(orientation_matrix==0):
+            continue
+        if val == 1:
+            symmetry = symmetry0.name
+        elif val == 2:
+            symmetry = symmetry1.name
+        ## convert to orientation object to inherit all properties of Orientation class
+        om = Orientation(matrix=orientation_matrix, symmetry=symmetry).reduced()
+        new_rot_mat[index][0][om_ind] = om.asMatrix()
+
+#%%
+
+
 
 print("Number of Phases present (includes non indexed phase zero also)", len(np.unique(np.array(mat_global))))
 
