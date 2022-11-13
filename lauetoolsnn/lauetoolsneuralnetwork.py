@@ -149,7 +149,6 @@ def resource_path(relative_path, verbose=0):
         print("Base path of the library: ",base_path)
     return os.path.join(base_path, relative_path)
 
-
 try:
     import pkg_resources  # part of setuptools
     version_package = pkg_resources.require("lauetoolsnn")[0].version
@@ -159,7 +158,6 @@ except:
     latest_version = versions("lauetoolsnn")[0]
 
 frame_title = "Laue Neural-Network model- v3 @Ravi @Jean-Sebastien \n@author: Ravi raj purohit PURUSHOTTAM RAJ PUROHIT (purushot@esrf.fr) \n@guide: Jean-Sebastien MICHA (micha@esrf.fr)"
-
 Logo = resource_path("lauetoolsnn_logo_bXM_2.png",  verbose=0)
 Logo_splash = resource_path("lauetoolsnn_splash_bXM_2.png",  verbose=0)
 gif_path = resource_path("frames_medres.gif",  verbose=0)
@@ -171,7 +169,7 @@ if default_initialization:
     material1_global = "Si" ## same key as used in LaueTools
     symmetry1_global = "cubic"
     prefix_global = ""
-    detectorparameters_global = [79.50900, 977.9000, 931.8900, 0.3570000, 0.4370000]
+    detectorparameters_global = [79.51, 977.9, 931.9, 0.36, 0.44]
     pixelsize_global = 0.0734 # 0.079142 #
     ccd_label_global = "sCMOS" #"MARCCD165" #"Cor"#
     dim1_global = 2018 #2048 #

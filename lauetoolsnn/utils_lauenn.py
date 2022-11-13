@@ -32,7 +32,6 @@ import matplotlib.pyplot as plt
 # matplotlib.use('Qt5Agg')
 # matplotlib.rcParams.update({'font.size': 14})
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-
 import numpy as np
 from math import acos
 import time
@@ -44,10 +43,8 @@ import scipy
 # from scipy.spatial.transform import Rotation as R
 import _pickle as cPickle
 import configparser
-
 from multiprocessing import Process, Queue, cpu_count
 from tqdm import tqdm
-
 # from skimage.transform import (hough_line, hough_line_peaks)
 # =============================================================================
 # Additonal networkx module
@@ -105,7 +102,6 @@ except:
     tensorflow_keras = False
 
 # import h5py
-
 ## GPU Nvidia drivers needs to be installed! Ughh
 ## if wish to use only CPU set the value to -1 else set it to 0 for GPU
 ## CPU training is suggested (as the model requires more RAM)
@@ -480,7 +476,6 @@ def array_generator(path_, batch_size, n_classes, loc_new, write_to_console=None
             obj = np.load(array_path)
             trainX = obj["arr_0"]
             loc1 = obj["arr_1"]
-            
             if len(trainX) == 0 or len(loc1) == 0:
                 if write_to_console != None:
                     write_to_console("Skipping File: "+ array_path+"; No data is found")
@@ -496,21 +491,17 @@ def array_generator(path_, batch_size, n_classes, loc_new, write_to_console=None
                     loc1_new.append(temp_loc)
                 else:
                     loc1_new_rmv.append(k)   
-               
             loc1_new = np.array(loc1_new).ravel()
             loc1_new_rmv = np.array(loc1_new_rmv).ravel() 
-            
             if len(trainX) != len(loc1_new):
                 if len(loc1_new_rmv) > 0:
                     trainX = np.delete(trainX, loc1_new_rmv, axis=0) 
-
             if bs == 0 or temp_var:
                 trainX1 = np.copy(trainX)
                 trainY1 = np.copy(loc1_new)
             else:
                 trainX1 = np.vstack((trainX1, trainX))
                 trainY1 = np.hstack((trainY1, loc1_new))
-
         ## To normalize the size of one hot encoding
         count = 0
         if np.min(trainY1) != 0:
@@ -519,14 +510,12 @@ def array_generator(path_, batch_size, n_classes, loc_new, write_to_console=None
         if np.max(trainY1) != (n_classes-1):
             trainY1 = np.append(trainY1, n_classes-1)
             count += 1
-        
         if tocategorical:
             trainY1 = to_categorical(trainY1)
         if count == 1:
             trainY1 = np.delete(trainY1, [len(trainY1)-1] ,axis=0)
         elif count == 2:
             trainY1 = np.delete(trainY1, [len(trainY1)-1,len(trainY1)-2] ,axis=0)
-
         yield trainX1, trainY1
         
 def vali_array(path_, batch_size, n_classes, loc_new, write_to_console=None, tocategorical=True):
@@ -818,17 +807,19 @@ def generate_classHKL(n, rules, lattice_material, symmetry, material_, crystal=N
         list with hkl's removed from the dictionary
     n : int
         Max index hkl
-
     """
-
-    temp_ = GT.threeindices_up_to(int(n))
-    
+    ##add user defined categories of hkl to be used (non sequential also)
+    ## add directly to the temp_
     if np.all(mat_listHKl != None):
-        mat_listHKl = np.array(mat_listHKl)
-        temp_ = np.vstack((temp_, mat_listHKl))
+        temp_ = mat_listHKl
+    else:
+        temp_ = GT.threeindices_up_to(int(n))
+    
+    # if np.all(mat_listHKl != None):
+    #     mat_listHKl = np.array(mat_listHKl)
+    #     temp_ = np.vstack((temp_, mat_listHKl))
         
     classhkl_ = temp_
-    
     
     if general_diff_cond:
         classhkl_ = crystal.hkl_allowed_array(classhkl_)
@@ -841,7 +832,6 @@ def generate_classHKL(n, rules, lattice_material, symmetry, material_, crystal=N
         progress.setMaximum(len(classhkl_))
         
     hkl_all = {}
-    # another_method = False
     for i in range(len(classhkl_)):
         new_hkl = classhkl_[i,:]
 
@@ -916,8 +906,6 @@ def generate_classHKL(n, rules, lattice_material, symmetry, material_, crystal=N
     list_remove = []
     for i, j in enumerate(codebars):
         for k, l in enumerate(codebars):
-            # if i in list_appended and k in list_appended:
-            #     continue
             if i != k and np.all(j == l):
                 if keys_rmv[i] in list_remove or keys_rmv[k] in list_remove:
                     if write_to_console !=None:
@@ -1084,17 +1072,13 @@ def write_training_testing_dataMTEX(save_directory,material_, material1_, lattic
 def get_material_data(material_="Cu", ang_maxx = 45, step = 0.5, hkl_ref=13, classhkl = None):
     a, b, c, alpha, beta, gamma = dictLT.dict_Materials[material_][1]
     Gstar = CP.Gstar_from_directlatticeparams(a, b, c, alpha, beta, gamma)
-    rules = dictLT.dict_Materials[material_][-1]
-    
-    hkl2 = GT.threeindices_up_to(int(hkl_ref))
-    hkl2 = CP.ApplyExtinctionrules(hkl2,rules)
-    hkl2 = hkl2.astype(np.int16)
 
     query_angle = ang_maxx/2.
     angle_tol = ang_maxx/2.
     metrics = Gstar
 
-    hkl1 = classhkl
+    hkl1 = np.copy(classhkl)
+    hkl2 = np.copy(classhkl)
     H1 = hkl1
     n1 = hkl1.shape[0]
     H2 = hkl2

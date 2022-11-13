@@ -159,9 +159,9 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     }
 
     generate_dataset = True
-    train_network = True
-    write_config_GUI = True
-    run_prediction = True
+    train_network = False
+    write_config_GUI = False
+    run_prediction = False
     prediction_GUI = False
     # =============================================================================
     # END OF USER INPUT
@@ -314,11 +314,20 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
         SG1 = input_params["SG"][1]
         
         ## read hkl information from a fit file in case too large HKLs
-        manual_hkl_list=False
+        manual_hkl_list=True
         if manual_hkl_list:
+            ##read from a text file (fit file)
             import numpy as np
-            temp = np.loadtxt(r"img_0000_LT_1.fit")
-            hkl_array = temp[:,2:5]
+            # temp = np.loadtxt(r"img_0000_LT_1.fit")
+            # hkl_array = temp[:,2:5]
+            # hkl_array1 = None
+            
+            ## or define your own list of hkls
+            import lauetoolsnn.lauetools.generaltools as GT
+            hkl_array = GT.threeindices_up_to(5)
+            hkl_max_index = np.max(np.abs(hkl_array), axis=1)
+            filter_cond = (hkl_max_index >= 3) * (hkl_max_index <= 4)
+            hkl_array = hkl_array[filter_cond]
             hkl_array1 = None
         else:
             hkl_array = None
