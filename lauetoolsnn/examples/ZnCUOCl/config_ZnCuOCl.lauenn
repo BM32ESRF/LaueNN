@@ -52,6 +52,7 @@ boxsize = 8
 FitPixelDev = 15
 intensity_threshold = 60
 fit_peaks_gaussian = 1
+mode=lauetools
 
 [STRAINCALCULATION]
 strain_compute = true

@@ -968,7 +968,6 @@ class Orientation:
         if self.symmetry.inSST(pole,proper): break                                                  # found SST version
     else:
       pole = self.quaternion.conjugated()*axis                                                      # align crystal direction to axis
-
     return (pole,i if SST else 0)
 
   def IPFcolor(self,axis):

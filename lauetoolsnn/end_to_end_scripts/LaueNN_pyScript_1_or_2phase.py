@@ -886,7 +886,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                         crystal1,
                         strain_free_parameters] for ii in range(count_global)]
             
-            ## test singel file prediction
+            ## test single file prediction
             # results = new_MP_function(valu12[0])
             # best = results[-2][0][0][0]
             
@@ -924,12 +924,14 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
             if not os.path.exists(save_directory_):
                 os.makedirs(save_directory_)
             
+            ## Numpy pickle data with user defined keys
             np.savez_compressed(save_directory_+ "//results.npz", 
                                 best_match, mat_global, rotation_matrix, strain_matrix, 
                                 strain_matrixs, col, colx, coly, match_rate, files_treated,
                                 lim_x, lim_y, spots_len, iR_pix, fR_pix,
                                 material_, material1_)
-            ## intermediate saving of pickle objects with results
+            
+            ## pickle object saving
             with open(save_directory_+ "//results.pickle", "wb") as output_file:
                     cPickle.dump([best_match, mat_global, rotation_matrix, strain_matrix, 
                                   strain_matrixs, col, colx, coly, match_rate, files_treated,
@@ -945,7 +947,8 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                                               radius=10, grain_ang=5, pixel_grain_definition=3)
             except:
                 print("Error with Average orientation and grain index calculation")
-                
+            
+            ## save also the results in HDF5 format
             try:
                 convert_pickle_to_hdf5(save_directory_, files_treated, rotation_matrix, strain_matrix, 
                                        strain_matrixs, match_rate, spots_len, iR_pix, 
@@ -954,20 +957,23 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
             except:
                 print("Error writting H5 file")
             
+            ## Write prediction statistics
             try:
                 write_prediction_stats(save_directory_, material_, material1_, files_treated,\
                                         lim_x, lim_y, best_match, strain_matrixs, strain_matrix, iR_pix,\
                                         fR_pix,  mat_global)
             except:
                 print("Error writting prediction statistics file")
-                
+            
+            ## Write MTEX orientation data
             try:
                 write_MTEXdata(save_directory_, material_, material1_, rotation_matrix,\
                                    lattice_material, lattice_material1, lim_x, lim_y, mat_global,\
                                     input_params["symmetry"][0], input_params["symmetry"][1])
             except:
                 print("Error writting MTEX orientation file")
-                
+            
+            ## Save some images 
             try:
                 global_plots(lim_x, lim_y, rotation_matrix, strain_matrix, strain_matrixs, 
                               col, colx, coly, match_rate, mat_global, spots_len, 

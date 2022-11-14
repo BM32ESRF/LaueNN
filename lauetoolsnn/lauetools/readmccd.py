@@ -860,6 +860,7 @@ def peaksearch_skimage(filename, min_dist, pkid_threshold, bs, fit_peaks_gaussia
     peak_coords = np.hstack((peak_coords, intensity, boxsize))
     
     if len(peak_coords) > peak_limits:
+        print("Too many peaks")
         return None
     
     if fit_peaks_gaussian == 0:
@@ -922,7 +923,6 @@ def peaksearch_skimage(filename, min_dist, pkid_threshold, bs, fit_peaks_gaussia
     if len(tabpeak.shape) > 1:  # several peaks
         intense_rank = np.argsort(tabpeak[:, 2])[::-1]  # sort by decreasing intensity-bkg
         tabIsorted = tabpeak[intense_rank]
-    # print("Time:", time.time()-start_time)
     
     return tabIsorted, peak_coords
 
@@ -1062,16 +1062,16 @@ def PeakSearch(filename, stackimageindex=-1, CCDLabel="PRINCETON", center=None,
     ## New method replacing the old PeakSearch;
     if mode == "skimage":
         print("Skimage mode (strict constraints) of PeakSearch is used for the PeakSearch")
-        return peaksearch_skimage(filename, 3, IntensityThreshold, boxsize, 3, CCDLabel, 3000)
+        return peaksearch_skimage(filename, FitPixelDev, IntensityThreshold, boxsize, 3, CCDLabel, NumberMaxofFits)
     elif mode == "skimage_relaxed":
         print("Skimage mode (relaxed constraints) of PeakSearch is used for the PeakSearch")
-        return peaksearch_skimage(filename, 3, IntensityThreshold, boxsize, 2, CCDLabel, 3000)
+        return peaksearch_skimage(filename, FitPixelDev, IntensityThreshold, boxsize, 2, CCDLabel, NumberMaxofFits)
     elif mode == "skimage_nobounds":
         print("Skimage mode (no constraints) of PeakSearch is used for the PeakSearch")
-        return peaksearch_skimage(filename, 3, IntensityThreshold, boxsize, 1, CCDLabel, 3000)
+        return peaksearch_skimage(filename, FitPixelDev, IntensityThreshold, boxsize, 1, CCDLabel, NumberMaxofFits)
     elif mode == "skimage_nofit":
         print("Skimage mode (No fit) of PeakSearch is used for the PeakSearch")
-        return peaksearch_skimage(filename, 3, IntensityThreshold, boxsize, 0, CCDLabel, 3000)
+        return peaksearch_skimage(filename, FitPixelDev, IntensityThreshold, boxsize, 0, CCDLabel, NumberMaxofFits)
     else:
         print("LaueTools mode of PeakSearch is used for the PeakSearch")
         
@@ -1084,12 +1084,7 @@ def PeakSearch(filename, stackimageindex=-1, CCDLabel="PRINCETON", center=None,
 
     # user input its own shaped Data array
     if isinstance(Data_for_localMaxima, np.ndarray):
-        # if verbose:
-        #     print("Using 'Data_for_localMaxima' ndarray for finding local maxima")
         Data = Data_for_localMaxima
-
-        #         print "min, max intensity", np.amin(Data), np.amax(Data)
-        # TODO to test with VHR
         framedim = Data.shape
         ttread = ttt.time()
 

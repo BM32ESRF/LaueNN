@@ -2748,7 +2748,7 @@ class MyPopup_image_v1(QWidget):
         self.bkg_treatment.setText("A-B")
         
         self.peak_params = QLineEdit()
-        self.peak_params.setText("500,15,15")
+        self.peak_params.setText("3,15,15")
         
         self.predict_params = QLineEdit()
         self.predict_params.setText("0.85, 0.20, v2, 8, 0.2, 50")
@@ -2815,10 +2815,24 @@ class MyPopup_image_v1(QWidget):
             self.image_mode.addItem(s)
         
         self.peaksearch_mode = QComboBox()
-        peaksearchmode_ = ["skimage", "lauetools","LOG", "skimage_relaxed", "skimage_nobounds", "skimage_nofit"]
+        peaksearchmode_ = ["skimage", "lauetools", "LOG", "skimage_relaxed", "skimage_nobounds", "skimage_nofit"]
         for s in peaksearchmode_:
             self.peaksearch_mode.addItem(s)
-            
+        
+        # setting current index
+        if self.mode_peaksearch == "skimage":
+            self.peaksearch_mode.setCurrentIndex(0)
+        elif self.mode_peaksearch == "lauetools":
+            self.peaksearch_mode.setCurrentIndex(1)
+        elif self.mode_peaksearch == "LOG":
+            self.peaksearch_mode.setCurrentIndex(2)
+        elif self.mode_peaksearch == "skimage_relaxed":
+            self.peaksearch_mode.setCurrentIndex(3)
+        elif self.mode_peaksearch == "skimage_nobounds":
+            self.peaksearch_mode.setCurrentIndex(4)
+        elif self.mode_peaksearch == "skimage_nofit":
+            self.peaksearch_mode.setCurrentIndex(5)
+        
         self.btn_peak_search = QPushButton("Peak search")
         self.btn_peak_search.clicked.connect(self.peak_search)
         self.predicthkl = QPushButton("run prediction")
@@ -2899,13 +2913,14 @@ class MyPopup_image_v1(QWidget):
         config_setting1.set('CALLER', 'cap_mr', str(self.cap_matchrate123))
         config_setting1.set('CALLER', 'strain_free_parameters', ",".join(self.strain_free_parameters))
         config_setting1.set('CALLER', 'additional_expression', ",".join(self.additional_expression))
-        config_setting1.set('CALLER', 'mode_peaksearch', self.mode_peaksearch)
+        config_setting1.set('CALLER', 'mode_peaksearch', self.peaksearch_mode.currentText())
         with open(filepath, 'w') as configfile:
             config_setting1.write(configfile)
         print("Config settings updated")
     
     def neighbor_UB(self):
         #TODO
+        ## Need to access rotation_matrix...Build KdTree and find neighbors
         print("UB matrix indexation from neighbors in development")
         pass
     

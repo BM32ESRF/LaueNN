@@ -66,6 +66,7 @@ boxsize = 10
 fit_peaks_gaussian = 1
 FitPixelDev = 15
 NumberMaxofFits = 3000
+mode=lauetools
 
 [STRAINCALCULATION]
 strain_compute = true
