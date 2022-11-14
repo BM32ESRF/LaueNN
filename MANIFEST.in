@@ -26,9 +26,6 @@ include lauetoolsnn/examples/GaN_Si/*.lauenn
 include lauetoolsnn/examples/GaN_Si/*.det
 include lauetoolsnn/examples/GaN_Si/*.tif
 
-include lauetoolsnn/multi_mat_LaueNN/*.py
-include lauetoolsnn/multi_mat_LaueNN/*.md
-
 include lauetoolsnn/end_to_end_scripts/*.py
 include lauetoolsnn/end_to_end_scripts/*.md
 
@@ -36,6 +33,8 @@ include lauetoolsnn/example_notebook_scripts/*.ipynb
 include lauetoolsnn/example_notebook_scripts/*.md
 include lauetoolsnn/example_notebook_scripts/py_scripts/*.py
 include lauetoolsnn/example_notebook_scripts/automated_script/*.py
+include lauetoolsnn/example_notebook_scripts/multi_mat_LaueNN/*.py
+include lauetoolsnn/example_notebook_scripts/multi_mat_LaueNN/*.md
 
 include lauetoolsnn/util_scripts/*.py
 include lauetoolsnn/util_scripts/*.m

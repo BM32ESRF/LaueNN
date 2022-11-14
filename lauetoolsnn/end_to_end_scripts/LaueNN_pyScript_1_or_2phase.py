@@ -132,7 +132,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     # =============================================================================
                     # # [PEAKSEARCH]
                     # =============================================================================
-                    "intensity_threshold" : 1,
+                    "intensity_threshold" : 2,
                     "boxsize" : 10,
                     "fit_peaks_gaussian" : 1,
                     "FitPixelDev" : 15,
@@ -586,7 +586,8 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
             import multiprocessing, os, time, datetime
             import configparser, glob, re
             ## if LaueToolsNN is properly installed
-            from lauetoolsnn.utils_lauenn import  get_material_detail, new_MP_function, resource_path, global_plots
+            from lauetoolsnn.utils_lauenn import  get_material_detail, new_MP_function, resource_path, global_plots,\
+                write_average_orientation, convert_pickle_to_hdf5, write_prediction_stats, write_MTEXdata
             from lauetoolsnn.lauetools import dict_LaueTools as dictLT
             from lauetoolsnn.NNmodels import read_hdf5
             from keras.models import model_from_json
@@ -939,6 +940,36 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                                   symmetry, symmetry1, crystal, crystal1], output_file)
             print("data saved in ", save_directory_)
             
+            ## Lets save also a set of average UB matrix in text file to be used with user_OM setting    
+            try:
+                write_average_orientation(save_directory_, mat_global, rotation_matrix,
+                                              match_rate, lim_x, lim_y, crystal, crystal1,
+                                              radius=10, grain_ang=5, pixel_grain_definition=3)
+            except:
+                print("Error with Average orientation and grain index calculation")
+                
+            try:
+                convert_pickle_to_hdf5(save_directory_, files_treated, rotation_matrix, strain_matrix, 
+                                       strain_matrixs, match_rate, spots_len, iR_pix, 
+                                       fR_pix, colx, coly, col, mat_global,
+                                       material_, material1_, lim_x, lim_y)
+            except:
+                print("Error writting H5 file")
+            
+            try:
+                write_prediction_stats(save_directory_, material_, material1_, files_treated,\
+                                        lim_x, lim_y, best_match, strain_matrixs, strain_matrix, iR_pix,\
+                                        fR_pix,  mat_global)
+            except:
+                print("Error writting prediction statistics file")
+                
+            try:
+                write_MTEXdata(save_directory_, material_, material1_, rotation_matrix,\
+                                   lattice_material, lattice_material1, lim_x, lim_y, mat_global,\
+                                    input_params["symmetry"][0], input_params["symmetry"][1])
+            except:
+                print("Error writting MTEX orientation file")
+                
             try:
                 global_plots(lim_x, lim_y, rotation_matrix, strain_matrix, strain_matrixs, 
                               col, colx, coly, match_rate, mat_global, spots_len, 

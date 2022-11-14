@@ -177,8 +177,10 @@ if default_initialization:
     strain_free_parameters = ["rotx", "roty", "rotz", "alpha", "beta", "gamma", "b", "c"]
     additional_expression = ["none"]
     mode_peaksearch = "LaueTools"
-        
 
+# =============================================================================
+# Global update of variables from settings.ini file
+# =============================================================================
 def call_global():
     """
     Generates global variables from the settings.ini file to be used in the code
@@ -212,7 +214,10 @@ def call_global():
     mode_peaksearch = str(config_setting.get('CALLER', 'mode_peaksearch'))    
     if cap_matchrate123 < 1:
         cap_matchrate123 = cap_matchrate123 *100.0
-    
+
+# =============================================================================
+# Main GUI/ scripts functions
+# =============================================================================
 def rmv_freq_class(freq_rmv = 0, elements="all", freq_rmv1 = 0, elements1="all",
                    save_directory="", material_=None, material1_=None, write_to_console=None,
                    progress=None, qapp=None, list_hkl_keep=None, list_hkl_keep1=None):
@@ -450,6 +455,9 @@ def rmv_freq_class(freq_rmv = 0, elements="all", freq_rmv1 = 0, elements1="all",
     if write_to_console != None:
         write_to_console("Saved class weights data")
 
+# =============================================================================
+# Neural network functions
+# =============================================================================
 def array_generator(path_, batch_size, n_classes, loc_new, write_to_console=None, tocategorical=True):
     """
     Assign a new class to data that is removed (to include in the training anyway)
@@ -696,7 +704,6 @@ def create_additional_data(path_, write_to_console=None, material=None, material
     #         for kji in array_pairs:
     pass #TODO
 
-
 def array_generatorV2(path_, ver=1, progress=None, qapp=None):
     array_pairs = get_path(path_, ver=ver)
     random.shuffle(array_pairs)
@@ -762,6 +769,9 @@ def mse_images(pathA, pathB, ix, iy, ccd_label, progressbar=False, iteration=Non
     
     return err, ix, iy
 
+# =============================================================================
+# Data generation functions
+# =============================================================================
 def generate_classHKL(n, rules, lattice_material, symmetry, material_, crystal=None, SG=None, general_diff_cond=False,
          save_directory="", write_to_console=None, progress=None, qapp=None, ang_maxx = None, step = None, 
          mat_listHKl=None):
@@ -1043,9 +1053,20 @@ def write_training_testing_dataMTEX(save_directory,material_, material1_, lattic
         # =================CALCULATION OF POSITION=====================================
         euler_angles = np.zeros((len(ori_array),3))
         phase_euler_angles = np.zeros(len(ori_array))
-        for i in range(len(ori_array)):                
-            # euler_angles[i,:] = rot_mat_to_euler(ori_array[i,:,:])
-            euler_angles[i,:] = OrientationMatrix2Euler(ori_array[i,:,:])
+        for i in range(len(ori_array)):
+            ori_matrix = ori_array[i,:,:]
+            ## rotate orientation by 40degrees to bring in Sample RF
+            omega = np.deg2rad(-40)
+            # # rotation de -omega autour de l'axe x (or Y?) pour repasser dans Rsample
+            cw = np.cos(omega)
+            sw = np.sin(omega)
+            mat_from_lab_to_sample_frame = np.array([[cw, 0.0, sw], [0.0, 1.0, 0.0], [-sw, 0, cw]]) #Y
+            # mat_from_lab_to_sample_frame = np.array([[1.0, 0.0, 0.0], [0.0, cw, -sw], [0.0, sw, cw]]) #X
+            # mat_from_lab_to_sample_frame = np.array([[cw, -sw, 0.0], [sw, cw, 0.0], [0.0, 0.0, 1.0]]) #Z
+            orientation_matrix = np.dot(mat_from_lab_to_sample_frame.T, ori_matrix)
+            if np.linalg.det(orientation_matrix) < 0:
+                orientation_matrix = -orientation_matrix
+            euler_angles[i,:] = OrientationMatrix2Euler(orientation_matrix)
             phase_euler_angles[i] = phase_ori[i]        
 
         a = euler_angles
@@ -13178,6 +13199,214 @@ def convert_pickle_to_hdf5(save_directory_, files_treated, rotation_matrix1, str
             out_df = out_df.astype(dtype=dtype_)
             out_df.to_hdf(save_directory_+"\\"+'grain_all.h5', key='grain'+str(i)+"/"+columns[ij])
 
+def write_prediction_stats(save_directory_, material_, material1_, files_treated,\
+                           lim_x, lim_y, best_match, strain_matrixs, strain_matrix, iR_pix,\
+                              fR_pix,  mat_global):    
+    ## Write global text file with all results
+    if material_ != material1_:
+        text_file = open(save_directory_+"//prediction_stats_"+material_+"_"+material1_+".txt", "w")
+    else:
+        text_file = open(save_directory_+"//prediction_stats_"+material_+".txt", "w")
+
+    filenames = list(np.unique(files_treated))
+    filenames.sort(key=lambda var:[int(x) if x.isdigit() else x for x in re.findall(r'[^0-9]|[0-9]+', var)])
+    
+    for i in range(lim_x*lim_y):
+        text_file.write("# ********** \n")
+        text_file.write("# Filename: "+ filenames[i] + "\n")
+        for j in range(len(best_match)):
+            stats_ = best_match[j][0][i]
+            dev_eps_sample = strain_matrixs[j][0][i,:,:]
+            dev_eps = strain_matrix[j][0][i,:,:]
+            initial_residue = iR_pix[j][0][i][0]
+            final_residue = fR_pix[j][0][i][0]
+            mat = int(mat_global[j][0][i][0])
+            if mat == 0:
+                case = "None"
+            elif mat == 1:
+                case = material_
+            elif mat == 2:
+                case = material1_
+            text_file.write("# ********** UB MATRIX "+str(j+1)+" \n")
+            text_file.write("Spot_index for 2 HKL are "+ str(stats_[0])+" ; "+ str(stats_[1])+ "\n")
+            text_file.write("HKL1 "+str(stats_[2])+"; HKL2 "+str(stats_[3])+"\n")
+            text_file.write("Coords of HKL1 "+str(stats_[4])+\
+                            "; coords of HKL2 "+str(stats_[5])+"\n")
+            text_file.write("Distance between 2 spots is "+ str(stats_[6])+ "\n")
+            text_file.write("Distance between 2 spots in LUT is "+ str(stats_[7])+ "\n")
+            text_file.write("Accuracy of NN for 2 HKL is "+ str(stats_[8])+\
+                            "% ; "+str(stats_[9])+ "% \n")
+            string1 = "Matched, Expected, Matching rate(%) : " + \
+                        str(stats_[10]) +", "+str(stats_[11]) +", "+str(stats_[12])+" \n"
+            text_file.write(string1)
+            text_file.write("Rotation matrix for 2 HKL (multiplied by symmetry) is \n")
+            temp_ = stats_[14].flatten()
+            string1 = "[["+str(temp_[0])+","+str(temp_[1])+","+str(temp_[2])+"],"+  \
+                        "["+str(temp_[3])+","+str(temp_[4])+","+str(temp_[5])+"],"+  \
+                            "["+str(temp_[6])+","+str(temp_[7])+","+str(temp_[8])+"]]"+ " \n"  
+            text_file.write(string1)
+            text_file.write("dev_eps_sample is \n")
+            temp_ = dev_eps_sample.flatten()
+            string1 = "[["+str(temp_[0])+","+str(temp_[1])+","+str(temp_[2])+"],"+  \
+                        "["+str(temp_[3])+","+str(temp_[4])+","+str(temp_[5])+"],"+  \
+                            "["+str(temp_[6])+","+str(temp_[7])+","+str(temp_[8])+"]]"+ " \n"  
+            text_file.write(string1)
+            text_file.write("dev_eps is \n")
+            temp_ = dev_eps.flatten()
+            string1 = "[["+str(temp_[0])+","+str(temp_[1])+","+str(temp_[2])+"],"+  \
+                        "["+str(temp_[3])+","+str(temp_[4])+","+str(temp_[5])+"],"+  \
+                            "["+str(temp_[6])+","+str(temp_[7])+","+str(temp_[8])+"]]"+ " \n"  
+            text_file.write(string1)
+            text_file.write("Initial_pixel, Final_pixel residues are : "+str(initial_residue)+", "+str(final_residue)+" \n")
+            text_file.write("Mat_id is "+str(mat)+"\n")
+            text_file.write("Material indexed is "+case+"\n")
+            text_file.write("\n")
+    text_file.close()
+    print("prediction statistics are generated") 
+
+def write_MTEXdata(save_directory_, material_, material1_, rotation_matrix,\
+                   lattice_, lattice1_, lim_x, lim_y, mat_global,\
+                    symmetry_global, symmetry1_global):
+    try:
+        if symmetry_global =="cubic":
+            material0_lauegroup = "11"
+        elif symmetry_global =="monoclinic":
+            material0_lauegroup = "2"
+        elif symmetry_global == "hexagonal":
+            material0_lauegroup = "9"
+        elif symmetry_global == "orthorhombic":
+            material0_lauegroup = "3"
+        elif symmetry_global == "tetragonal":
+            material0_lauegroup = "5"
+        elif symmetry_global == "trigonal":
+            material0_lauegroup = "7"
+        elif symmetry_global == "triclinic":
+            material0_lauegroup = "1"
+    except:
+        material0_lauegroup = "11"
+        
+    try:
+        if symmetry1_global =="cubic":
+            material1_lauegroup = "11"
+        elif symmetry1_global =="monoclinic":
+            material1_lauegroup = "2"
+        elif symmetry1_global == "hexagonal":
+            material1_lauegroup = "9"
+        elif symmetry1_global == "orthorhombic":
+            material1_lauegroup = "3"
+        elif symmetry1_global == "tetragonal":
+            material1_lauegroup = "5"
+        elif symmetry1_global == "trigonal":
+            material1_lauegroup = "7"
+        elif symmetry1_global == "triclinic":
+            material1_lauegroup = "1"
+    except:
+        material1_lauegroup = "11"
+        
+    ## write MTEX file
+    rotation_matrix = [[] for i in range(len(rotation_matrix))]
+    for i in range(len(rotation_matrix)):
+        rotation_matrix[i].append(np.zeros((lim_x*lim_y,3,3)))
+
+    for i in range(len(rotation_matrix)):
+        temp_mat = rotation_matrix[i][0]    
+        for j in range(len(temp_mat)):
+            orientation_matrix = temp_mat[j,:,:]                    
+            ## rotate orientation by 40degrees to bring in Sample RF
+            omega = np.deg2rad(-40)
+            # # rotation de -omega autour de l'axe x (or Y?) pour repasser dans Rsample
+            cw = np.cos(omega)
+            sw = np.sin(omega)
+            mat_from_lab_to_sample_frame = np.array([[cw, 0.0, sw], [0.0, 1.0, 0.0], [-sw, 0, cw]]) #Y
+            # mat_from_lab_to_sample_frame = np.array([[1.0, 0.0, 0.0], [0.0, cw, -sw], [0.0, sw, cw]]) #X
+            # mat_from_lab_to_sample_frame = np.array([[cw, -sw, 0.0], [sw, cw, 0.0], [0.0, 0.0, 1.0]]) #Z
+            orientation_matrix = np.dot(mat_from_lab_to_sample_frame.T, orientation_matrix)
+
+            if np.linalg.det(orientation_matrix) < 0:
+                orientation_matrix = -orientation_matrix
+            rotation_matrix[i][0][j,:,:] = orientation_matrix
+                      
+    if material_ == material1_:
+        lattice = lattice_
+        material0_LG = material0_lauegroup
+        header = [
+                "Channel Text File",
+                "Prj     lauetoolsnn",
+                "Author    [Ravi raj purohit]",
+                "JobMode    Grid",
+                "XCells    "+str(lim_x),
+                "YCells    "+str(lim_y),
+                "XStep    1.0",
+                "YStep    1.0",
+                "AcqE1    0",
+                "AcqE2    0",
+                "AcqE3    0",
+                "Euler angles refer to Sample Coordinate system (CS0)!    Mag    100    Coverage    100    Device    0    KV    15    TiltAngle    40    TiltAxis    0",
+                "Phases    1",
+                str(round(lattice._lengths[0]*10,5))+";"+str(round(lattice._lengths[1]*10,5))+";"+\
+                str(round(lattice._lengths[2]*10,5))+"\t"+str(round(lattice._angles[0],5))+";"+\
+                str(round(lattice._angles[1],5))+";"+str(round(lattice._angles[2],5))+"\t"+"Material1"+ "\t"+material0_LG+ "\t"+"????"+"\t"+"????",
+                "Phase    X    Y    Bands    Error    Euler1    Euler2    Euler3    MAD    BC    BS"]
+    else:
+        lattice = lattice_
+        lattice1 = lattice1_
+        material0_LG = material0_lauegroup
+        material1_LG = material1_lauegroup
+        header = [
+                "Channel Text File",
+                "Prj     lauetoolsnn",
+                "Author    [Ravi raj purohit]",
+                "JobMode    Grid",
+                "XCells    "+str(lim_x),
+                "YCells    "+str(lim_y),
+                "XStep    1.0",
+                "YStep    1.0",
+                "AcqE1    0",
+                "AcqE2    0",
+                "AcqE3    0",
+                "Euler angles refer to Sample Coordinate system (CS0)!    Mag    100    Coverage    100    Device    0    KV    15    TiltAngle    40    TiltAxis    0",
+                "Phases    2",
+                str(round(lattice._lengths[0]*10,5))+";"+str(round(lattice._lengths[1]*10,5))+";"+\
+                str(round(lattice._lengths[2]*10,5))+"\t"+str(round(lattice._angles[0],5))+";"+\
+                str(round(lattice._angles[1],5))+";"+str(round(lattice._angles[2],5))+"\t"+"Material1"+ "\t"+material0_LG+ "\t"+"????"+"\t"+"????",
+                str(round(lattice1._lengths[0]*10,5))+";"+str(round(lattice1._lengths[1]*10,5))+";"+\
+                str(round(lattice1._lengths[2]*10,5))+"\t"+str(round(lattice1._angles[0],5))+";"+\
+                str(round(lattice1._angles[1],5))+";"+str(round(lattice1._angles[2],5))+"\t"+"Material2"+ "\t"+material1_LG+ "\t"+"????"+"\t"+"????",
+                "Phase    X    Y    Bands    Error    Euler1    Euler2    Euler3    MAD    BC    BS"]
+    # =================CALCULATION OF POSITION=====================================
+    for index in range(len(rotation_matrix)):
+        euler_angles = np.zeros((len(rotation_matrix[index][0]),3))
+        phase_euler_angles = np.zeros(len(rotation_matrix[index][0]))
+        for i in range(len(rotation_matrix[index][0])):
+            if np.all(rotation_matrix[index][0][i,:,:] == 0):
+                continue
+            euler_angles[i,:] = OrientationMatrix2Euler(rotation_matrix[index][0][i,:,:])
+            phase_euler_angles[i] = mat_global[index][0][i]        
+        
+        euler_angles = euler_angles.reshape((lim_x,lim_y,3))
+        phase_euler_angles = phase_euler_angles.reshape((lim_x,lim_y,1))
+        
+        a = euler_angles
+        if material_ != material1_:
+            filename125 = save_directory_+ "//"+material_+"_"+material1_+"_MTEX_UBmat_"+str(index)+"_LT.ctf"
+        else:
+            filename125 = save_directory_+ "//"+material_+"_MTEX_UBmat_"+str(index)+"_LT.ctf"
+            
+        f = open(filename125, "w")
+        for ij in range(len(header)):
+            f.write(header[ij]+" \n")
+                
+        for i123 in range(euler_angles.shape[1]):
+            y_step = 1 * i123
+            for j123 in range(euler_angles.shape[0]):
+                x_step = 1 * j123
+                phase_id = int(phase_euler_angles[j123,i123,0])
+                eul =  str(phase_id)+'\t' + "%0.4f" % x_step +'\t'+"%0.4f" % y_step+'\t8\t0\t'+ \
+                                    "%0.4f" % a[j123,i123,0]+'\t'+"%0.4f" % a[j123,i123,1]+ \
+                                        '\t'+"%0.4f" % a[j123,i123,2]+'\t0.0001\t180\t0\n'
+                string = eul
+                f.write(string)
+        f.close()
 
 if __name__ == "__main__":
     print("Modules of LaueNN")
