@@ -1195,7 +1195,7 @@ def getpatterns_(nb, nb1, material_=None, material1_=None, emin=5, emax=23, dete
                  normal_hkl1=None, index_hkl1=None, dim1=2048, dim2=2048, removeharmonics=1, flag = 0,
                  img_i=None, img_j=None, save_directory_=None, odf_data=None, odf_data1=None, modelp=None,
                  misorientation_angle=None, max_millerindex=0, max_millerindex1=0, general_diff_cond=False, crystal=None, crystal1=None,
-                 phase_always_present=None, mat0_listHKl=None, mat1_listHKl=None):    
+                 phase_always_present=None):    
     """
     The code simulates two random crystals and plots the 2D histogram of the Miller Indices and their relative orientation.
 
@@ -1297,15 +1297,10 @@ def getpatterns_(nb, nb1, material_=None, material1_=None, emin=5, emax=23, dete
                 continue
             
             continueloop = False
-            if np.all(mat0_listHKl == None):
-                if np.any(np.abs(new_hkl)>max_millerindex):
-                    skip_hkl.append(j)
-                    continueloop = True
-            else:
-                temp_ = np.all(new_hkl == normal_hkl, axis=1)  
-                if len(np.where(temp_)[0]) == 0:
-                    skip_hkl.append(j)
-                    continueloop = True  
+            temp_ = np.all(new_hkl == normal_hkl, axis=1)  
+            if len(np.where(temp_)[0]) == 0:
+                skip_hkl.append(j)
+                continueloop = True  
                 
             if continueloop:
                 continue
@@ -1346,15 +1341,10 @@ def getpatterns_(nb, nb1, material_=None, material1_=None, emin=5, emax=23, dete
                 continue
             
             continueloop = False
-            if np.all(mat1_listHKl == None):
-                if np.any(np.abs(new_hkl)>max_millerindex1):
-                    skip_hkl.append(j)
-                    continueloop = True
-            else:
-                temp_ = np.all(new_hkl == normal_hkl1, axis=1)  
-                if len(np.where(temp_)[0]) == 0:
-                    skip_hkl.append(j)
-                    continueloop = True
+            temp_ = np.all(new_hkl == normal_hkl1, axis=1)  
+            if len(np.where(temp_)[0]) == 0:
+                skip_hkl.append(j)
+                continueloop = True
                     
             if continueloop:
                 continue
@@ -1729,8 +1719,7 @@ def worker_generation(inputs_queue, outputs_queue, proc_id):
                  normal_hkl1, index_hkl1, dim1, dim2, removeharmonics, flag,\
                  img_i, img_j, save_directory_, odf_data, odf_data1, modelp,\
                      misorientation_angle, max_millerindex, max_millerindex1,\
-                         general_diff_cond, crystal, crystal1, phase_always_present,\
-                          mat0_listHKl, mat1_listHKl= num1[ijk]
+                         general_diff_cond, crystal, crystal1, phase_always_present = num1[ijk]
 
 
                 getpatterns_(nb, nb1, material_, material1_, emin, emax, detectorparameters, pixelsize, \
@@ -1740,7 +1729,7 @@ def worker_generation(inputs_queue, outputs_queue, proc_id):
                                          normal_hkl1, index_hkl1, dim1, dim2, removeharmonics, flag,\
                                          img_i, img_j, save_directory_, odf_data, odf_data1, modelp, \
                                          misorientation_angle, max_millerindex, max_millerindex1, general_diff_cond, crystal, \
-                                             crystal1, phase_always_present, mat0_listHKl, mat1_listHKl)
+                                             crystal1, phase_always_present)
                     
                 if ijk%10 == 0 and ijk!=0:
                     outputs_queue.put(11)

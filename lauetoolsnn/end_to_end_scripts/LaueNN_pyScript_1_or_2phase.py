@@ -387,8 +387,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                          misorientation_angle = input_params["misorientation"], 
                          general_diff_rules = False, 
                          crystal = crystal, crystal1 = crystal1, 
-                         include_scm=input_params["include_small_misorientation"],
-                         mat_listHKl=hkl_array, mat_listHKl1=hkl_array1)
+                         include_scm=input_params["include_small_misorientation"])
         
         ############ GENERATING TESTING DATA ##############
         factor = 5 # validation split for the training dataset  --> corresponds to 20% of total training dataset
@@ -406,8 +405,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                          misorientation_angle = input_params["misorientation"], 
                          general_diff_rules = False, 
                          crystal = crystal, crystal1 = crystal1, 
-                         include_scm=input_params["include_small_misorientation"],
-                         mat_listHKl=hkl_array, mat_listHKl1=hkl_array1)
+                         include_scm=input_params["include_small_misorientation"])
         
         ## Updating the ClassHKL list by removing the non-common HKL or less frequent HKL from the list
         ## The non-common HKL can occur as a result of the detector position and energy used

@@ -312,8 +312,6 @@ class Window(QMainWindow):
         self.state1 = 0
         self.state2 = 0
         self.model = None
-        self.mat0_listHKl = None
-        self.mat1_listHKl = None
         self.mode_spotCycleglobal = mode_spotCycle
         self.softmax_threshold_global = softmax_threshold_global
         self.mr_threshold_global = mr_threshold_global
@@ -341,6 +339,8 @@ class Window(QMainWindow):
         self.strain_free_parameters = strain_free_parameters,
         self.additional_expression = additional_expression
         self.architecture = "FFNN"
+        self.mat0_listHKl = None
+        self.mat1_listHKl = None
         # Add box layout, add table to box layout and add box layout to widget
         self.layout = QVBoxLayout()
         self._centralWidget = QWidget(self)
@@ -1530,8 +1530,7 @@ class Window(QMainWindow):
     def load_dataset(self, material_="Cu", material1_="Cu", ang_maxx=18.,step=0.1, mode=0, 
                      nb_grains=1, nb_grains1=1, grains_nb_simulate=100, data_realism = False, 
                      detectorparameters=None, pixelsize=None, type_="training",
-                     var0 = 0, dim1=2048, dim2=2048, removeharmonics=1,
-                     mat0_listHKl=None, mat1_listHKl=None): 
+                     var0 = 0, dim1=2048, dim2=2048, removeharmonics=1): 
         """
         works for all symmetries now.
         """
@@ -1811,9 +1810,7 @@ class Window(QMainWindow):
                                     self.general_diff_rules,
                                     self.crystal, 
                                     self.crystal1,
-                                    None,
-                                    mat0_listHKl, 
-                                    mat1_listHKl])
+                                    None])
                     
                     if self.matrix_phase_always_present != None and \
                         type_ != "testing_data":
@@ -1850,9 +1847,7 @@ class Window(QMainWindow):
                                             self.general_diff_rules,
                                             self.crystal, 
                                             self.crystal1,
-                                            self.matrix_phase_always_present,
-                                            mat0_listHKl, 
-                                            mat1_listHKl])
+                                            self.matrix_phase_always_present])
 
                         elif key_material_new == material1_ and jj == 0:
                             values.append([ii, 0, material_,material1_,
@@ -1884,9 +1879,7 @@ class Window(QMainWindow):
                                             self.general_diff_rules,
                                             self.crystal, 
                                             self.crystal1,
-                                            self.matrix_phase_always_present,
-                                            mat0_listHKl, 
-                                            mat1_listHKl])
+                                            self.matrix_phase_always_present])
                 # print(ii,jj)
                     
             chunks = chunker_list(values, self.ncpu)
@@ -1993,9 +1986,7 @@ class Window(QMainWindow):
                                     self.general_diff_rules,
                                     self.crystal, 
                                     self.crystal1,
-                                    None,
-                                    mat0_listHKl, 
-                                    mat1_listHKl])
+                                    None])
                     
                     if self.matrix_phase_always_present != None and \
                         type_ != "testing_data":
@@ -2028,9 +2019,7 @@ class Window(QMainWindow):
                                         self.general_diff_rules,
                                         self.crystal, 
                                         self.crystal1,
-                                        self.matrix_phase_always_present,
-                                        mat0_listHKl, 
-                                        mat1_listHKl])
+                                        self.matrix_phase_always_present])
                     
             chunks = chunker_list(values, self.ncpu)
             chunks_mp = list(chunks)
@@ -2093,9 +2082,7 @@ class Window(QMainWindow):
                                         self.general_diff_rules,
                                         self.crystal, 
                                         self.crystal1,
-                                        None,
-                                        mat0_listHKl, 
-                                        mat1_listHKl])
+                                        None])
                 
                 if material_ != material1_:
                     seednumber = np.random.randint(1e6)
@@ -2126,9 +2113,7 @@ class Window(QMainWindow):
                                         self.general_diff_rules,
                                         self.crystal, 
                                         self.crystal1,
-                                        None,
-                                        mat0_listHKl, 
-                                        mat1_listHKl])
+                                        None])
                     
                     ### include slightly misoriented two crystals of different materails
                     seednumber = np.random.randint(1e6)
@@ -2159,9 +2144,7 @@ class Window(QMainWindow):
                                         self.general_diff_rules,
                                         self.crystal, 
                                         self.crystal1,
-                                        None,
-                                        mat0_listHKl, 
-                                        mat1_listHKl])
+                                        None])
                     
             chunks = chunker_list(values, self.ncpu)
             chunks_mp = list(chunks)
@@ -2252,8 +2235,7 @@ class Window(QMainWindow):
                           grains_nb_simulate=self.grains_nb_simulate,
                           data_realism = True, detectorparameters=self.detectorparameters, 
                           pixelsize=self.pixelsize, type_="training_data", var0=1,
-                          dim1=self.input_params["dim1"], dim2=self.input_params["dim2"], removeharmonics=1,
-                          mat0_listHKl=self.mat0_listHKl, mat1_listHKl=self.mat1_listHKl)
+                          dim1=self.input_params["dim1"], dim2=self.input_params["dim2"], removeharmonics=1)
         # ############ GENERATING TESTING DATA
         self.update_progress = 0
         self.max_progress = 0
@@ -2263,8 +2245,7 @@ class Window(QMainWindow):
                           grains_nb_simulate=self.grains_nb_simulate//self.factor,
                           data_realism = True, detectorparameters=self.detectorparameters, 
                           pixelsize=self.pixelsize, type_="testing_data", var0=0,
-                          dim1=self.input_params["dim1"], dim2=self.input_params["dim2"], removeharmonics=1,
-                          mat0_listHKl=self.mat0_listHKl, mat1_listHKl=self.mat1_listHKl)
+                          dim1=self.input_params["dim1"], dim2=self.input_params["dim2"], removeharmonics=1)
         
         ## write MTEX data with training orientation
         try:
@@ -2282,7 +2263,7 @@ class Window(QMainWindow):
         
         rmv_freq_class(self.freq_rmv, self.elements, self.freq_rmv1, self.elements1,\
                        self.save_directory, self.material_, self.material1_, self.write_to_console,\
-                       self.progress, QApplication, self.mat0_listHKl, self.mat1_listHKl)
+                       self.progress, QApplication, None, None)
         self.write_to_console("See the class occurances above and choose appropriate frequency removal parameter to train quickly the network by having few output classes!, if not continue as it is.")
         self.write_to_console("Press Train network button to Train")
         self.train_nn.setEnabled(True)
@@ -2294,7 +2275,7 @@ class Window(QMainWindow):
         self.train_nn.setEnabled(False)
         rmv_freq_class(self.freq_rmv, self.elements, self.freq_rmv1, self.elements1,\
                        self.save_directory, self.material_, self.material1_, self.write_to_console,\
-                       self.progress, QApplication, self.mat0_listHKl, self.mat1_listHKl)
+                       self.progress, QApplication, None, None)
         
         self.classhkl = np.load(self.save_directory+"//MOD_grain_classhkl_angbin.npz")["arr_0"]
         self.angbins = np.load(self.save_directory+"//MOD_grain_classhkl_angbin.npz")["arr_1"]
@@ -2606,6 +2587,96 @@ class Window(QMainWindow):
                     QApplication.processEvents()         
         text_file.close()
 
+class gif_window(QWidget):
+    def __init__(self):
+        QWidget.__init__(self)
+        app_icon = QtGui.QIcon()
+        app_icon.addFile(Logo, QtCore.QSize(16,16))
+        self.setWindowIcon(app_icon)
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+        # create label
+        self.label = QtWidgets.QLabel()
+        self.label.setObjectName("label")
+        self.layout.addWidget(self.label)
+        # set qmovie as label
+        self.movie = QMovie(gif_path)
+        self.label.setMovie(self.movie)
+        self.movie.start()
+
+class sample_commands(QWidget):
+    def __init__(self):
+        QWidget.__init__(self)
+        app_icon = QtGui.QIcon()
+        app_icon.addFile(Logo, QtCore.QSize(16,16))
+        self.setWindowIcon(app_icon)
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+        self._createDisplay() ## display screen
+        self.setDisplayText("Here are the set of commands that you can use with terminal to execute stuff!")
+        self.setDisplayText("----------")
+        self.setDisplayText("lauetoolsnn or lauenn : launches the current GUI")
+        self.setDisplayText("----------")
+        self.setDisplayText("lauenn_addmat : Add user material to laueNN library")
+        self.setDisplayText("usage : lauenn_addmat -n Cu -l 3.6 3.6 3.6 90 90 90 -e 227")
+        self.setDisplayText("----------")
+        self.setDisplayText("lauenn_mat : Query a user material in laueNN library")
+        self.setDisplayText("usage : lauenn_mat -n Cu")
+        self.setDisplayText("----------")
+        self.setDisplayText("lauenn_maxhkl : Calculates the maxHKL available on the Detector with polycrystal Laue Simulation; useful for max_HKL_index parameter estimation in the config file")
+        self.setDisplayText("usage : lauenn_maxhkl -n Cu -dd 79.5 -nb 5 -c '3 5 7 10' -s 100")
+        self.setDisplayText("----------")
+        self.setDisplayText("lauenn_pymatgen : Query the PYMATGEN rest API for lattice parameters and spacegroup")
+        self.setDisplayText("usage : lauenn_pymatgen -e Cu Si")
+        self.setDisplayText("----------")
+        self.setDisplayText("lauenn_example : Copies example script of LaueNN from installation directory to current user directory (terminal cwd)")
+        self.setDisplayText("usage : lauenn_example")
+
+    def _createDisplay(self):
+        """Create the display."""
+        self.display = QTextEdit()
+        self.display.setReadOnly(True)
+        self.layout.addWidget(self.display)
+
+    def setDisplayText(self, text):
+        self.display.append('%s'%text)
+        self.display.moveCursor(QtGui.QTextCursor.End)
+        self.display.setFocus()
+        
+class sample_config(QWidget):
+    def __init__(self):
+        QWidget.__init__(self)
+        app_icon = QtGui.QIcon()
+        app_icon.addFile(Logo, QtCore.QSize(16,16))
+        self.setWindowIcon(app_icon)
+        self.layout = QVBoxLayout()
+        self._createDisplay() ## display screen
+        self.setDisplayText(texttstr1)
+        self.config_button = QPushButton("Save Config")
+        self.config_button.clicked.connect(self.config_generation)
+        self.layout.addWidget(self.config_button)
+        self.setLayout(self.layout)
+        
+    def _createDisplay(self):
+        """Create the display."""
+        self.display = QTextEdit()
+        self.display.setReadOnly(False)
+        self.layout.addWidget(self.display)
+
+    def setDisplayText(self, text):
+        self.display.append('%s'%text)
+        self.display.moveCursor(QtGui.QTextCursor.End)
+        self.display.setFocus()
+        
+    def config_generation(self,):
+        name = QtWidgets.QFileDialog.getSaveFileName(self, "Save Config File", '/', '.lauenn')[0]
+        print("Config filename", name+'.lauenn')
+        textfile = open(name+'.lauenn', 'w')
+        text = self.display.toPlainText()
+        textfile.write(text)
+        textfile.close()
+        
+        
 class MplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100, subplot=1, mat_bool=True):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
@@ -2677,7 +2748,7 @@ class MyPopup_image_v1(QWidget):
         self.bkg_treatment.setText("A-B")
         
         self.peak_params = QLineEdit()
-        self.peak_params.setText("500,15,15,lauetools")
+        self.peak_params.setText("500,15,15")
         
         self.predict_params = QLineEdit()
         self.predict_params.setText("0.85, 0.20, v2, 8, 0.2, 50")
@@ -2701,7 +2772,7 @@ class MyPopup_image_v1(QWidget):
             use_om_user = config_setting.get('CALLER', 'use_om_user')
             path_user_OM = config_setting.get('CALLER', 'path_user_OM')
             if intensity_threshold != None and boxsize != None and FitPixelDev_global123!=None:
-                self.peak_params.setText(str(intensity_threshold)+","+str(boxsize)+","+str(FitPixelDev_global123)+","+str(mode_peaksearch))
+                self.peak_params.setText(str(intensity_threshold)+","+str(boxsize)+","+str(FitPixelDev_global123))
             self.predict_params.setText(str(float(softmax_threshold_global123))+","+str(float(cap_matchrate123))+
                                         ","+option_global+","+
                                         str(nb_spots_global_threshold)+","+str(residues_threshold)+
@@ -2734,7 +2805,7 @@ class MyPopup_image_v1(QWidget):
             self.cap_matchrate123 = 0.2
             self.strain_free_parameters = ["rotx", "roty", "rotz", "alpha", "beta", "gamma", "b", "c"]
             self.additional_expression = ["none"]
-            self.mode_peaksearch = "LaueTools"
+            self.mode_peaksearch = "lauetools"
             print("error with setting config file, returning the settings to default values")
             
         self.corrected_data = None
@@ -2744,7 +2815,7 @@ class MyPopup_image_v1(QWidget):
             self.image_mode.addItem(s)
         
         self.peaksearch_mode = QComboBox()
-        peaksearchmode_ = ["lauetools","LOG"]
+        peaksearchmode_ = ["skimage", "lauetools","LOG", "skimage_relaxed", "skimage_nobounds", "skimage_nofit"]
         for s in peaksearchmode_:
             self.peaksearch_mode.addItem(s)
             
@@ -2768,7 +2839,7 @@ class MyPopup_image_v1(QWidget):
         ## send the data back to update the main variables
         formLayout = QFormLayout()
         formLayout.addRow('Background treatment expression', self.bkg_treatment)
-        formLayout.addRow('Intensity; box size; pix dev; mode_PeakSearch', self.peak_params)
+        formLayout.addRow('Intensity; box size; pix dev', self.peak_params)
         formLayout.addRow('Image mode', self.image_mode)
         formLayout.addRow('Peak search mode', self.peaksearch_mode)
         formLayout.addRow('softmax acc.; Mr threshold; 4hyperparams', self.predict_params)
@@ -2777,9 +2848,30 @@ class MyPopup_image_v1(QWidget):
         formLayout.addRow("Propagate the new parameters", self.propagate_button)
         self.layout.addLayout(formLayout)
         self.setLayout(self.layout)
+        
+        self.canvas.axes.set_title("Laue pattern of pixel x=%d, y=%d (peaks: %d) (file: %s)"%(self.iy,self.ix,len(self.pix_x),self.file), loc='center', fontsize=8)
+        self.canvas.axes.set_ylabel(r'Y pixel',fontsize=8)
+        self.canvas.axes.set_xlabel(r'X pixel', fontsize=8)
+        self.im = self.canvas.axes.imshow(self.data,interpolation="nearest",vmin=self.IminDisplayed, vmax=self.ImaxDisplayed)
+        ## set intial scatter plot
+        self.scatter = self.canvas.axes.scatter([], [], s=120, facecolor='none', edgecolor='r', label="Peaks")
+
         # compute background
         self.show_bkg_corrected_img()
         self.draw_something()
+    
+    def draw_something(self):
+        if self.image_mode.currentText() == "raw":
+            self.im.set_data(self.data)
+            self.im.set_clim([self.IminDisplayed, self.ImaxDisplayed])
+        else:
+            self.im.set_data(self.corrected_data)
+            self.im.set_clim([self.IminDisplayed, self.ImaxDisplayed])
+            
+        if len(self.pix_x)!=0:
+            self.canvas.axes.set_title("Laue pattern of pixel x=%d, y=%d (peaks: %d) (file: %s)"%(self.iy,self.ix,len(self.pix_x),self.file), loc='center', fontsize=8)
+            self.scatter.set_offsets(np.vstack((self.pix_x,self.pix_y)).T)
+        self.canvas.draw()
         
     def refresh_plots(self):
         self.draw_something()
@@ -2864,10 +2956,11 @@ class MyPopup_image_v1(QWidget):
         intens = int(float(self.peak_params.text().split(",")[0]))
         bs = int(float(self.peak_params.text().split(",")[1]))
         pixdev = int(float(self.peak_params.text().split(",")[2]))
-        mode_peaksearch = str((self.peak_params.text().split(",")[3]))
+        mode_peaksearch = self.peaksearch_mode.currentText()
         bkg_treatment = self.bkg_treatment.text()
         
-        if self.peaksearch_mode.currentText() == "lauetools":
+
+        if self.peaksearch_mode.currentText() in ["lauetools", "skimage", "skimage_relaxed", "skimage_nobounds", "skimage_nofit"]:
             try:
                 peak_XY = RMCCD.PeakSearch(
                                             self.file,
@@ -2903,7 +2996,7 @@ class MyPopup_image_v1(QWidget):
                 print("Error in Peak detection for "+ self.file)
                 self.pix_x, self.pix_y = [], []
                 self.peakXY = []
-                
+
         elif self.peaksearch_mode.currentText() == "LOG":
             print("fitting peaks with LOG function of skimage")
             from skimage.feature import blob_log
@@ -3004,7 +3097,8 @@ class MyPopup_image_v1(QWidget):
             intens = int(float(self.peak_params.text().split(",")[0]))
             bs = int(float(self.peak_params.text().split(",")[1]))
             pixdev = int(float(self.peak_params.text().split(",")[2]))
-            mode_peaksearch = str((self.peak_params.text().split(",")[3]))
+            # mode_peaksearch = str((self.peak_params.text().split(",")[3]))
+            mode_peaksearch = self.peaksearch_mode.currentText()
             smt = float(self.predict_params.text().split(",")[0])
             mrt = float(self.predict_params.text().split(",")[1])
             nb_spots_consider_global123 = int(float(self.predict_params.text().split(",")[5]))
@@ -3027,21 +3121,6 @@ class MyPopup_image_v1(QWidget):
             self.propagate_button.setEnabled(True)
         except:
             print("Error during prediction; reinitialize the optimize window again, most probably this will fix it")
-        
-    def draw_something(self):
-        # Drop off the first y element, append a new one.
-        self.canvas.axes.cla()
-        self.canvas.axes.set_title("Laue pattern of pixel x=%d, y=%d (peaks: %d) (file: %s)"%(self.iy,self.ix,len(self.pix_x),self.file), loc='center', fontsize=8)
-        self.canvas.axes.set_ylabel(r'Y pixel',fontsize=8)
-        self.canvas.axes.set_xlabel(r'X pixel', fontsize=8)
-        if self.image_mode.currentText() == "raw":
-            self.canvas.axes.imshow(self.data,interpolation="nearest",vmin=self.IminDisplayed, vmax=self.ImaxDisplayed)
-        else:
-            self.canvas.axes.imshow(self.corrected_data,interpolation="nearest",vmin=self.IminDisplayed, vmax=self.ImaxDisplayed)
-            
-        if len(self.pix_x)!=0:
-            self.canvas.axes.scatter(self.pix_x, self.pix_y, s=120, facecolor='none', edgecolor='r', label="Peaks")
-        self.canvas.draw()
         
     def sliderMin(self, val):
         try:
@@ -3233,13 +3312,10 @@ class MyPopup_image(QWidget):
                 self.setDisplayText(texttstr)
     
     def update_annot(self, ind, vis, cont, ind1, cont1):
-        self.canvas.axes.cla()
-        self.canvas.axes.set_title("Laue pattern of pixel x=%d, y=%d (file: %s)"%(self.iy,self.ix,self.file), loc='center', fontsize=8)
-        self.canvas.axes.set_ylabel(r'$\chi$ (in deg)',fontsize=8)
-        self.canvas.axes.set_xlabel(r'2$\theta$ (in deg)', fontsize=8)
-        self.scatter1 = self.canvas.axes.scatter(self.Data_X, self.Data_Y, c='k', s=self.intensity, cmap="gray", label="Exp spots")
+        self.scatter1.set_offsets(np.vstack((self.Data_X,self.Data_Y)).T)
+        
         if len(self.data_theo_X) != 0:
-            self.scatter = self.canvas.axes.scatter(self.data_theo_X, self.data_theo_Y, s=120, facecolor='none', edgecolor='r', label="Best match spots")
+            self.scatter.set_offsets(np.vstack((self.data_theo_X,self.data_theo_Y)).T)
         if cont:
             pos = self.scatter.get_offsets()[ind["ind"][0]]
             n = ind["ind"][0]
@@ -3261,12 +3337,11 @@ class MyPopup_image(QWidget):
         elif not cont and vis:
             self.annot.set_visible(False) 
         # Trigger the canvas to update and redraw.
-        self.canvas.axes.grid(True)
-        self.canvas.axes.legend(fontsize=8)
         self.canvas.draw()
         
     def onmovemouse(self,event):
         try:
+            self.annot.set_visible(False)
             vis = self.annot.get_visible()
             if event.inaxes == None:
                 return
@@ -3429,95 +3504,6 @@ class Window_allmap(QWidget):
         else:
             print("Right click for plotting the pixel values")
 
-class gif_window(QWidget):
-    def __init__(self):
-        QWidget.__init__(self)
-        app_icon = QtGui.QIcon()
-        app_icon.addFile(Logo, QtCore.QSize(16,16))
-        self.setWindowIcon(app_icon)
-        self.layout = QVBoxLayout()
-        self.setLayout(self.layout)
-        # create label
-        self.label = QtWidgets.QLabel()
-        self.label.setObjectName("label")
-        self.layout.addWidget(self.label)
-        # set qmovie as label
-        self.movie = QMovie(gif_path)
-        self.label.setMovie(self.movie)
-        self.movie.start()
-
-class sample_commands(QWidget):
-    def __init__(self):
-        QWidget.__init__(self)
-        app_icon = QtGui.QIcon()
-        app_icon.addFile(Logo, QtCore.QSize(16,16))
-        self.setWindowIcon(app_icon)
-        self.layout = QVBoxLayout()
-        self.setLayout(self.layout)
-        self._createDisplay() ## display screen
-        self.setDisplayText("Here are the set of commands that you can use with terminal to execute stuff!")
-        self.setDisplayText("----------")
-        self.setDisplayText("lauetoolsnn or lauenn : launches the current GUI")
-        self.setDisplayText("----------")
-        self.setDisplayText("lauenn_addmat : Add user material to laueNN library")
-        self.setDisplayText("usage : lauenn_addmat -n Cu -l 3.6 3.6 3.6 90 90 90 -e 227")
-        self.setDisplayText("----------")
-        self.setDisplayText("lauenn_mat : Query a user material in laueNN library")
-        self.setDisplayText("usage : lauenn_mat -n Cu")
-        self.setDisplayText("----------")
-        self.setDisplayText("lauenn_maxhkl : Calculates the maxHKL available on the Detector with polycrystal Laue Simulation; useful for max_HKL_index parameter estimation in the config file")
-        self.setDisplayText("usage : lauenn_maxhkl -n Cu -dd 79.5 -nb 5 -c '3 5 7 10' -s 100")
-        self.setDisplayText("----------")
-        self.setDisplayText("lauenn_pymatgen : Query the PYMATGEN rest API for lattice parameters and spacegroup")
-        self.setDisplayText("usage : lauenn_pymatgen -e Cu Si")
-        self.setDisplayText("----------")
-        self.setDisplayText("lauenn_example : Copies example script of LaueNN from installation directory to current user directory (terminal cwd)")
-        self.setDisplayText("usage : lauenn_example")
-
-    def _createDisplay(self):
-        """Create the display."""
-        self.display = QTextEdit()
-        self.display.setReadOnly(True)
-        self.layout.addWidget(self.display)
-
-    def setDisplayText(self, text):
-        self.display.append('%s'%text)
-        self.display.moveCursor(QtGui.QTextCursor.End)
-        self.display.setFocus()
-        
-class sample_config(QWidget):
-    def __init__(self):
-        QWidget.__init__(self)
-        app_icon = QtGui.QIcon()
-        app_icon.addFile(Logo, QtCore.QSize(16,16))
-        self.setWindowIcon(app_icon)
-        self.layout = QVBoxLayout()
-        self._createDisplay() ## display screen
-        self.setDisplayText(texttstr1)
-        self.config_button = QPushButton("Save Config")
-        self.config_button.clicked.connect(self.config_generation)
-        self.layout.addWidget(self.config_button)
-        self.setLayout(self.layout)
-        
-    def _createDisplay(self):
-        """Create the display."""
-        self.display = QTextEdit()
-        self.display.setReadOnly(False)
-        self.layout.addWidget(self.display)
-
-    def setDisplayText(self, text):
-        self.display.append('%s'%text)
-        self.display.moveCursor(QtGui.QTextCursor.End)
-        self.display.setFocus()
-        
-    def config_generation(self,):
-        name = QtWidgets.QFileDialog.getSaveFileName(self, "Save Config File", '/', '.lauenn')[0]
-        print("Config filename", name+'.lauenn')
-        textfile = open(name+'.lauenn', 'w')
-        text = self.display.toPlainText()
-        textfile.write(text)
-        textfile.close()
-        
 class MyPopup(QWidget):
     def __init__(self, match_rate12, rotation_matrix12, mat_global12, fR_pix12, filename, 
                  straincrystal, strainsample, end_time, mode_analysis, th_exp, chi_exp, intensity, tth_sim, chi_sim,
@@ -3541,6 +3527,7 @@ class MyPopup(QWidget):
         self.data_theo_Y = chi_sim
         self.data_theo_hkl = sim_hkl
         self.data_theo_energy = sim_energy
+        self.mat_global12 = mat_global12
         self.Data_index_simspot = list(range(len(tth_sim)))
         self.file = filename
         self.match_rate12987 = match_rate12
@@ -3627,15 +3614,10 @@ class MyPopup(QWidget):
         self.setDisplayText(texttstr)        
     
     def update_annot(self, ind, vis, cont, ind1, cont1):
-        self.canvas.axes.cla()
-        self.canvas.axes.set_title("Laue pattern (file: %s)"%(self.file), loc='center', fontsize=8)
-        self.canvas.axes.set_ylabel(r'$\chi$ (in deg)',fontsize=8)
-        self.canvas.axes.set_xlabel(r'2$\theta$ (in deg)', fontsize=8)
-        
-        self.scatter1 = self.canvas.axes.scatter(self.Data_X, self.Data_Y, c='k', s=self.intensity, label="Exp spots")
-        
+        self.scatter1.set_offsets(np.vstack((self.Data_X,self.Data_Y)).T)
         ## convert into a single variable
         tth_s, chi_s, color_s, label_s, theohkl_s, theoenergy_s = [], [], [], [], [], []
+        mat_ID = []
         for ijk in range(len(self.match_rate12987)):
             if len(self.data_theo_X[ijk]) != 0:
                 for okl in range(len(self.data_theo_X[ijk])):
@@ -3644,10 +3626,14 @@ class MyPopup(QWidget):
                     color_s.append(self.cycle_color[ijk])
                     theohkl_s.append(self.data_theo_hkl[ijk][okl])
                     theoenergy_s.append(self.data_theo_energy[ijk][okl])
+                    mat_ID.append(self.mat_global12[ijk][0])
                     label_s.append(ijk+1)
-                    
-        self.scatter = self.canvas.axes.scatter(tth_s, chi_s, s=120, facecolor='none', 
-                                  edgecolor=color_s)
+        chi_s = np.array(chi_s)
+        tth_s = np.array(tth_s)
+        color_s = np.array(color_s)
+        self.scatter.set_offsets(np.vstack((tth_s,chi_s)).T)
+        # self.scatter.set_array(color_s)
+        self.scatter.set_edgecolors(color_s)
         
         if ind != None and cont:
             pos = self.scatter.get_offsets()[ind["ind"][0]]
@@ -3669,16 +3655,18 @@ class MyPopup(QWidget):
         if n=="":
             text = "\nExpIndex={} \nPrediction={}".format(" "+str(n1)," "+str(pp123))
         elif n1 == "":
-            text = "\nMatrix={} \nTheoIndex={} \n2Theta={} \nChi={} \nHKL={} \nEnergy={}".format(
+            text = "\nMatrix={} \nMatID={} \nTheoIndex={} \n2Theta={} \nChi={} \nHKL={} \nEnergy={}".format(
                                                                                 " "+str(label_s[n]),
+                                                                                " "+str(mat_ID[n]),
                                                                                 " "+str(n), 
                                                                                 " "+str(np.round(tth_s[n],2)),
                                                                                 " "+str(np.round(chi_s[n],2)),
                                                                                 " "+str(theohkl_s[n]),
                                                                                 " "+str(np.round(theoenergy_s[n],2)))
         else:
-            text = "\nMatrix={} \nExpIndex={} \nPrediction={} \nTheoIndex={} \n2Theta={} \nChi={} \nHKL={} \nEnergy={}".format(
+            text = "\nMatrix={} \nMatID={} \nExpIndex={} \nPrediction={} \nTheoIndex={} \n2Theta={} \nChi={} \nHKL={} \nEnergy={}".format(
                                                                                 " "+str(label_s[n]),
+                                                                                " "+str(mat_ID[n]),
                                                                                 " "+str(n1),
                                                                                 " "+str(pp123),
                                                                                 " "+str(n), 
@@ -3686,21 +3674,17 @@ class MyPopup(QWidget):
                                                                                 " "+str(np.round(chi_s[n],2)),
                                                                                 " "+str(theohkl_s[n]),
                                                                                 " "+str(np.round(theoenergy_s[n],2)))
-            
         self.annot = self.canvas.axes.annotate(text, xy=pos, xytext=(20,20), textcoords="offset points",
                                                 bbox=dict(boxstyle="round", fc="gray"),
                                                 arrowprops=dict(arrowstyle="->"))
-        
         self.annot.get_bbox_patch().set_alpha(0.5)
         self.annot.set_visible(True)
-
         # Trigger the canvas to update and redraw.
-        self.canvas.axes.grid(True)
-        self.canvas.axes.legend(fontsize=8)
         self.canvas.draw()
         
     def onmovemouse(self,event):
         # try:
+        self.annot.set_visible(False)
         vis = self.annot.get_visible()
         if event.inaxes == None:
             return
