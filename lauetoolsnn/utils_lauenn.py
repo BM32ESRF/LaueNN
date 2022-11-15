@@ -13147,131 +13147,138 @@ def write_prediction_statsMM(save_directory_, material_, files_treated,\
 
 def write_MTEXdataMM(save_directory_, material_, rotation_matrix1,\
                    lattice_, lim_x, lim_y, mat_global,\
-                    symmetry_global):
-    print("To be rewritten the function")
-    pass
-    # try:
-    #     if symmetry_global =="cubic":
-    #         material0_lauegroup = "11"
-    #     elif symmetry_global =="monoclinic":
-    #         material0_lauegroup = "2"
-    #     elif symmetry_global == "hexagonal":
-    #         material0_lauegroup = "9"
-    #     elif symmetry_global == "orthorhombic":
-    #         material0_lauegroup = "3"
-    #     elif symmetry_global == "tetragonal":
-    #         material0_lauegroup = "5"
-    #     elif symmetry_global == "trigonal":
-    #         material0_lauegroup = "7"
-    #     elif symmetry_global == "triclinic":
-    #         material0_lauegroup = "1"
-    # except:
-    #     material0_lauegroup = "11"
-        
-    # ## write MTEX file
-    # rotation_matrix = [[] for i in range(len(rotation_matrix1))]
-    # for i in range(len(rotation_matrix)):
-    #     rotation_matrix[i].append(np.zeros((lim_x*lim_y,3,3)))
+                    symmetry_global_):
+    ## write MTEX file
+    rotation_matrix = [[] for i in range(len(rotation_matrix1))]
+    for i in range(len(rotation_matrix)):
+        rotation_matrix[i].append(np.zeros((lim_x*lim_y,3,3)))
 
-    # for i in range(len(rotation_matrix1)):
-    #     temp_mat = rotation_matrix1[i][0]    
-    #     for j in range(len(temp_mat)):
-    #         orientation_matrix = temp_mat[j,:,:]                    
-    #         ## rotate orientation by 40degrees to bring in Sample RF
-    #         omega = np.deg2rad(-40)
-    #         # # rotation de -omega autour de l'axe x (or Y?) pour repasser dans Rsample
-    #         cw = np.cos(omega)
-    #         sw = np.sin(omega)
-    #         mat_from_lab_to_sample_frame = np.array([[cw, 0.0, sw], [0.0, 1.0, 0.0], [-sw, 0, cw]]) #Y
-    #         # mat_from_lab_to_sample_frame = np.array([[1.0, 0.0, 0.0], [0.0, cw, -sw], [0.0, sw, cw]]) #X
-    #         # mat_from_lab_to_sample_frame = np.array([[cw, -sw, 0.0], [sw, cw, 0.0], [0.0, 0.0, 1.0]]) #Z
-    #         orientation_matrix = np.dot(mat_from_lab_to_sample_frame.T, orientation_matrix)
+    for i in range(len(rotation_matrix1)):
+        temp_mat = rotation_matrix1[i][0]    
+        for j in range(len(temp_mat)):
+            orientation_matrix = temp_mat[j,:,:]                    
+            ## rotate orientation by 40degrees to bring in Sample RF
+            omega = np.deg2rad(-40)
+            # # rotation de -omega autour de l'axe x (or Y?) pour repasser dans Rsample
+            cw = np.cos(omega)
+            sw = np.sin(omega)
+            mat_from_lab_to_sample_frame = np.array([[cw, 0.0, sw], [0.0, 1.0, 0.0], [-sw, 0, cw]]) #Y
+            # mat_from_lab_to_sample_frame = np.array([[1.0, 0.0, 0.0], [0.0, cw, -sw], [0.0, sw, cw]]) #X
+            # mat_from_lab_to_sample_frame = np.array([[cw, -sw, 0.0], [sw, cw, 0.0], [0.0, 0.0, 1.0]]) #Z
+            orientation_matrix = np.dot(mat_from_lab_to_sample_frame.T, orientation_matrix)
 
-    #         if np.linalg.det(orientation_matrix) < 0:
-    #             orientation_matrix = -orientation_matrix
-    #         rotation_matrix[i][0][j,:,:] = orientation_matrix
-                      
-    # if material_ == material1_:
-    #     lattice = lattice_
-    #     material0_LG = material0_lauegroup
-    #     header = [
-    #             "Channel Text File",
-    #             "Prj     lauetoolsnn",
-    #             "Author    [Ravi raj purohit]",
-    #             "JobMode    Grid",
-    #             "XCells    "+str(lim_x),
-    #             "YCells    "+str(lim_y),
-    #             "XStep    1.0",
-    #             "YStep    1.0",
-    #             "AcqE1    0",
-    #             "AcqE2    0",
-    #             "AcqE3    0",
-    #             "Euler angles refer to Sample Coordinate system (CS0)!    Mag    100    Coverage    100    Device    0    KV    15    TiltAngle    40    TiltAxis    0",
-    #             "Phases    1",
-    #             str(round(lattice._lengths[0]*10,5))+";"+str(round(lattice._lengths[1]*10,5))+";"+\
-    #             str(round(lattice._lengths[2]*10,5))+"\t"+str(round(lattice._angles[0],5))+";"+\
-    #             str(round(lattice._angles[1],5))+";"+str(round(lattice._angles[2],5))+"\t"+"Material1"+ "\t"+material0_LG+ "\t"+"????"+"\t"+"????",
-    #             "Phase    X    Y    Bands    Error    Euler1    Euler2    Euler3    MAD    BC    BS"]
-    # else:
-    #     lattice = lattice_
-    #     lattice1 = lattice1_
-    #     material0_LG = material0_lauegroup
-    #     material1_LG = material1_lauegroup
-    #     header = [
-    #             "Channel Text File",
-    #             "Prj     lauetoolsnn",
-    #             "Author    [Ravi raj purohit]",
-    #             "JobMode    Grid",
-    #             "XCells    "+str(lim_x),
-    #             "YCells    "+str(lim_y),
-    #             "XStep    1.0",
-    #             "YStep    1.0",
-    #             "AcqE1    0",
-    #             "AcqE2    0",
-    #             "AcqE3    0",
-    #             "Euler angles refer to Sample Coordinate system (CS0)!    Mag    100    Coverage    100    Device    0    KV    15    TiltAngle    40    TiltAxis    0",
-    #             "Phases    2",
-    #             str(round(lattice._lengths[0]*10,5))+";"+str(round(lattice._lengths[1]*10,5))+";"+\
-    #             str(round(lattice._lengths[2]*10,5))+"\t"+str(round(lattice._angles[0],5))+";"+\
-    #             str(round(lattice._angles[1],5))+";"+str(round(lattice._angles[2],5))+"\t"+"Material1"+ "\t"+material0_LG+ "\t"+"????"+"\t"+"????",
-    #             str(round(lattice1._lengths[0]*10,5))+";"+str(round(lattice1._lengths[1]*10,5))+";"+\
-    #             str(round(lattice1._lengths[2]*10,5))+"\t"+str(round(lattice1._angles[0],5))+";"+\
-    #             str(round(lattice1._angles[1],5))+";"+str(round(lattice1._angles[2],5))+"\t"+"Material2"+ "\t"+material1_LG+ "\t"+"????"+"\t"+"????",
-    #             "Phase    X    Y    Bands    Error    Euler1    Euler2    Euler3    MAD    BC    BS"]
-    # # =================CALCULATION OF POSITION=====================================
-    # for index in range(len(rotation_matrix)):
-    #     euler_angles = np.zeros((len(rotation_matrix[index][0]),3))
-    #     phase_euler_angles = np.zeros(len(rotation_matrix[index][0]))
-    #     for i in range(len(rotation_matrix[index][0])):
-    #         if np.all(rotation_matrix[index][0][i,:,:] == 0):
-    #             continue
-    #         euler_angles[i,:] = OrientationMatrix2Euler(rotation_matrix[index][0][i,:,:])
-    #         phase_euler_angles[i] = mat_global[index][0][i]        
-        
-    #     euler_angles = euler_angles.reshape((lim_x,lim_y,3))
-    #     phase_euler_angles = phase_euler_angles.reshape((lim_x,lim_y,1))
-        
-    #     a = euler_angles
-    #     if material_ != material1_:
-    #         filename125 = save_directory_+ "//"+material_+"_"+material1_+"_MTEX_UBmat_"+str(index)+"_LT.ctf"
-    #     else:
-    #         filename125 = save_directory_+ "//"+material_+"_MTEX_UBmat_"+str(index)+"_LT.ctf"
+            if np.linalg.det(orientation_matrix) < 0:
+                orientation_matrix = -orientation_matrix
+            rotation_matrix[i][0][j,:,:] = orientation_matrix
+    
+    header = [
+            "Channel Text File",
+            "Prj     lauetoolsnn",
+            "Author    [Ravi raj purohit]",
+            "JobMode    Grid",
+            "XCells    "+str(lim_x),
+            "YCells    "+str(lim_y),
+            "XStep    1.0",
+            "YStep    1.0",
+            "AcqE1    0",
+            "AcqE2    0",
+            "AcqE3    0",
+            "Euler angles refer to Sample Coordinate system (CS0)!    Mag    100    Coverage    100    Device    0    KV    15    TiltAngle    40    TiltAxis    0",
+            "Phases    2",
+            ]
+    
+    if len(material_) > 1:
+        for ino, imat in enumerate(material_):
+            lattice = lattice_[ino]
+            symmetry_global = symmetry_global_[ino]
+            if symmetry_global =="cubic":
+                material0_lauegroup = "11"
+            elif symmetry_global =="monoclinic":
+                material0_lauegroup = "2"
+            elif symmetry_global == "hexagonal":
+                material0_lauegroup = "9"
+            elif symmetry_global == "orthorhombic":
+                material0_lauegroup = "3"
+            elif symmetry_global == "tetragonal":
+                material0_lauegroup = "5"
+            elif symmetry_global == "trigonal":
+                material0_lauegroup = "7"
+            elif symmetry_global == "triclinic":
+                material0_lauegroup = "1"
             
-    #     f = open(filename125, "w")
-    #     for ij in range(len(header)):
-    #         f.write(header[ij]+" \n")
+            mat_string = str(round(lattice._lengths[0]*10,5))+";"+str(round(lattice._lengths[1]*10,5))+";"+\
+                        str(round(lattice._lengths[2]*10,5))+"\t"+str(round(lattice._angles[0],5))+";"+\
+                        str(round(lattice._angles[1],5))+";"+str(round(lattice._angles[2],5))+"\t"+"Material"+str(int(ino+1))+ "\t"+material0_lauegroup+ "\t"+"????"+"\t"+"????"
+            header.append(mat_string)
+
+    else:
+        lattice = lattice_[0]
+        symmetry_global = symmetry_global_[0]
+        if symmetry_global =="cubic":
+            material0_lauegroup = "11"
+        elif symmetry_global =="monoclinic":
+            material0_lauegroup = "2"
+        elif symmetry_global == "hexagonal":
+            material0_lauegroup = "9"
+        elif symmetry_global == "orthorhombic":
+            material0_lauegroup = "3"
+        elif symmetry_global == "tetragonal":
+            material0_lauegroup = "5"
+        elif symmetry_global == "trigonal":
+            material0_lauegroup = "7"
+        elif symmetry_global == "triclinic":
+            material0_lauegroup = "1"
+        
+        mat_string = str(round(lattice._lengths[0]*10,5))+";"+str(round(lattice._lengths[1]*10,5))+";"+\
+                    str(round(lattice._lengths[2]*10,5))+"\t"+str(round(lattice._angles[0],5))+";"+\
+                    str(round(lattice._angles[1],5))+";"+str(round(lattice._angles[2],5))+"\t"+"Material1"+ "\t"+material0_lauegroup+ "\t"+"????"+"\t"+"????"
+        header.append(mat_string)
+
+    final_line = "Phase    X    Y    Bands    Error    Euler1    Euler2    Euler3    MAD    BC    BS"
+    header.append(final_line)
+    
+    # =================CALCULATION OF POSITION=====================================
+    for index in range(len(rotation_matrix)):
+        euler_angles = np.zeros((len(rotation_matrix[index][0]),3))
+        phase_euler_angles = np.zeros(len(rotation_matrix[index][0]))
+        for i in range(len(rotation_matrix[index][0])):
+            if np.all(rotation_matrix[index][0][i,:,:] == 0):
+                continue
+            euler_angles[i,:] = OrientationMatrix2Euler(rotation_matrix[index][0][i,:,:])
+            phase_euler_angles[i] = mat_global[index][0][i]        
+        
+        euler_angles = euler_angles.reshape((lim_x,lim_y,3))
+        phase_euler_angles = phase_euler_angles.reshape((lim_x,lim_y,1))
+        
+        a = euler_angles
+        
+        if len(material_) > 1:
+            prefix_mat = material_[0]
+            for ino, imat in enumerate(material_):
+                if ino == 0:
+                    continue
+                prefix_mat = prefix_mat + "_" + imat
+        else:
+            prefix_mat = material_[0]
+
+        filename125 = save_directory_+ "//"+prefix_mat+"_MTEX_UBmat_"+str(index)+"_LT.ctf"
+            
+        f = open(filename125, "w")
+        for ij in range(len(header)):
+            f.write(header[ij]+" \n")
                 
-    #     for i123 in range(euler_angles.shape[1]):
-    #         y_step = 1 * i123
-    #         for j123 in range(euler_angles.shape[0]):
-    #             x_step = 1 * j123
-    #             phase_id = int(phase_euler_angles[j123,i123,0])
-    #             eul =  str(phase_id)+'\t' + "%0.4f" % x_step +'\t'+"%0.4f" % y_step+'\t8\t0\t'+ \
-    #                                 "%0.4f" % a[j123,i123,0]+'\t'+"%0.4f" % a[j123,i123,1]+ \
-    #                                     '\t'+"%0.4f" % a[j123,i123,2]+'\t0.0001\t180\t0\n'
-    #             string = eul
-    #             f.write(string)
-    #     f.close()
+        for i123 in range(euler_angles.shape[1]):
+            y_step = 1 * i123
+            for j123 in range(euler_angles.shape[0]):
+                x_step = 1 * j123
+                phase_id = int(phase_euler_angles[j123,i123,0])
+                eul =  str(phase_id)+'\t' + "%0.4f" % x_step +'\t'+"%0.4f" % y_step+'\t8\t0\t'+ \
+                                    "%0.4f" % a[j123,i123,0]+'\t'+"%0.4f" % a[j123,i123,1]+ \
+                                        '\t'+"%0.4f" % a[j123,i123,2]+'\t0.0001\t180\t0\n'
+                string = eul
+                f.write(string)
+        f.close()
+
     
 if __name__ == "__main__":
     print("Modules of LaueNN")

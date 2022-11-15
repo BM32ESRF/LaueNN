@@ -445,7 +445,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
         from itertools import accumulate
         ## if LaueToolsNN is properly installed
         from lauetoolsnn.utils_lauenn import get_multimaterial_detail, new_MP_multimat_function, resource_path, global_plots_MM,\
-                write_average_orientation, convert_pickle_to_hdf5, write_prediction_stats, write_MTEXdata
+                write_average_orientationMM, convert_pickle_to_hdf5MM, write_prediction_statsMM, write_MTEXdataMM
         from lauetoolsnn.lauetools import dict_LaueTools as dictLT
         from lauetoolsnn.NNmodels import read_hdf5
         
@@ -819,31 +819,31 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
             
             ## Lets save also a set of average UB matrix in text file to be used with user_OM setting    
             try:
-                write_average_orientation(save_directory_, mat_global, rotation_matrix,
-                                              match_rate, lim_x, lim_y, crystal, crystal1,
+                write_average_orientationMM(save_directory_, mat_global, rotation_matrix,
+                                              match_rate, lim_x, lim_y, crystal,
                                               radius=10, grain_ang=5, pixel_grain_definition=3)
             except:
                 print("Error with Average orientation and grain index calculation")
                 
             try:
-                convert_pickle_to_hdf5(save_directory_, files_treated, rotation_matrix, strain_matrix, 
+                convert_pickle_to_hdf5MM(save_directory_, files_treated, rotation_matrix, strain_matrix, 
                                        strain_matrixs, match_rate, spots_len, iR_pix, 
                                        fR_pix, colx, coly, col, mat_global,
-                                       material_, material1_, lim_x, lim_y)
+                                       material_, lim_x, lim_y)
             except:
                 print("Error writting H5 file")
             
             try:
-                write_prediction_stats(save_directory_, material_, material1_, files_treated,\
+                write_prediction_statsMM(save_directory_, material_, files_treated,\
                                         lim_x, lim_y, best_match, strain_matrixs, strain_matrix, iR_pix,\
                                         fR_pix,  mat_global)
             except:
                 print("Error writting prediction statistics file")
                 
             try:
-                write_MTEXdata(save_directory_, material_, material1_, rotation_matrix,\
-                                   lattice_material, lattice_material1, lim_x, lim_y, mat_global,\
-                                    input_params["symmetry"][0], input_params["symmetry"][1])
+                write_MTEXdataMM(save_directory_, material_, rotation_matrix,\
+                                   lattice_material, lim_x, lim_y, mat_global,\
+                                    input_params["symmetry"])
             except:
                 print("Error writting MTEX orientation file")
                 
