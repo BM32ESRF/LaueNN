@@ -25,6 +25,10 @@ def example_scripts():
     file2 = os.path.join(filepath,"LaueNN_pyScript_3_or_more_phase.py")
     file3 = os.path.join(filepath,"LaueNN_pyScript_1_or_2phase.ipynb")
     file4 = os.path.join(filepath,"LaueNN_pyScript_3_or_more_phase.ipynb")
+    file5 = os.path.join(filepath,"example_MTEX.m")
+    file6 = os.path.join(filepath,"hdf5_plots.ipynb")
+    file7 = os.path.join(filepath,"interactive_plots.ipynb")
+    file8 = os.path.join(filepath,"plots_postprocess.py")
     
     current_path = os.getcwd()
     save_directory = os.path.join(current_path, "LaueNN_script")
@@ -35,6 +39,10 @@ def example_scripts():
     shutil.move(file2, save_directory)
     shutil.move(file3, save_directory)
     shutil.move(file4, save_directory)
+    shutil.move(file5, save_directory)
+    shutil.move(file6, save_directory)
+    shutil.move(file7, save_directory)
+    shutil.move(file8, save_directory)
     print("Files moved to "+save_directory+" successfully")
     
     # import argparse

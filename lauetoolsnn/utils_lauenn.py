@@ -7488,7 +7488,7 @@ def generate_dataset(material_="Cu", material1_="Cu", ang_maxx=18.,step=0.1, mod
                          write_to_console=None, emin=5, emax=22, modelp = "random",
                          misorientation_angle = None, general_diff_rules = False, 
                          crystal = None, crystal1 = None, include_scm=False, 
-                         matrix_phase_always_present=None, mat_listHKl=None, mat_listHKl1=None): 
+                         matrix_phase_always_present=None): 
     """
     works for all symmetries now.
     """
@@ -7761,9 +7761,7 @@ def generate_dataset(material_="Cu", material1_="Cu", ang_maxx=18.,step=0.1, mod
                                 general_diff_rules,
                                 crystal, 
                                 crystal1,
-                                None,
-                                mat_listHKl,
-                                mat_listHKl1])
+                                None])
                 
                 if matrix_phase_always_present != None and \
                     type_ != "testing_data":
@@ -7800,9 +7798,7 @@ def generate_dataset(material_="Cu", material1_="Cu", ang_maxx=18.,step=0.1, mod
                                         general_diff_rules,
                                         crystal, 
                                         crystal1,
-                                        matrix_phase_always_present,
-                                        mat_listHKl,
-                                        mat_listHKl1])
+                                        matrix_phase_always_present])
 
                     elif key_material_new == material1_ and jj == 0:
                         values.append([ii, 0, material_,material1_,
@@ -7834,9 +7830,7 @@ def generate_dataset(material_="Cu", material1_="Cu", ang_maxx=18.,step=0.1, mod
                                         general_diff_rules,
                                         crystal, 
                                         crystal1,
-                                        matrix_phase_always_present,
-                                        mat_listHKl,
-                                        mat_listHKl1])
+                                        matrix_phase_always_present])
                 
         chunks = chunker_list(values, ncpu)
         chunks_mp = list(chunks)
@@ -7942,9 +7936,7 @@ def generate_dataset(material_="Cu", material1_="Cu", ang_maxx=18.,step=0.1, mod
                                 general_diff_rules,
                                 crystal, 
                                 crystal1,
-                                None,
-                                mat_listHKl,
-                                mat_listHKl1])
+                                None])
                 
                 if matrix_phase_always_present != None and \
                     type_ != "testing_data":
@@ -7977,9 +7969,7 @@ def generate_dataset(material_="Cu", material1_="Cu", ang_maxx=18.,step=0.1, mod
                                     general_diff_rules,
                                     crystal, 
                                     crystal1,
-                                    matrix_phase_always_present,
-                                    mat_listHKl,
-                                    mat_listHKl1])
+                                    matrix_phase_always_present])
                 
         chunks = chunker_list(values, ncpu)
         chunks_mp = list(chunks)
@@ -8042,9 +8032,7 @@ def generate_dataset(material_="Cu", material1_="Cu", ang_maxx=18.,step=0.1, mod
                                     general_diff_rules,
                                     crystal, 
                                     crystal1,
-                                    None,
-                                    mat_listHKl,
-                                    mat_listHKl1])
+                                    None])
             
             if material_ != material1_:
                 seednumber = np.random.randint(1e6)
@@ -8075,9 +8063,7 @@ def generate_dataset(material_="Cu", material1_="Cu", ang_maxx=18.,step=0.1, mod
                                     general_diff_rules,
                                     crystal, 
                                     crystal1,
-                                    None,
-                                    mat_listHKl,
-                                    mat_listHKl1])
+                                    None])
                 
                 ### include slightly misoriented two crystals of different materails
                 seednumber = np.random.randint(1e6)
@@ -8108,9 +8094,7 @@ def generate_dataset(material_="Cu", material1_="Cu", ang_maxx=18.,step=0.1, mod
                                     general_diff_rules,
                                     crystal, 
                                     crystal1,
-                                    None,
-                                    mat_listHKl,
-                                    mat_listHKl1])
+                                    None])
                 
         chunks = chunker_list(values, ncpu)
         chunks_mp = list(chunks)
@@ -8950,9 +8934,8 @@ def generate_multimat_dataset(  material_=["Cu"],
     while True:
         time.sleep(2)
         if not _outputs_queue.empty():
-            r_message = _outputs_queue.get()
-            print(r_message)
-            update_progress = update_progress + r_message
+            _ = _outputs_queue.get()
+            update_progress = update_progress + 1
             pbar.update(update_progress)
             
         count = 0
@@ -9203,8 +9186,7 @@ def worker_generation_multimat(inputs_queue, outputs_queue, proc_id):
                                          img_i, img_j, save_directory_, data_odf_data, modelp, \
                                          max_millerindex, general_diff_cond, crystal)
                     
-                if ijk%10 == 0 and ijk!=0:
-                    outputs_queue.put(11)
+                outputs_queue.put(1)
             if flag1 == 1:
                 break
 
@@ -9666,7 +9648,6 @@ def predict_preprocessMultiMatProcess(files, cnt,
         return strain_matrix, strain_matrixs, rotation_matrix, col, colx, coly, \
                 match_rate, mat_global, cnt, files_treated,spots_len,iR_pix,fR_pix, check, best_match, None
     
-    # print("Entering GOOD section")
     spots_in_center = np.arange(0,len(data_theta))
     spots_in_center = spots_in_center[:nb_spots_consider]
     
@@ -11900,7 +11881,6 @@ def global_plots_MM(lim_x, lim_y, rotation_matrix1, strain_matrix, strain_matrix
                  model_direc, material_, match_rate_threshold=5, bins=30, constantlength="a"):
     call_global()
 
-    mu_sd = []
     mu_sdc = []
     material_id = material_
     for matid in range(len(material_)):
@@ -12183,198 +12163,12 @@ def global_plots_MM(lim_x, lim_y, rotation_matrix1, strain_matrix, strain_matrix
         except:
             pass
     
-        try:
-            title = "strain Sample reference"+" "+material_id[matid]
-            fig = plt.figure()
-            fig.suptitle(title, fontsize=10)
-            axs = fig.subplots(2, 3)
-            axs[0, 0].set_title(r"$\epsilon_{11}$ (%)", loc='center', fontsize=8)
-            logdata = e11s #np.log(e11c)
-            xmin = logdata.min()
-            xmax = logdata.max()
-            x1 = np.linspace(xmin, xmax, 1000)
-            estimated_mu, estimated_sigma = scipy.stats.norm.fit(logdata)
-            pdf = scipy.stats.norm.pdf(x1, loc=estimated_mu, scale=estimated_sigma)
-            axs[0, 0].axvline(x=estimated_mu, c="k")
-            axs[0, 0].plot(x1, pdf, 'r')
-            axs[0, 0].hist(logdata, bins=bins, density=True, alpha=0.8)
-            # axs[0, 0].hist(e11s, bins=bins)
-            axs[0, 0].set_ylabel('Frequency', fontsize=8)
-            axs[0, 0].tick_params(axis='both', which='major', labelsize=8)
-            axs[0, 0].tick_params(axis='both', which='minor', labelsize=8)
-            
-            mu_sd.append((estimated_mu-estimated_sigma, estimated_mu+estimated_sigma))
-            
-            axs[0, 1].set_title(r"$\epsilon_{22}$ (%)", loc='center', fontsize=8)
-            logdata = e22s #np.log(e22c)
-            xmin = logdata.min()
-            xmax = logdata.max()
-            x1 = np.linspace(xmin, xmax, 1000)
-            estimated_mu, estimated_sigma = scipy.stats.norm.fit(logdata)
-            pdf = scipy.stats.norm.pdf(x1, loc=estimated_mu, scale=estimated_sigma)
-            axs[0, 1].axvline(x=estimated_mu, c="k")
-            axs[0, 1].plot(x1, pdf, 'r')
-            axs[0, 1].hist(logdata, bins=bins, density=True, alpha=0.8)
-            # axs[0, 1].hist(e22s, bins=bins)
-            axs[0, 1].set_ylabel('Frequency', fontsize=8)
-            axs[0, 1].tick_params(axis='both', which='major', labelsize=8)
-            axs[0, 1].tick_params(axis='both', which='minor', labelsize=8)
-            
-            mu_sd.append((estimated_mu-estimated_sigma, estimated_mu+estimated_sigma))
-            
-            axs[0, 2].set_title(r"$\epsilon_{33}$ (%)", loc='center', fontsize=8)
-            logdata = e33s #np.log(e33c)
-            xmin = logdata.min()
-            xmax = logdata.max()
-            x1 = np.linspace(xmin, xmax, 1000)
-            estimated_mu, estimated_sigma = scipy.stats.norm.fit(logdata)
-            pdf = scipy.stats.norm.pdf(x1, loc=estimated_mu, scale=estimated_sigma)
-            axs[0, 2].axvline(x=estimated_mu, c="k")
-            axs[0, 2].plot(x1, pdf, 'r')
-            axs[0, 2].hist(logdata, bins=bins, density=True, alpha=0.8)
-            # axs[0, 2].hist(e33s, bins=bins)
-            axs[0, 2].set_ylabel('Frequency', fontsize=8)
-            axs[0, 2].tick_params(axis='both', which='major', labelsize=8)
-            axs[0, 2].tick_params(axis='both', which='minor', labelsize=8)
-            
-            mu_sd.append((estimated_mu-estimated_sigma, estimated_mu+estimated_sigma))
-            
-            axs[1, 0].set_title(r"$\epsilon_{12}$ (%)", loc='center', fontsize=8)
-            logdata = e12s#np.log(e12c)
-            xmin = logdata.min()
-            xmax = logdata.max()
-            x1 = np.linspace(xmin, xmax, 1000)
-            estimated_mu, estimated_sigma = scipy.stats.norm.fit(logdata)
-            pdf = scipy.stats.norm.pdf(x1, loc=estimated_mu, scale=estimated_sigma)
-            axs[1, 0].axvline(x=estimated_mu, c="k")
-            axs[1, 0].plot(x1, pdf, 'r')
-            axs[1, 0].hist(logdata, bins=bins, density=True, alpha=0.8)
-            # axs[1, 0].hist(e12s, bins=bins)
-            axs[1, 0].set_ylabel('Frequency', fontsize=8)
-            axs[1, 0].tick_params(axis='both', which='major', labelsize=8)
-            axs[1, 0].tick_params(axis='both', which='minor', labelsize=8)
-            
-            mu_sd.append((estimated_mu-estimated_sigma, estimated_mu+estimated_sigma))
-            
-            axs[1, 1].set_title(r"$\epsilon_{13}$ (%)", loc='center', fontsize=8)
-            logdata = e13s#np.log(e13c)
-            xmin = logdata.min()
-            xmax = logdata.max()
-            x1 = np.linspace(xmin, xmax, 1000)
-            estimated_mu, estimated_sigma = scipy.stats.norm.fit(logdata)
-            pdf = scipy.stats.norm.pdf(x1, loc=estimated_mu, scale=estimated_sigma)
-            axs[1, 1].axvline(x=estimated_mu, c="k")
-            axs[1, 1].plot(x1, pdf, 'r')
-            axs[1, 1].hist(logdata, bins=bins, density=True, alpha=0.8)
-            # axs[1, 1].hist(e13s, bins=bins)
-            axs[1, 1].set_ylabel('Frequency', fontsize=8)
-            axs[1, 1].tick_params(axis='both', which='major', labelsize=8)
-            axs[1, 1].tick_params(axis='both', which='minor', labelsize=8)
-            
-            mu_sd.append((estimated_mu-estimated_sigma, estimated_mu+estimated_sigma))
-            
-            axs[1, 2].set_title(r"$\epsilon_{23}$ (%)", loc='center', fontsize=8)
-            logdata = e23s#np.log(e23c)
-            xmin = logdata.min()
-            xmax = logdata.max()
-            x1 = np.linspace(xmin, xmax, 1000)
-            estimated_mu, estimated_sigma = scipy.stats.norm.fit(logdata)
-            pdf = scipy.stats.norm.pdf(x1, loc=estimated_mu, scale=estimated_sigma)
-            axs[1, 2].axvline(x=estimated_mu, c="k")
-            axs[1, 2].plot(x1, pdf, 'r')
-            axs[1, 2].hist(logdata, bins=bins, density=True, alpha=0.8)
-            # axs[1, 2].hist(e23s, bins=bins)
-            axs[1, 2].set_ylabel('Frequency', fontsize=8)
-            axs[1, 2].tick_params(axis='both', which='major', labelsize=8)
-            axs[1, 2].tick_params(axis='both', which='minor', labelsize=8)
-            
-            mu_sd.append((estimated_mu-estimated_sigma, estimated_mu+estimated_sigma))
-            
-            plt.tight_layout()
-            plt.savefig(model_direc+ "//"+title+'.png', format='png', dpi=1000) 
-            plt.close(fig)  
-        except:
-            pass
-
     for matid in range(len(material_)):
         for index in range(len(strain_matrix)):
             nan_index1 = np.where(match_rate[index][0] <= match_rate_threshold)[0]
             mat_id_index = np.where(mat_global[index][0] != matid+1)[0]
             nan_index = np.hstack((mat_id_index,nan_index1))
-            nan_index = np.unique(nan_index)
-        
-            strain_matrix_plot = np.copy(strain_matrixs[index][0])
-            strain_matrix_plot[nan_index,:,:] = np.nan             
-        
-            fig = plt.figure(figsize=(11.69,8.27), dpi=100)
-            bottom, top = 0.1, 0.9
-            left, right = 0.1, 0.8
-            fig.subplots_adjust(top=top, bottom=bottom, left=left, right=right, hspace=0.15, wspace=0.25)
-            
-            try:
-                vmin, vmax = mu_sd[matid*6]
-                axs = fig.subplots(2, 3)
-                axs[0, 0].set_title(r"$\epsilon_{11}$ (%)", loc='center', fontsize=8)
-                im=axs[0, 0].imshow(strain_matrix_plot[:,0,0].reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                axs[0, 0].set_xticks([])
-                axs[0, 0].set_yticks([])
-                divider = make_axes_locatable(axs[0,0])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-                
-                vmin, vmax = mu_sd[matid*6+1]
-                axs[0, 1].set_title(r"$\epsilon_{22}$ (%)", loc='center', fontsize=8)
-                im=axs[0, 1].imshow(strain_matrix_plot[:,1,1].reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                divider = make_axes_locatable(axs[0,1])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-                
-                vmin, vmax = mu_sd[matid*6+2]
-                axs[0, 2].set_title(r"$\epsilon_{33}$ (%)", loc='center', fontsize=8)
-                im=axs[0, 2].imshow(strain_matrix_plot[:,2,2].reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                divider = make_axes_locatable(axs[0,2])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-                
-                vmin, vmax = mu_sd[matid*6+3]
-                axs[1, 0].set_title(r"$\epsilon_{12}$ (%)", loc='center', fontsize=8)
-                im=axs[1, 0].imshow(strain_matrix_plot[:,0,1].reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                axs[1, 0].set_xticks([])
-                axs[1, 0].set_yticks([])
-                divider = make_axes_locatable(axs[1,0])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-                
-                vmin, vmax = mu_sd[matid*6+4]
-                axs[1, 1].set_title(r"$\epsilon_{13}$ (%)", loc='center', fontsize=8)
-                im=axs[1, 1].imshow(strain_matrix_plot[:,0,2].reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                axs[1, 1].set_xticks([])
-                divider = make_axes_locatable(axs[1,1])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-                
-                vmin, vmax = mu_sd[matid*6+5]
-                axs[1, 2].set_title(r"$\epsilon_{23}$ (%)", loc='center', fontsize=8)
-                im = axs[1, 2].imshow(strain_matrix_plot[:,1,2].reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                axs[1, 2].set_xticks([]) 
-                divider = make_axes_locatable(axs[1,2])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-            
-                for ax in axs.flat:
-                    ax.label_outer()
-            
-                plt.savefig(model_direc+ '//figure_strain_UBsample_mat'+str(matid)+"_UB"+str(index)+'.png', bbox_inches='tight',format='png', dpi=1000) 
-                plt.close(fig)
-            except:
-                print("Error in strain plot")
-            
+            nan_index = np.unique(nan_index)            
                 
             strain_matrix_plot = np.copy(strain_matrix[index][0])
             strain_matrix_plot[nan_index,:,:] = np.nan             
@@ -12446,48 +12240,9 @@ def global_plots_MM(lim_x, lim_y, rotation_matrix1, strain_matrix, strain_matrix
                 plt.savefig(model_direc+ '//figure_strain_UBcrystal_mat'+str(matid)+"_UB"+str(index)+'.png', bbox_inches='tight',format='png', dpi=1000) 
                 plt.close(fig)
             except:
-                print("Error in strain plots")
+                pass
                 
-            col_plot = np.copy(col[index][0])
-            col_plot[nan_index,:] = np.nan,np.nan,np.nan
-            col_plot = col_plot.reshape((lim_x, lim_y, 3))
-        
-            colx_plot = np.copy(colx[index][0])
-            colx_plot[nan_index,:] = np.nan,np.nan,np.nan
-            colx_plot = colx_plot.reshape((lim_x, lim_y,3))
-            
-            coly_plot = np.copy(coly[index][0])
-            coly_plot[nan_index,:] = np.nan,np.nan,np.nan
-            coly_plot = coly_plot.reshape((lim_x, lim_y,3))
-            
             try:
-                fig = plt.figure(figsize=(11.69,8.27), dpi=100)
-                bottom, top = 0.1, 0.9
-                left, right = 0.1, 0.8
-                fig.subplots_adjust(top=top, bottom=bottom, left=left, right=right, hspace=0.15, wspace=0.25)
-                
-                axs = fig.subplots(1, 3)
-                axs[0].set_title(r"IPF Z map", loc='center', fontsize=8)
-                axs[0].imshow(col_plot, origin='lower')
-                axs[0].set_xticks([])
-                axs[0].set_yticks([])
-                
-                axs[1].set_title(r"IPF Y map", loc='center', fontsize=8)
-                axs[1].imshow(coly_plot, origin='lower')
-                axs[1].set_xticks([])
-                axs[1].set_yticks([])
-                
-                axs[2].set_title(r"IPF X map", loc='center', fontsize=8)
-                im = axs[2].imshow(colx_plot, origin='lower')
-                axs[2].set_xticks([])
-                axs[2].set_yticks([])
-            
-                for ax in axs.flat:
-                    ax.label_outer()
-            
-                plt.savefig(model_direc+ '//IPF_map_mat'+str(matid)+"_UB"+str(index)+'.png', bbox_inches='tight',format='png', dpi=1000) 
-                plt.close(fig)
-
                 col_plot = np.copy(col[index][0])
                 col_plot[nan_index,:] = np.nan,np.nan,np.nan
                 col_plot = col_plot.reshape((lim_x, lim_y, 3))
@@ -12535,7 +12290,7 @@ def global_plots_MM(lim_x, lim_y, rotation_matrix1, strain_matrix, strain_matrix
                 plt.savefig(model_direc+ "//figure_global_mat"+str(matid)+"_UB"+str(index)+'.png', bbox_inches='tight',format='png', dpi=1000) 
                 plt.close(fig)
             except:
-                print("Error in plots")
+                pass
                 
             spots_len_plot = np.copy(spots_len[index][0])
             spots_len_plot[nan_index,:] = np.nan
@@ -12589,344 +12344,7 @@ def global_plots_MM(lim_x, lim_y, rotation_matrix1, strain_matrix, strain_matrix
                 plt.savefig(model_direc+'//figure_mr_ir_fr_mat'+str(matid)+"_UB"+str(index)+'.png', bbox_inches='tight',format='png', dpi=1000) 
                 plt.close(fig)
             except:
-                print("Error in plots")
-                
-            try:
-                a,b,c,alp,bet,gam = [],[],[],[],[],[]
-                
-                # constantlength = "a"
-                if ("a" in strain_free_parameters) and ("b" in strain_free_parameters) and ("c" in strain_free_parameters):
-                    constantlength = "a"                    
-                elif ("b" not in strain_free_parameters) and additional_expression[0]=="none" and\
-                    "b" not in additional_expression[0]:
-                    constantlength = "b"
-                elif ("c" not in strain_free_parameters):
-                    constantlength = "c"
-                    
-                for irot in range(len(rotation_matrix1[index][0])):
-                    lattice_parameter_direct_strain = CP.computeLatticeParameters_from_UB(rotation_matrix1[index][0][irot,:,:], 
-                                                                                          material_id[matid], 
-                                                                                          constantlength, 
-                                                                                          dictmaterials=dictLT.dict_Materials)
-                    a.append(lattice_parameter_direct_strain[0])
-                    b.append(lattice_parameter_direct_strain[1])
-                    c.append(lattice_parameter_direct_strain[2])
-                    alp.append(lattice_parameter_direct_strain[3])
-                    bet.append(lattice_parameter_direct_strain[4])
-                    gam.append(lattice_parameter_direct_strain[5])
-                
-                logdata = np.array(a)
-                logdata = logdata[~np.isnan(logdata)]
-                rangemina, rangemaxa = np.min(logdata)-0.01, np.max(logdata)+0.01
-                logdata = np.array(b)
-                logdata = logdata[~np.isnan(logdata)]
-                rangeminb, rangemaxb = np.min(logdata)-0.01, np.max(logdata)+0.01
-                logdata = np.array(c)
-                logdata = logdata[~np.isnan(logdata)]
-                rangeminc, rangemaxc = np.min(logdata)-0.01, np.max(logdata)+0.01
-                logdata = np.array(alp)
-                logdata = logdata[~np.isnan(logdata)]
-                rangeminal, rangemaxal = np.min(logdata)-0.01, np.max(logdata)+0.01
-                logdata = np.array(bet)
-                logdata = logdata[~np.isnan(logdata)]
-                rangeminbe, rangemaxbe = np.min(logdata)-0.01, np.max(logdata)+0.01
-                logdata = np.array(gam)
-                logdata = logdata[~np.isnan(logdata)]
-                rangeminga, rangemaxga = np.min(logdata)-0.01, np.max(logdata)+0.01
-        
-                fig = plt.figure(figsize=(11.69,8.27), dpi=100)
-                bottom, top = 0.1, 0.9
-                left, right = 0.1, 0.8
-                fig.subplots_adjust(top=top, bottom=bottom, left=left, right=right, hspace=0.15, wspace=0.25)
-                
-                vmin = rangemina
-                vmax = rangemaxa
-                axs = fig.subplots(2, 3)
-                axs[0, 0].set_title(r"$a$", loc='center', fontsize=8)
-                strain_matrix_plot = np.array(a)
-                im=axs[0, 0].imshow(strain_matrix_plot.reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                axs[0, 0].set_xticks([])
-                axs[0, 0].set_yticks([])
-                divider = make_axes_locatable(axs[0,0])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-        
-                vmin = rangeminb
-                vmax = rangemaxb
-                axs[0, 1].set_title(r"$b$", loc='center', fontsize=8)
-                strain_matrix_plot = np.array(b)
-                im=axs[0, 1].imshow(strain_matrix_plot.reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                divider = make_axes_locatable(axs[0,1])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-        
-                vmin = rangeminc
-                vmax = rangemaxc
-                axs[0, 2].set_title(r"$c$", loc='center', fontsize=8)
-                strain_matrix_plot = np.array(c)
-                im=axs[0, 2].imshow(strain_matrix_plot.reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                divider = make_axes_locatable(axs[0,2])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-        
-                vmin = rangeminal
-                vmax = rangemaxal
-                axs[1, 0].set_title(r"$\alpha$", loc='center', fontsize=8)
-                strain_matrix_plot = np.array(alp)
-                im=axs[1, 0].imshow(strain_matrix_plot.reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                axs[1, 0].set_xticks([])
-                axs[1, 0].set_yticks([])
-                divider = make_axes_locatable(axs[1,0])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-        
-                vmin = rangeminbe
-                vmax = rangemaxbe
-                axs[1, 1].set_title(r"$\beta$", loc='center', fontsize=8)
-                strain_matrix_plot = np.array(bet)
-                im=axs[1, 1].imshow(strain_matrix_plot.reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                axs[1, 1].set_xticks([])
-                divider = make_axes_locatable(axs[1,1])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-        
-                vmin = rangeminga
-                vmax = rangemaxga
-                axs[1, 2].set_title(r"$\gamma$", loc='center', fontsize=8)
-                strain_matrix_plot = np.array(gam)
-                im = axs[1, 2].imshow(strain_matrix_plot.reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                axs[1, 2].set_xticks([]) 
-                divider = make_axes_locatable(axs[1,2])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.formatter.set_useOffset(False)
-                cbar.ax.tick_params(labelsize=8) 
-                
-                for ax in axs.flat:
-                    ax.label_outer()
-                plt.savefig(model_direc+ "//"+'figure_unitcell_'+str(matid)+'_'+str(index)+'.png', bbox_inches='tight',format='png', dpi=1000) 
-                plt.close(fig)
-            except:
-                # print("Error in unit cell plots")
                 pass
-            
-            try:
-                latticeparams = dictLT.dict_Materials[material_id[matid]][1]
-    
-                a,b,c,alp,bet,gam = [],[],[],[],[],[]
-        
-                # constantlength = "a"
-                if ("a" in strain_free_parameters) and ("b" in strain_free_parameters) and ("c" in strain_free_parameters):
-                    constantlength = "a"    
-                elif ("b" not in strain_free_parameters) and additional_expression[0]=="none" and \
-                    "b" not in additional_expression[0]:
-                    constantlength = "b"
-                elif ("c" not in strain_free_parameters):
-                    constantlength = "c"
-                    
-                for irot in range(len(rotation_matrix1[index][0])):
-                    lattice_parameter_direct_strain = CP.computeLatticeParameters_from_UB(rotation_matrix1[index][0][irot,:,:], 
-                                                                                          material_id[matid], 
-                                                                                          constantlength, 
-                                                                                          dictmaterials=dictLT.dict_Materials)
-                    a.append(lattice_parameter_direct_strain[0])
-                    b.append(lattice_parameter_direct_strain[1])
-                    c.append(lattice_parameter_direct_strain[2])
-                    alp.append(lattice_parameter_direct_strain[3])
-                    bet.append(lattice_parameter_direct_strain[4])
-                    gam.append(lattice_parameter_direct_strain[5])
-        
-                logdata = np.array(a) - latticeparams[0]
-                logdata = logdata[~np.isnan(logdata)]
-                rangemina, rangemaxa = np.min(logdata) - 0.01e-2, np.max(logdata) + 0.01e-2
-                logdata = np.array(b) - latticeparams[1]
-                logdata = logdata[~np.isnan(logdata)]
-                rangeminb, rangemaxb = np.min(logdata) - 0.01e-2, np.max(logdata) + 0.01e-2
-                logdata = np.array(c) - latticeparams[2]
-                logdata = logdata[~np.isnan(logdata)]
-                rangeminc, rangemaxc = np.min(logdata) - 0.01e-2, np.max(logdata) + 0.01e-2
-                logdata = np.array(alp) - latticeparams[3]
-                logdata = logdata[~np.isnan(logdata)]
-                rangeminal, rangemaxal = np.min(logdata) - 0.01, np.max(logdata) + 0.01
-                logdata = np.array(bet) - latticeparams[4]
-                logdata = logdata[~np.isnan(logdata)]
-                rangeminbe, rangemaxbe = np.min(logdata) - 0.01, np.max(logdata) + 0.01
-                logdata = np.array(gam) - latticeparams[5]
-                logdata = logdata[~np.isnan(logdata)]
-                rangeminga, rangemaxga = np.min(logdata) - 0.01, np.max(logdata) + 0.01
-        
-                fig = plt.figure(figsize=(11.69,8.27), dpi=100)
-                bottom, top = 0.1, 0.9
-                left, right = 0.1, 0.8
-                fig.subplots_adjust(top=top, bottom=bottom, left=left, right=right, hspace=0.15, wspace=0.25)
-        
-                vmin = rangemina
-                vmax = rangemaxa
-                axs = fig.subplots(2, 3)
-                axs[0, 0].set_title(r"$a$", loc='center', fontsize=8)
-                strain_matrix_plot = np.array(a) - latticeparams[0]
-                im=axs[0, 0].imshow(strain_matrix_plot.reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                axs[0, 0].set_xticks([])
-                axs[0, 0].set_yticks([])
-                divider = make_axes_locatable(axs[0,0])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-        
-                vmin = rangeminb
-                vmax = rangemaxb
-                axs[0, 1].set_title(r"$b$", loc='center', fontsize=8)
-                strain_matrix_plot = np.array(b) - latticeparams[1]
-                im=axs[0, 1].imshow(strain_matrix_plot.reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                divider = make_axes_locatable(axs[0,1])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-        
-                vmin = rangeminc
-                vmax = rangemaxc
-                axs[0, 2].set_title(r"$c$", loc='center', fontsize=8)
-                strain_matrix_plot = np.array(c) - latticeparams[2]
-                im=axs[0, 2].imshow(strain_matrix_plot.reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                divider = make_axes_locatable(axs[0,2])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-        
-                vmin = rangeminal
-                vmax = rangemaxal
-                axs[1, 0].set_title(r"$\alpha$", loc='center', fontsize=8)
-                strain_matrix_plot = np.array(alp) - latticeparams[3]
-                im=axs[1, 0].imshow(strain_matrix_plot.reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                axs[1, 0].set_xticks([])
-                axs[1, 0].set_yticks([])
-                divider = make_axes_locatable(axs[1,0])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-        
-                vmin = rangeminbe
-                vmax = rangemaxbe
-                axs[1, 1].set_title(r"$\beta$", loc='center', fontsize=8)
-                strain_matrix_plot = np.array(bet) - latticeparams[4]
-                im=axs[1, 1].imshow(strain_matrix_plot.reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                axs[1, 1].set_xticks([])
-                divider = make_axes_locatable(axs[1,1])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.ax.tick_params(labelsize=8) 
-        
-                vmin = rangeminga
-                vmax = rangemaxga
-                axs[1, 2].set_title(r"$\gamma$", loc='center', fontsize=8)
-                strain_matrix_plot = np.array(gam) - latticeparams[5]
-                im = axs[1, 2].imshow(strain_matrix_plot.reshape((lim_x, lim_y)), origin='lower', cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
-                axs[1, 2].set_xticks([]) 
-                divider = make_axes_locatable(axs[1,2])
-                cax = divider.append_axes('right', size='5%', pad=0.05)
-                cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-                cbar.formatter.set_useOffset(False)
-                cbar.ax.tick_params(labelsize=8) 
-        
-                for ax in axs.flat:
-                    ax.label_outer()
-                plt.savefig(model_direc + "//" + 'figure_unitcell_relative_'+str(matid)+'_'+str(index)+'.png', bbox_inches='tight',format='png', dpi=1000) 
-                plt.close(fig)
-            except:
-                # print("Error in relative unit cell plots")
-                pass
-            
-            try:
-                # constantlength = "a"
-                if ("a" in strain_free_parameters) and ("b" in strain_free_parameters) and ("c" in strain_free_parameters):
-                    constantlength = "a"    
-                elif ("b" not in strain_free_parameters) and additional_expression[0]=="none" and \
-                    "b" not in additional_expression[0]:
-                    constantlength = "b"
-                elif ("c" not in strain_free_parameters):
-                    constantlength = "c"
-
-                a,b,c,alp,bet,gam = [],[],[],[],[],[]
-                #TODO all images and not only one
-                for irot in range(len(rotation_matrix1[index][0])):
-                    lattice_parameter_direct_strain = CP.computeLatticeParameters_from_UB(rotation_matrix1[index][0][irot,:,:], 
-                                                                                          material_id[matid], 
-                                                                                          constantlength, 
-                                                                                          dictmaterials=dictLT.dict_Materials)
-                    a.append(lattice_parameter_direct_strain[0])
-                    b.append(lattice_parameter_direct_strain[1])
-                    c.append(lattice_parameter_direct_strain[2])
-                    alp.append(lattice_parameter_direct_strain[3])
-                    bet.append(lattice_parameter_direct_strain[4])
-                    gam.append(lattice_parameter_direct_strain[5])
-                
-                title = "Refined unit cell"+" "+material_id[matid]+ " "+str(index)
-                fig = plt.figure()
-                axs = fig.subplots(2, 3)
-                axs[0, 0].set_title(r"a", loc='center', fontsize=8)
-                logdata = np.array(a)
-                logdata = logdata[~np.isnan(logdata)]
-                rangemin, rangemax = np.min(logdata)-0.01, np.max(logdata)+0.01
-                axs[0, 0].hist(logdata, bins=bins, density=True, alpha=0.8, range=(rangemin, rangemax))
-                axs[0, 0].set_ylabel('Frequency', fontsize=8)
-                axs[0, 0].tick_params(axis='both', which='major', labelsize=8)
-                axs[0, 0].tick_params(axis='both', which='minor', labelsize=8)
-            
-                axs[0, 1].set_title(r"b", loc='center', fontsize=8)
-                logdata = np.array(b)
-                logdata = logdata[~np.isnan(logdata)]
-                rangemin, rangemax = np.min(logdata)-0.01, np.max(logdata)+0.01
-                axs[0, 1].hist(logdata, bins=bins, density=True, alpha=0.8, range=(rangemin, rangemax))
-                axs[0, 1].set_ylabel('Frequency', fontsize=8)
-                axs[0, 1].tick_params(axis='both', which='major', labelsize=8)
-                axs[0, 1].tick_params(axis='both', which='minor', labelsize=8)
-                
-                axs[0, 2].set_title(r"c", loc='center', fontsize=8)
-                logdata = np.array(c)
-                logdata = logdata[~np.isnan(logdata)]
-                rangemin, rangemax = np.min(logdata)-0.01, np.max(logdata)+0.01
-                axs[0, 2].hist(logdata, bins=bins, density=True, alpha=0.8, range=(rangemin, rangemax))
-                axs[0, 2].set_ylabel('Frequency', fontsize=8)
-                axs[0, 2].tick_params(axis='both', which='major', labelsize=8)
-                axs[0, 2].tick_params(axis='both', which='minor', labelsize=8)
-                
-                axs[1, 0].set_title(r"$\alpha$", loc='center', fontsize=8)
-                logdata = np.array(alp)
-                logdata = logdata[~np.isnan(logdata)]
-                rangemin, rangemax = np.min(logdata)-0.01, np.max(logdata)+0.01
-                axs[1, 0].hist(logdata, bins=bins, density=True, alpha=0.8, range=(rangemin, rangemax))
-                axs[1, 0].set_ylabel('Frequency', fontsize=8)
-                axs[1, 0].tick_params(axis='both', which='major', labelsize=8)
-                axs[1, 0].tick_params(axis='both', which='minor', labelsize=8)
-                
-                axs[1, 1].set_title(r"$\beta$", loc='center', fontsize=8)
-                logdata = np.array(bet)
-                logdata = logdata[~np.isnan(logdata)]
-                rangemin, rangemax = np.min(logdata)-0.01, np.max(logdata)+0.01
-                axs[1, 1].hist(logdata, bins=bins, density=True, alpha=0.8, range=(rangemin, rangemax))
-                axs[1, 1].set_ylabel('Frequency', fontsize=8)
-                axs[1, 1].tick_params(axis='both', which='major', labelsize=8)
-                axs[1, 1].tick_params(axis='both', which='minor', labelsize=8)
-                
-                axs[1, 2].set_title(r"$\gamma$", loc='center', fontsize=8)
-                logdata = np.array(gam)
-                logdata = logdata[~np.isnan(logdata)]
-                rangemin, rangemax = np.min(logdata)-0.01, np.max(logdata)+0.01
-                axs[1, 2].hist(logdata, bins=bins, density=True, alpha=0.8, range=(rangemin, rangemax))
-                axs[1, 2].set_ylabel('Frequency', fontsize=8)
-                axs[1, 2].tick_params(axis='both', which='major', labelsize=8)
-                axs[1, 2].tick_params(axis='both', which='minor', labelsize=8)
-            
-                plt.tight_layout()
-                plt.savefig(model_direc+"\\"+title+'.png', format='png', dpi=1000) 
-                plt.close(fig)
-            except:
-                continue
 
 # =============================================================================
 # Procedure for calculating average UBs in a LaueImage
@@ -13186,7 +12604,7 @@ def convert_pickle_to_hdf5(save_directory_, files_treated, rotation_matrix1, str
             out_df = pd.DataFrame(temp_)
             dtype_ = columnstype[columns[ij]]
             out_df = out_df.astype(dtype=dtype_)
-            out_df.to_hdf(save_directory_+"\\"+'grain_all.h5', key='grain'+str(i)+"/"+columns[ij])
+            out_df.to_hdf(os.path.join(save_directory_,"grain_all.h5"), key='grain'+str(i)+"/"+columns[ij])
 
 def write_prediction_stats(save_directory_, material_, material1_, files_treated,\
                            lim_x, lim_y, best_match, strain_matrixs, strain_matrix, iR_pix,\
@@ -13253,7 +12671,7 @@ def write_prediction_stats(save_directory_, material_, material1_, files_treated
     text_file.close()
     print("prediction statistics are generated") 
 
-def write_MTEXdata(save_directory_, material_, material1_, rotation_matrix,\
+def write_MTEXdata(save_directory_, material_, material1_, rotation_matrix1,\
                    lattice_, lattice1_, lim_x, lim_y, mat_global,\
                     symmetry_global, symmetry1_global):
     try:
@@ -13293,12 +12711,12 @@ def write_MTEXdata(save_directory_, material_, material1_, rotation_matrix,\
         material1_lauegroup = "11"
         
     ## write MTEX file
-    rotation_matrix = [[] for i in range(len(rotation_matrix))]
+    rotation_matrix = [[] for i in range(len(rotation_matrix1))]
     for i in range(len(rotation_matrix)):
         rotation_matrix[i].append(np.zeros((lim_x*lim_y,3,3)))
 
-    for i in range(len(rotation_matrix)):
-        temp_mat = rotation_matrix[i][0]    
+    for i in range(len(rotation_matrix1)):
+        temp_mat = rotation_matrix1[i][0]    
         for j in range(len(temp_mat)):
             orientation_matrix = temp_mat[j,:,:]                    
             ## rotate orientation by 40degrees to bring in Sample RF
@@ -13397,5 +12815,463 @@ def write_MTEXdata(save_directory_, material_, material1_, rotation_matrix,\
                 f.write(string)
         f.close()
 
+# =============================================================================
+# Additional MultiMaterial functions
+# =============================================================================
+def write_average_orientationMM(save_directory_, mat_global, rotation_matrix1,
+                              match_rate, lim_x, lim_y, crystal, radius=10, 
+                              grain_ang=5, pixel_grain_definition=3):
+    import copy
+    from scipy import spatial
+    print("Number of Phases present (includes non indexed phase zero also)", len(np.unique(np.array(mat_global))))
+    average_UB = []
+    nb_pixels = []
+    mat_index = []
+    average_UB_object = []
+    # =============================================================================
+    # To categorize grains, some parameters
+    # =============================================================================
+    misorientation = grain_ang #in degrees
+    cos_disorientation = np.cos(np.radians(misorientation/2.))      
+    make_position_pixel = np.indices((lim_x,lim_y))
+    make_position_pixel = make_position_pixel.reshape((2, lim_x*lim_y)).T
+    print('building KD tree...')
+    kdtree = spatial.KDTree(copy.deepcopy(make_position_pixel)) ##pixel position data?
+    
+    for index in range(len(rotation_matrix1)):
+        for val in np.unique(mat_global[index][0]):
+            if val == 0:
+                continue ##skipping no indexed patterns
+            else:
+                symmetry = crystal[int(val)-1].crystal_system
+
+            mat_index1 = mat_global[index][0]
+            mask_ = np.where(mat_index1 != val)[0]
+            om_object = []
+            # print("step 1")
+            for om_ind in range(len(rotation_matrix1[index][0])):
+                ## UB matrix in Laue reference frame (or crystal reference frame?)
+                orientation_matrix = rotation_matrix1[index][0][om_ind]
+                ##b convert to orientation object to inherit all properties of Orientation class
+                om = Orientation(matrix=orientation_matrix, symmetry=symmetry).reduced()
+                # reduced() return the FZ OM
+                om_object.append(om)
+            mr = match_rate[index][0]
+            mr = mr.flatten()
+            if len(mask_) > 0:
+                mr[mask_] = 0
+            if np.max(mr) == 0:
+                continue
+            
+            # print("step 2")
+            # =============================================================================
+            # ### Categorize into grains        
+            # =============================================================================
+            grainID = -np.ones(len(make_position_pixel),dtype=int)
+            orientations = []  # quaternions found for grain
+            memberCounts = []  # number of voxels in grain
+            p = 0  # point counter
+            g = 0  # grain counter
+            matchedID = -1
+    
+            while p < len(make_position_pixel): # read next data point
+                if p in mask_:
+                    p += 1       # increment point and continue
+                    continue
+                if p > 0 and p % 100 == 0:
+                    print('Processing point %i of %i (grain count %i)...' % (p,len(grainID),np.count_nonzero(memberCounts)))
+                o = om_object[p]
+                matched        = False
+                alreadyChecked = {}
+                candidates     = []
+                bestDisorientation = Quaternion([0,0,0,1])  # initialize to 180 deg rotation as worst case
+                for i in kdtree.query_ball_point(kdtree.data[p], radius):  # check all neighboring points
+                    gID = grainID[i]
+                    if (gID != -1) and (gID not in alreadyChecked): # indexed point belonging to a grain not yet tested?
+                        alreadyChecked[gID] = True    # remember not to check again
+                        disorientation = o.disorientation(orientations[gID], SST = False)[0]# compare against other orientation
+                        if disorientation.quaternion.w >  cos_disorientation:  # within threshold ...
+                            candidates.append(gID)   # remember as potential candidate
+                            if disorientation.quaternion.w >= bestDisorientation.w: # ... and better than current best? 
+                                matched = True
+                                matchedID = gID    # remember that grain
+                                bestDisorientation = disorientation.quaternion
+                if matched:     # did match existing grain
+                    memberCounts[matchedID] += 1
+                    if len(candidates) > 1:     # ambiguity in grain identification?
+                        largestGrain = sorted(candidates,key=lambda x:memberCounts[x])[-1]  
+                        # find largest among potential candidate grains
+                        matchedID    = largestGrain
+                        for c in [c for c in candidates if c != largestGrain]:   # loop over smaller candidates
+                            memberCounts[largestGrain] += memberCounts[c]   # reassign member count of smaller to largest
+                            memberCounts[c] = 0
+                        grainID = np.where(np.in1d(grainID,candidates), largestGrain, grainID)   
+                        # relabel grid points of smaller candidates as largest one
+                else:       # no match -> new grain found
+                    orientations += [o]     # initialize with current orientation
+                    memberCounts += [1]      # start new membership counter
+                    matchedID = g
+                    g += 1               # increment grain counter
+                grainID[p] = matchedID    # remember grain index assigned to point
+                p += 1       # increment point
+                
+            # print("step 3")
+            grain_map = grainID.reshape((lim_x,lim_y))
+            
+            # print('step 4')
+            # =============================================================================
+            # Let us compute the average orientation of grain definition
+            # =============================================================================
+            ####Average UB per grains
+            grainIDs = np.where(np.array(memberCounts) >= pixel_grain_definition)[0]   # identify "live" grain identifiers
+            for gi_ in grainIDs:
+                pixel_indices = np.where(grainID==gi_)[0]
+                om_object_mod = []
+                for hi_ in pixel_indices:
+                    om_object_mod.append(om_object[hi_])
+                avg_om_object = Orientation.average(om_object_mod)
+                average_UB_object.append(avg_om_object)
+                average_UB.append(avg_om_object.asMatrix())
+                nb_pixels.append(len(pixel_indices))
+                mat_index.append(val)        
+    
+            fig = plt.figure(figsize=(11.69,8.27), dpi=100)
+            bottom, top = 0.1, 0.9
+            left, right = 0.1, 0.8
+            fig.subplots_adjust(top=top, bottom=bottom, left=left, right=right, hspace=0.15, wspace=0.25)
+            axs = fig.subplots(1, 1)
+            axs.set_title(r"Grain map", loc='center', fontsize=8)
+            im=axs.imshow(grain_map, origin='lower', cmap=plt.cm.jet)
+            axs.set_xticks([])
+            axs.set_yticks([])
+            divider = make_axes_locatable(axs)
+            cax = divider.append_axes('right', size='5%', pad=0.05)
+            cbar = fig.colorbar(im, cax=cax, orientation='vertical')
+            cbar.ax.tick_params(labelsize=8) 
+            axs.label_outer()        
+            plt.savefig(save_directory_+ "//"+'figure_misorientation_'+str(val)+"_"+str(index)+'.png', 
+                        bbox_inches='tight',format='png', dpi=1000) 
+            plt.close(fig)
+            
+    average_UB = np.array(average_UB)
+    nb_pixels = np.array(nb_pixels)
+    mat_index = np.array(mat_index)
+    
+    s_ix = np.argsort(nb_pixels)[::-1]
+    average_UB = average_UB[s_ix]
+    nb_pixels = nb_pixels[s_ix]
+    mat_index = mat_index[s_ix]
+    #############################
+    ## save a average_rot_mat.txt file
+    text_file = open(os.path.join(save_directory_,"average_rot_mat.txt"), "w")
+    text_file.write("# ********** Average UB matrix from Misorientation computation (in Lauetools Reference Frame) *************\n")
+    
+    for imat in range(len(average_UB)):
+        local_ub = average_UB[imat,:,:].flatten()
+        string_ = ",".join(map(str, local_ub))
+        string_ = string_ + ","+str(mat_index[imat])
+        text_file.write("# ********** UB MATRIX "+str(imat+1)+" ********** \n")
+        text_file.write("# Nb of pixel occupied "+str(nb_pixels[imat])+"/"+str(lim_x*lim_y)+" ********** \n")
+        text_file.write(string_ + " \n")
+    text_file.close() 
+
+def convert_pickle_to_hdf5MM(save_directory_, files_treated, rotation_matrix1, strain_matrix, strain_matrixs,
+                           match_rate, spots_len, iR_pix, fR_pix, colx, coly, col, mat_global,
+                           material_, lim_x, lim_y):
+    ### a method for writing the data in pickle file to hdf5 format for later query
+    ## main code is in util scripts
+    import pandas as pd
+    import re
+    filenames = list(np.unique(files_treated))
+    filenames.sort(key=lambda var:[int(x) if x.isdigit() else x for x in re.findall(r'[^0-9]|[0-9]+', var)])
+
+    ub_matricies = len(rotation_matrix1)
+
+    def reshape(a):
+        m,n,r = a.shape
+        return a.reshape((m,n*r))
+
+    for i in range(ub_matricies):
+        ## Rotation matrix components
+        a = reshape(rotation_matrix1[i][0])
+        columnsa=['R11', 'R12', 'R13', 'R21', 'R22', 'R23', 'R31', 'R32', 'R33']
+        
+        ## Strain crystal frame components
+        b = reshape(strain_matrix[i][0])
+        columnsb=['Ceps11', 'Ceps12', 'Ceps13', 'Ceps21', 'Ceps22', 'Ceps23', 'Ceps31', 'Ceps32', 'Ceps33']
+        
+        ## Strain sample frame components
+        c = reshape(strain_matrixs[i][0])
+        columnsc=['Seps11', 'Seps12', 'Seps13', 'Seps21', 'Seps22', 'Seps23', 'Seps31', 'Seps32', 'Seps33']
+        
+        ## matching rate
+        d = match_rate[i][0]
+        columnsd=['MatchinRate']
+        
+        ## filename
+        e = np.chararray(d.shape, itemsize=1000)
+        for jj, ii in enumerate(filenames):
+            e[jj] = ii
+        columnse=['filename']
+        
+        ## spots_len
+        f = spots_len[i][0]
+        columnsf=['NbofSpots']
+        
+        ## initial residues
+        g = iR_pix[i][0]
+        columnsg=['initialResidue']
+        
+        ## final residues
+        h = fR_pix[i][0]
+        columnsh=['finalResidue']
+        
+        ## colx
+        f1 = colx[i][0]
+        columnsf1=['ipfXr', 'ipfXg', 'ipfXb']
+        
+        ## coly
+        g1 = coly[i][0]
+        columnsg1=['ipfYr', 'ipfYg', 'ipfYb']
+        
+        ## colz
+        h1 = col[i][0]
+        columnsh1=['ipfZr', 'ipfZg', 'ipfZb']
+        
+        ## convert matglobal to string of material label
+        mat_id = mat_global[i][0]
+        mat_label = np.chararray(mat_id.shape, itemsize=1000)
+        for jj, ii in enumerate(mat_id):
+            if ii != 0:
+                mat_label[jj] = material_[int(ii)-1]
+            else:
+                mat_label[jj] = "None"
+
+        columns11=['material_label']
+
+        columns = columnsa+columnsb+columnsc+columnsd+columnse+columnsf+\
+                    columnsg+columnsh+columnsf1+columnsg1+columnsh1+columns11
+        
+        out_array = np.hstack((a,b,c,d,e,f,g,h,f1,g1,h1,mat_label))
+        
+        columnstype={'R11':'float64', 'R12':'float64', 'R13':'float64', 'R21':'float64', 
+                       'R22':'float64', 'R23':'float64', 'R31':'float64', 'R32':'float64', 
+                       'R33':'float64', 'Ceps11':'float64', 'Ceps12':'float64', 'Ceps13':'float64', 'Ceps21':'float64', 
+                       'Ceps22':'float64', 'Ceps23':'float64', 'Ceps31':'float64', 'Ceps32':'float64', 
+                       'Ceps33':'float64', 'Seps11':'float64', 'Seps12':'float64', 
+                       'Seps13':'float64', 'Seps21':'float64', 'Seps22':'float64', 'Seps23':'float64', 
+                       'Seps31':'float64', 'Seps32':'float64', 'Seps33':'float64', 'MatchinRate':'float64',
+                       'filename':'object', 'NbofSpots':'float64', 'initialResidue':'float64','finalResidue':'float64', 
+                       'ipfXr':'float64', 'ipfXg':'float64', 'ipfXb':'float64',
+                       'ipfYr':'float64', 'ipfYg':'float64', 'ipfYb':'float64', 'ipfZr':'float64', 
+                       'ipfZg':'float64', 'ipfZb':'float64', 'material_label':'object'}
+
+        for ij in range(len(columns)):
+            temp_ = out_array[:,ij]
+            temp_ = temp_.reshape((lim_x, lim_y))
+            out_df = pd.DataFrame(temp_)
+            dtype_ = columnstype[columns[ij]]
+            out_df = out_df.astype(dtype=dtype_)
+            out_df.to_hdf(os.path.join(save_directory_,"grain_all.h5"), key='grain'+str(i)+"/"+columns[ij])
+
+def write_prediction_statsMM(save_directory_, material_, files_treated,\
+                           lim_x, lim_y, best_match, strain_matrixs, strain_matrix, iR_pix,\
+                              fR_pix,  mat_global):    
+    ## Write global text file with all results
+    if len(material_) > 1:
+        prefix_mat = material_[0]
+        for ino, imat in enumerate(material_):
+            if ino == 0:
+                continue
+            prefix_mat = prefix_mat + "_" + imat
+    else:
+        prefix_mat = material_[0]
+        
+    text_file = open(save_directory_+"//prediction_stats_"+prefix_mat+".txt", "w")
+
+    filenames = list(np.unique(files_treated))
+    filenames.sort(key=lambda var:[int(x) if x.isdigit() else x for x in re.findall(r'[^0-9]|[0-9]+', var)])
+    
+    for i in range(lim_x*lim_y):
+        text_file.write("# ********** \n")
+        text_file.write("# Filename: "+ filenames[i] + "\n")
+        for j in range(len(best_match)):
+            stats_ = best_match[j][0][i]
+            dev_eps_sample = strain_matrixs[j][0][i,:,:]
+            dev_eps = strain_matrix[j][0][i,:,:]
+            initial_residue = iR_pix[j][0][i][0]
+            final_residue = fR_pix[j][0][i][0]
+            mat = int(mat_global[j][0][i][0])
+
+            if mat != 0:
+                case = material_[int(mat)-1]
+            else:
+                case = "None"
+                
+            text_file.write("# ********** UB MATRIX "+str(j+1)+" \n")
+            text_file.write("Spot_index for 2 HKL are "+ str(stats_[0])+" ; "+ str(stats_[1])+ "\n")
+            text_file.write("HKL1 "+str(stats_[2])+"; HKL2 "+str(stats_[3])+"\n")
+            text_file.write("Coords of HKL1 "+str(stats_[4])+\
+                            "; coords of HKL2 "+str(stats_[5])+"\n")
+            text_file.write("Distance between 2 spots is "+ str(stats_[6])+ "\n")
+            text_file.write("Distance between 2 spots in LUT is "+ str(stats_[7])+ "\n")
+            text_file.write("Accuracy of NN for 2 HKL is "+ str(stats_[8])+\
+                            "% ; "+str(stats_[9])+ "% \n")
+            string1 = "Matched, Expected, Matching rate(%) : " + \
+                        str(stats_[10]) +", "+str(stats_[11]) +", "+str(stats_[12])+" \n"
+            text_file.write(string1)
+            text_file.write("Rotation matrix for 2 HKL (multiplied by symmetry) is \n")
+            temp_ = stats_[14].flatten()
+            string1 = "[["+str(temp_[0])+","+str(temp_[1])+","+str(temp_[2])+"],"+  \
+                        "["+str(temp_[3])+","+str(temp_[4])+","+str(temp_[5])+"],"+  \
+                            "["+str(temp_[6])+","+str(temp_[7])+","+str(temp_[8])+"]]"+ " \n"  
+            text_file.write(string1)
+            text_file.write("dev_eps_sample is \n")
+            temp_ = dev_eps_sample.flatten()
+            string1 = "[["+str(temp_[0])+","+str(temp_[1])+","+str(temp_[2])+"],"+  \
+                        "["+str(temp_[3])+","+str(temp_[4])+","+str(temp_[5])+"],"+  \
+                            "["+str(temp_[6])+","+str(temp_[7])+","+str(temp_[8])+"]]"+ " \n"  
+            text_file.write(string1)
+            text_file.write("dev_eps is \n")
+            temp_ = dev_eps.flatten()
+            string1 = "[["+str(temp_[0])+","+str(temp_[1])+","+str(temp_[2])+"],"+  \
+                        "["+str(temp_[3])+","+str(temp_[4])+","+str(temp_[5])+"],"+  \
+                            "["+str(temp_[6])+","+str(temp_[7])+","+str(temp_[8])+"]]"+ " \n"  
+            text_file.write(string1)
+            text_file.write("Initial_pixel, Final_pixel residues are : "+str(initial_residue)+", "+str(final_residue)+" \n")
+            text_file.write("Mat_id is "+str(mat)+"\n")
+            text_file.write("Material indexed is "+case+"\n")
+            text_file.write("\n")
+    text_file.close()
+    print("prediction statistics are generated") 
+
+def write_MTEXdataMM(save_directory_, material_, rotation_matrix1,\
+                   lattice_, lim_x, lim_y, mat_global,\
+                    symmetry_global):
+    print("To be rewritten the function")
+    pass
+    # try:
+    #     if symmetry_global =="cubic":
+    #         material0_lauegroup = "11"
+    #     elif symmetry_global =="monoclinic":
+    #         material0_lauegroup = "2"
+    #     elif symmetry_global == "hexagonal":
+    #         material0_lauegroup = "9"
+    #     elif symmetry_global == "orthorhombic":
+    #         material0_lauegroup = "3"
+    #     elif symmetry_global == "tetragonal":
+    #         material0_lauegroup = "5"
+    #     elif symmetry_global == "trigonal":
+    #         material0_lauegroup = "7"
+    #     elif symmetry_global == "triclinic":
+    #         material0_lauegroup = "1"
+    # except:
+    #     material0_lauegroup = "11"
+        
+    # ## write MTEX file
+    # rotation_matrix = [[] for i in range(len(rotation_matrix1))]
+    # for i in range(len(rotation_matrix)):
+    #     rotation_matrix[i].append(np.zeros((lim_x*lim_y,3,3)))
+
+    # for i in range(len(rotation_matrix1)):
+    #     temp_mat = rotation_matrix1[i][0]    
+    #     for j in range(len(temp_mat)):
+    #         orientation_matrix = temp_mat[j,:,:]                    
+    #         ## rotate orientation by 40degrees to bring in Sample RF
+    #         omega = np.deg2rad(-40)
+    #         # # rotation de -omega autour de l'axe x (or Y?) pour repasser dans Rsample
+    #         cw = np.cos(omega)
+    #         sw = np.sin(omega)
+    #         mat_from_lab_to_sample_frame = np.array([[cw, 0.0, sw], [0.0, 1.0, 0.0], [-sw, 0, cw]]) #Y
+    #         # mat_from_lab_to_sample_frame = np.array([[1.0, 0.0, 0.0], [0.0, cw, -sw], [0.0, sw, cw]]) #X
+    #         # mat_from_lab_to_sample_frame = np.array([[cw, -sw, 0.0], [sw, cw, 0.0], [0.0, 0.0, 1.0]]) #Z
+    #         orientation_matrix = np.dot(mat_from_lab_to_sample_frame.T, orientation_matrix)
+
+    #         if np.linalg.det(orientation_matrix) < 0:
+    #             orientation_matrix = -orientation_matrix
+    #         rotation_matrix[i][0][j,:,:] = orientation_matrix
+                      
+    # if material_ == material1_:
+    #     lattice = lattice_
+    #     material0_LG = material0_lauegroup
+    #     header = [
+    #             "Channel Text File",
+    #             "Prj     lauetoolsnn",
+    #             "Author    [Ravi raj purohit]",
+    #             "JobMode    Grid",
+    #             "XCells    "+str(lim_x),
+    #             "YCells    "+str(lim_y),
+    #             "XStep    1.0",
+    #             "YStep    1.0",
+    #             "AcqE1    0",
+    #             "AcqE2    0",
+    #             "AcqE3    0",
+    #             "Euler angles refer to Sample Coordinate system (CS0)!    Mag    100    Coverage    100    Device    0    KV    15    TiltAngle    40    TiltAxis    0",
+    #             "Phases    1",
+    #             str(round(lattice._lengths[0]*10,5))+";"+str(round(lattice._lengths[1]*10,5))+";"+\
+    #             str(round(lattice._lengths[2]*10,5))+"\t"+str(round(lattice._angles[0],5))+";"+\
+    #             str(round(lattice._angles[1],5))+";"+str(round(lattice._angles[2],5))+"\t"+"Material1"+ "\t"+material0_LG+ "\t"+"????"+"\t"+"????",
+    #             "Phase    X    Y    Bands    Error    Euler1    Euler2    Euler3    MAD    BC    BS"]
+    # else:
+    #     lattice = lattice_
+    #     lattice1 = lattice1_
+    #     material0_LG = material0_lauegroup
+    #     material1_LG = material1_lauegroup
+    #     header = [
+    #             "Channel Text File",
+    #             "Prj     lauetoolsnn",
+    #             "Author    [Ravi raj purohit]",
+    #             "JobMode    Grid",
+    #             "XCells    "+str(lim_x),
+    #             "YCells    "+str(lim_y),
+    #             "XStep    1.0",
+    #             "YStep    1.0",
+    #             "AcqE1    0",
+    #             "AcqE2    0",
+    #             "AcqE3    0",
+    #             "Euler angles refer to Sample Coordinate system (CS0)!    Mag    100    Coverage    100    Device    0    KV    15    TiltAngle    40    TiltAxis    0",
+    #             "Phases    2",
+    #             str(round(lattice._lengths[0]*10,5))+";"+str(round(lattice._lengths[1]*10,5))+";"+\
+    #             str(round(lattice._lengths[2]*10,5))+"\t"+str(round(lattice._angles[0],5))+";"+\
+    #             str(round(lattice._angles[1],5))+";"+str(round(lattice._angles[2],5))+"\t"+"Material1"+ "\t"+material0_LG+ "\t"+"????"+"\t"+"????",
+    #             str(round(lattice1._lengths[0]*10,5))+";"+str(round(lattice1._lengths[1]*10,5))+";"+\
+    #             str(round(lattice1._lengths[2]*10,5))+"\t"+str(round(lattice1._angles[0],5))+";"+\
+    #             str(round(lattice1._angles[1],5))+";"+str(round(lattice1._angles[2],5))+"\t"+"Material2"+ "\t"+material1_LG+ "\t"+"????"+"\t"+"????",
+    #             "Phase    X    Y    Bands    Error    Euler1    Euler2    Euler3    MAD    BC    BS"]
+    # # =================CALCULATION OF POSITION=====================================
+    # for index in range(len(rotation_matrix)):
+    #     euler_angles = np.zeros((len(rotation_matrix[index][0]),3))
+    #     phase_euler_angles = np.zeros(len(rotation_matrix[index][0]))
+    #     for i in range(len(rotation_matrix[index][0])):
+    #         if np.all(rotation_matrix[index][0][i,:,:] == 0):
+    #             continue
+    #         euler_angles[i,:] = OrientationMatrix2Euler(rotation_matrix[index][0][i,:,:])
+    #         phase_euler_angles[i] = mat_global[index][0][i]        
+        
+    #     euler_angles = euler_angles.reshape((lim_x,lim_y,3))
+    #     phase_euler_angles = phase_euler_angles.reshape((lim_x,lim_y,1))
+        
+    #     a = euler_angles
+    #     if material_ != material1_:
+    #         filename125 = save_directory_+ "//"+material_+"_"+material1_+"_MTEX_UBmat_"+str(index)+"_LT.ctf"
+    #     else:
+    #         filename125 = save_directory_+ "//"+material_+"_MTEX_UBmat_"+str(index)+"_LT.ctf"
+            
+    #     f = open(filename125, "w")
+    #     for ij in range(len(header)):
+    #         f.write(header[ij]+" \n")
+                
+    #     for i123 in range(euler_angles.shape[1]):
+    #         y_step = 1 * i123
+    #         for j123 in range(euler_angles.shape[0]):
+    #             x_step = 1 * j123
+    #             phase_id = int(phase_euler_angles[j123,i123,0])
+    #             eul =  str(phase_id)+'\t' + "%0.4f" % x_step +'\t'+"%0.4f" % y_step+'\t8\t0\t'+ \
+    #                                 "%0.4f" % a[j123,i123,0]+'\t'+"%0.4f" % a[j123,i123,1]+ \
+    #                                     '\t'+"%0.4f" % a[j123,i123,2]+'\t0.0001\t180\t0\n'
+    #             string = eul
+    #             f.write(string)
+    #     f.close()
+    
 if __name__ == "__main__":
     print("Modules of LaueNN")

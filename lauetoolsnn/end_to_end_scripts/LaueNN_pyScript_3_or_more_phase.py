@@ -26,9 +26,9 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
     print("LaueNN path is", laueNN_path)
     
     ## Load the json of material and extinctions
-    with open(os.path.join(laueNN_path, 'lauetools\material.json'),'r') as f:
+    with open(os.path.join(laueNN_path, 'lauetools','material.json'),'r') as f:
         dict_Materials = json.load(f)
-    with open(os.path.join(laueNN_path, 'lauetools\extinction.json'),'r') as f:
+    with open(os.path.join(laueNN_path, 'lauetools','extinction.json'),'r') as f:
         extinction_json = json.load(f)
 
     ## Modify the dictionary values to add new entries
@@ -41,9 +41,9 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
     ## verify if extinction is present in CrystalParameters.py file of lauetools (Manually done for now)
 
     ## dump the json back with new values
-    with open(os.path.join(laueNN_path, 'lauetools\material.json'), 'w') as fp:
+    with open(os.path.join(laueNN_path, 'lauetools','material.json'), 'w') as fp:
         json.dump(dict_Materials, fp)
-    with open(os.path.join(laueNN_path, 'lauetools\extinction.json'), 'w') as fp:
+    with open(os.path.join(laueNN_path, 'lauetools','extinction.json'), 'w') as fp:
         json.dump(extinction_json, fp)
 
     ## Verify if the material is added to the library or not;
@@ -58,13 +58,13 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
     ## User Input dictionary with parameters
     ## In case of only one phase/material, keep same value for material_ and material1_ key
     input_params = {
-                    "global_path" : r"C:\Users\purushot\Desktop\LaueNN_script",
-                    "prefix" : "_MMrand",                 ## prefix for the folder to be created for training dataset
+                    "global_path" : os.getcwd(),
+                    "prefix" : "_MultiMaterial",                 ## prefix for the folder to be created for training dataset
 
                     "material_": ["GaN", "Si"],             ## same key as used in dict_LaueTools
                     "symmetry": ["hexagonal", "cubic"],           ## crystal symmetry of material_
                     "SG": [191, 227], #186                    ## Space group of material_ (None if not known)
-                    "hkl_max_identify" : [7,5],        ## Maximum hkl index to classify in a Laue pattern
+                    "hkl_max_identify" : [6,5],        ## Maximum hkl index to classify in a Laue pattern
                     "nb_grains_per_lp" : [2,1],        ## max grains to be generated in a Laue Image
 
                     ## hkl_max_identify : can be "auto" or integer: Maximum index of HKL to build output classes
@@ -77,7 +77,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                                                                             ##  specified will be ignored in output
                     "desired_classes_output": ["all","all"], ## desired_classes_output : can be all or an integer: to limit the number of output classes
                     "list_hkl_keep" : None, #[[(0,0,1)],[(0,0,0)]],
-                    "maximum_angle_to_search":60, ## Angle of radial distribution to reconstruct the histogram (in deg)
+                    "maximum_angle_to_search":90, ## Angle of radial distribution to reconstruct the histogram (in deg)
                     "step_for_binning" : 0.1,      ## bin widht of angular radial distribution in degree
                     
                     # =============================================================================
@@ -102,10 +102,10 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     # =============================================================================
                     # ## Prediction parameters
                     # =============================================================================
-                    "experimental_directory": r"D:\some_projects\GaN\BLC12834\NW1",
+                    "experimental_directory": os.getcwd(),
                     "experimental_prefix": r"nw1_",
-                    "grid_size_x" : 61,            ## Grid X and Y limit to generate the simulated dataset (a rectangular scan region)
-                    "grid_size_y" : 61,
+                    "grid_size_x" : 1,            ## Grid X and Y limit to generate the simulated dataset (a rectangular scan region)
+                    "grid_size_y" : 2,
                     
                     # =============================================================================
                     # ## Prediction Settings
@@ -130,11 +130,11 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     # =============================================================================
                     # # [PEAKSEARCH]
                     # =============================================================================
-                    "intensity_threshold" : 1,
-                    "boxsize" : 10,
-                    "fit_peaks_gaussian" : 1,
-                    "FitPixelDev" : 15,
-                    "NumberMaxofFits" : 3000,
+                    "intensity_threshold" : 2,## for skimage this is of image standard deviation
+                    "boxsize" : 10,## for skimage this is box size to fit
+                    "fit_peaks_gaussian" : 1,## for skimage this is of no sense
+                    "FitPixelDev" : 15, ## for skimage this is distance between peaks to avoid
+                    "NumberMaxofFits" : 3000,## for skimage this is maximum leastquare attempts before giving up
                     "mode": "skimage",
 
                     # =============================================================================
@@ -156,8 +156,8 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     "path_user_OM" : "",
                     }
 
-    generate_dataset_MM = False
-    train_network_MM = False
+    generate_dataset_MM = True
+    train_network_MM = True
     run_prediction_MM = True
     prediction_GUI = False
     
@@ -444,7 +444,8 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
         import configparser
         from itertools import accumulate
         ## if LaueToolsNN is properly installed
-        from lauetoolsnn.utils_lauenn import get_multimaterial_detail, new_MP_multimat_function, resource_path, global_plots_MM
+        from lauetoolsnn.utils_lauenn import get_multimaterial_detail, new_MP_multimat_function, resource_path, global_plots_MM,\
+                write_average_orientation, convert_pickle_to_hdf5, write_prediction_stats, write_MTEXdata
         from lauetoolsnn.lauetools import dict_LaueTools as dictLT
         from lauetoolsnn.NNmodels import read_hdf5
         
@@ -815,7 +816,37 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                                   material_, lattice_material,
                                   symmetry, crystal], output_file)
             print("data saved in ", save_directory_)
-    
+            
+            ## Lets save also a set of average UB matrix in text file to be used with user_OM setting    
+            try:
+                write_average_orientation(save_directory_, mat_global, rotation_matrix,
+                                              match_rate, lim_x, lim_y, crystal, crystal1,
+                                              radius=10, grain_ang=5, pixel_grain_definition=3)
+            except:
+                print("Error with Average orientation and grain index calculation")
+                
+            try:
+                convert_pickle_to_hdf5(save_directory_, files_treated, rotation_matrix, strain_matrix, 
+                                       strain_matrixs, match_rate, spots_len, iR_pix, 
+                                       fR_pix, colx, coly, col, mat_global,
+                                       material_, material1_, lim_x, lim_y)
+            except:
+                print("Error writting H5 file")
+            
+            try:
+                write_prediction_stats(save_directory_, material_, material1_, files_treated,\
+                                        lim_x, lim_y, best_match, strain_matrixs, strain_matrix, iR_pix,\
+                                        fR_pix,  mat_global)
+            except:
+                print("Error writting prediction statistics file")
+                
+            try:
+                write_MTEXdata(save_directory_, material_, material1_, rotation_matrix,\
+                                   lattice_material, lattice_material1, lim_x, lim_y, mat_global,\
+                                    input_params["symmetry"][0], input_params["symmetry"][1])
+            except:
+                print("Error writting MTEX orientation file")
+                
             try:
                 global_plots_MM(lim_x, lim_y, rotation_matrix, strain_matrix, strain_matrixs, 
                               col, colx, coly, match_rate, mat_global, spots_len, 
