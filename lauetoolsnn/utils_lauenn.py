@@ -9298,7 +9298,7 @@ def rmv_freq_class_MM(freq_rmv = [0], elements=["all"],
     ind_mat_mm = []
     for ino, imat in enumerate(material_):
         classhkl0 = np.load(save_directory+"//grain_classhkl_angbin_"+imat+".npz")["arr_0"]
-        classhkl0 = classhkl0[np.argsort(classhkl0.sum(axis=1))]
+        #classhkl0 = classhkl0[np.argsort(classhkl0.sum(axis=1))]
         
         angbins = np.load(save_directory+"//grain_classhkl_angbin_"+imat+".npz")["arr_1"]
         if write_to_console != None:
