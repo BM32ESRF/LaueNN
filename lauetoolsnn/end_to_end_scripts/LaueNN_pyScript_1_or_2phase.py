@@ -647,11 +647,6 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     lattice_material1, crystal1, SG1 = get_material_detail(material_, SG, symm_,
                                                                        material1_, SG1, symm1_)
             
-            ## get proper Laue group to compute the inverse pole figure colors and write MTEX output file for orientation analysis
-            material0_lauegroup = "3"
-            ## incase of same material
-            material1_lauegroup = "5"
-            
             ## Requirements
             ubmat = input_params["UB_matrix_to_detect"] # How many orientation matrix to detect per Laue pattern
             mode_spotCycle = input_params["mode_spotCycle"] ## mode of calculation
@@ -684,7 +679,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
             nb_spots_consider = input_params["nb_spots_consider"]
             residues_threshold = input_params["residues_threshold"]
             nb_spots_global_threshold = input_params["nb_spots_global_threshold"]
-            option_global = "v2"
+            option_global = "v1"
             additional_expression = ["none"] # for strain assumptions, like a==b for HCP
     
             config_setting = configparser.ConfigParser()
@@ -712,8 +707,12 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
             json_file = open(model_direc+"//model_"+prefix1+".json", 'r')
             classhkl = np.load(model_direc+"//MOD_grain_classhkl_angbin.npz")["arr_0"]
             angbins = np.load(model_direc+"//MOD_grain_classhkl_angbin.npz")["arr_1"]
-            ind_mat = np.load(model_direc+"//MOD_grain_classhkl_angbin.npz")["arr_5"]
-            ind_mat1 = np.load(model_direc+"//MOD_grain_classhkl_angbin.npz")["arr_6"]  
+            if material_ != material1_:
+                ind_mat = np.load(model_direc+"//MOD_grain_classhkl_angbin.npz")["arr_5"]
+                ind_mat1 = np.load(model_direc+"//MOD_grain_classhkl_angbin.npz")["arr_6"] 
+            else:
+                ind_mat = None
+                ind_mat1 = None
             load_weights = model_direc + "//model_"+prefix1+".h5"
             wb = read_hdf5(load_weights)
             temp_key = list(wb.keys())

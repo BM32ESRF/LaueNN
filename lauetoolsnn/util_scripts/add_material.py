@@ -35,14 +35,14 @@ def example_scripts():
     if not os.path.exists(save_directory):
         os.makedirs(save_directory)
     import shutil
-    shutil.move(file1, save_directory)
-    shutil.move(file2, save_directory)
-    shutil.move(file3, save_directory)
-    shutil.move(file4, save_directory)
-    shutil.move(file5, save_directory)
-    shutil.move(file6, save_directory)
-    shutil.move(file7, save_directory)
-    shutil.move(file8, save_directory)
+    shutil.copy(file1, save_directory)
+    shutil.copy(file2, save_directory)
+    shutil.copy(file3, save_directory)
+    shutil.copy(file4, save_directory)
+    shutil.copy(file5, save_directory)
+    shutil.copy(file6, save_directory)
+    shutil.copy(file7, save_directory)
+    shutil.copy(file8, save_directory)
     print("Files moved to "+save_directory+" successfully")
     
     # import argparse
