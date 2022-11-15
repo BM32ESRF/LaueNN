@@ -1062,16 +1062,16 @@ def PeakSearch(filename, stackimageindex=-1, CCDLabel="PRINCETON", center=None,
     ## New method replacing the old PeakSearch;
     if mode == "skimage":
         print("Skimage mode (strict constraints) of PeakSearch is used for the PeakSearch")
-        return peaksearch_skimage(filename, FitPixelDev, IntensityThreshold, boxsize, 3, CCDLabel, NumberMaxofFits)
+        return peaksearch_skimage(filename, int(FitPixelDev), IntensityThreshold, boxsize, 3, CCDLabel, NumberMaxofFits)
     elif mode == "skimage_relaxed":
         print("Skimage mode (relaxed constraints) of PeakSearch is used for the PeakSearch")
-        return peaksearch_skimage(filename, FitPixelDev, IntensityThreshold, boxsize, 2, CCDLabel, NumberMaxofFits)
+        return peaksearch_skimage(filename, int(FitPixelDev), IntensityThreshold, boxsize, 2, CCDLabel, NumberMaxofFits)
     elif mode == "skimage_nobounds":
         print("Skimage mode (no constraints) of PeakSearch is used for the PeakSearch")
-        return peaksearch_skimage(filename, FitPixelDev, IntensityThreshold, boxsize, 1, CCDLabel, NumberMaxofFits)
+        return peaksearch_skimage(filename, int(FitPixelDev), IntensityThreshold, boxsize, 1, CCDLabel, NumberMaxofFits)
     elif mode == "skimage_nofit":
         print("Skimage mode (No fit) of PeakSearch is used for the PeakSearch")
-        return peaksearch_skimage(filename, FitPixelDev, IntensityThreshold, boxsize, 0, CCDLabel, NumberMaxofFits)
+        return peaksearch_skimage(filename, int(FitPixelDev), IntensityThreshold, boxsize, 0, CCDLabel, NumberMaxofFits)
     else:
         print("LaueTools mode of PeakSearch is used for the PeakSearch")
         
