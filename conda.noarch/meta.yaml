@@ -22,19 +22,19 @@ build:
   
 requirements:
   build:
-    - python {{ PYTHON }}
+    - python
     - pip
     - setuptools
     - setuptools_scm
     - numpy {{ numpy }}
   host:
-    - python {{ PYTHON }}
+    - python
     - pip
     - setuptools
     - setuptools_scm
     - numpy {{ numpy }}
   run:
-    - python {{ PYTHON }}
+    - python
     - matplotlib-base >=3.4.2
     - scipy >=1.7.0
     - numpy {{ numpy }}
