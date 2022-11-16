@@ -952,6 +952,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                                        material_, material1_, lim_x, lim_y)
             except:
                 print("Error writting H5 file")
+                print("Make sure you have pandas and pytables")
             
             try:
                 write_prediction_stats(save_directory_, material_, material1_, files_treated,\
