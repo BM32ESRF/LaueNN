@@ -16,30 +16,58 @@ build:
     - lauenn_maxhkl=lauetoolsnn.util_scripts.add_material:query_hklmax
     - lauenn_pymatgen=lauetoolsnn.util_scripts.add_material:pymatgen_query
     - lauenn_example=lauetoolsnn.util_scripts.add_material:example_scripts
-  script: {{ PYTHON }} -m pip install --no-deps --ignore-installed .
+  script: {{ PYTHON }} -m pip install --no-deps --ignore-installed --no-cache-dir . -vv
   number: 0
   
 requirements:
-  host:
-    - python
+  build:
+    - python >=3.7
+    - tqdm
+    - scikit-image
+    - fabio
+    - scikit-learn
+    - tensorflow
+    - h5py
+    - keras
+    - networkx
+    - pyqt
+    - matplotlib-base
+    - scipy
+    - numpy
     - pip
     - setuptools
     - setuptools_scm
-    - numpy >=1.17
+  host:
+    - python >=3.7
+    - matplotlib-base
+    - keras
+    - scipy
+    - numpy
+    - h5py
+    - tensorflow
+    - pyqt
+    - scikit-learn
+    - fabio
+    - networkx
+    - scikit-image
+    - tqdm
+    - pip
+    - setuptools
+    - setuptools_scm
   run:
-    - python
+    - python >=3.7
     - matplotlib-base >=3.4.2
+    - keras >=2.7.0
     - scipy >=1.7.0
-    - numpy >=1.17
+    - numpy >=1.18.5
     - h5py >=3.1
+    - tensorflow >=2.7.0
     - pyqt >=5.9
     - scikit-learn >=0.24.2
-    - fabio >=0.11
+    - fabio >=0.11.0
     - networkx >=2.6.3
-    - scikit-image >=0.18
-    - tqdm >=4.60
-    - keras >=2.7.0
-    - tensorflow >=2.7.0
+    - scikit-image >=0.18.0
+    - tqdm >=4.60.0
 
 test:
   imports:
