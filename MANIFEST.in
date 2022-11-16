@@ -5,44 +5,51 @@ include icon.png
 include conda/*.yaml
 include conda/*.png
 
+include conda.noarch/*.yaml
+include conda.noarch/*.png
+
 include tests/*.py
 
 include lauetoolsnn/*.py
-include lauetoolsnn/*.txt
 include lauetoolsnn/*.png
 include lauetoolsnn/*.npz
 include lauetoolsnn/*.ini
 include lauetoolsnn/*.gif
 
+include lauetoolsnn/examples/*.py
+include lauetoolsnn/examples/*.md
+
 include lauetoolsnn/examples/ZnCUOCl/*.py
-include lauetoolsnn/examples/ZnCUOCl/*.txt
 include lauetoolsnn/examples/ZnCUOCl/*.lauenn
 include lauetoolsnn/examples/ZnCUOCl/*.det
 include lauetoolsnn/examples/ZnCUOCl/*.tif
 
 include lauetoolsnn/examples/GaN_Si/*.py
-include lauetoolsnn/examples/GaN_Si/*.txt
 include lauetoolsnn/examples/GaN_Si/*.lauenn
 include lauetoolsnn/examples/GaN_Si/*.det
 include lauetoolsnn/examples/GaN_Si/*.tif
 
 include lauetoolsnn/end_to_end_scripts/*.py
 include lauetoolsnn/end_to_end_scripts/*.md
+include lauetoolsnn/end_to_end_scripts/*.ipynb
+include lauetoolsnn/end_to_end_scripts/*.m
 
 include lauetoolsnn/example_notebook_scripts/*.ipynb
 include lauetoolsnn/example_notebook_scripts/*.md
+include lauetoolsnn/example_notebook_scripts/*.py
 include lauetoolsnn/example_notebook_scripts/py_scripts/*.py
-include lauetoolsnn/example_notebook_scripts/automated_script/*.py
 include lauetoolsnn/example_notebook_scripts/multi_material_LaueNN/*.py
 include lauetoolsnn/example_notebook_scripts/multi_material_LaueNN/*.md
 
 include lauetoolsnn/util_scripts/*.py
-include lauetoolsnn/util_scripts/*.m
-include lauetoolsnn/util_scripts/*.ipynb
+include lauetoolsnn/util_scripts/*.md
+
+include lauetoolsnn/misc_scripts/*.py
+
+include lauetoolsnn/misc_scripts/optimization_NN_model/*.py
 
 include lauetoolsnn/lauetools/*.py
+include lauetoolsnn/lauetools/*.md
 include lauetoolsnn/lauetools/*.json
-
-recursive-include docs/*.*
 
 recursive-include lauetoolsnn/*.*
