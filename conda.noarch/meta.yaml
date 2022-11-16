@@ -22,13 +22,13 @@ build:
   
 requirements:
   build:
-    - python {{ python }}
+    - python >=3.7
     - pip
     - setuptools
     - setuptools_scm
     - numpy >=1.18
   host:
-    - python {{ python }}
+    - python >=3.7
     - pip
     - setuptools
     - setuptools_scm
