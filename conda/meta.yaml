@@ -20,14 +20,20 @@ build:
   number: 0
   
 requirements:
+  build:
+    - python {{ python }}
+    - pip
+    - setuptools
+    - setuptools_scm
+    - numpy >=1.17
   host:
-    - python >=3.7,<=3.10
+    - python {{ python }}
     - pip
     - setuptools
     - setuptools_scm
     - numpy >=1.17
   run:
-    - python >=3.7,<=3.10
+    - python {{ python }}
     - matplotlib-base >=3.4.2
     - scipy >=1.7.0
     - numpy >=1.17
