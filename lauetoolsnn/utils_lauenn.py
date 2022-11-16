@@ -12494,11 +12494,38 @@ def write_average_orientation(save_directory_, mat_global, rotation_matrix1,
     average_UB = average_UB[s_ix]
     nb_pixels = nb_pixels[s_ix]
     mat_index = mat_index[s_ix]
+    
+    cos_disorientation = np.cos(np.radians(1/2.))
+    same_flag = []
+    list_avoid = []
+    ## compoute misorientation between the average orientations
+    for om_ind in range(len(average_UB)):
+        if om_ind in list_avoid:
+            continue
+        omref = Orientation(matrix=average_UB[om_ind,:,:], symmetry=symmetry).reduced()
+        for om_ind1 in range(len(average_UB)):
+            if om_ind1 in list_avoid:
+                continue
+            if om_ind == om_ind1:
+                same_flag.append([om_ind, om_ind1, False])
+            else:
+                ## convert to orientation object to inherit all properties of Orientation class
+                om = Orientation(matrix=average_UB[om_ind1,:,:], symmetry=symmetry).reduced()
+                disorientation = omref.disorientation(om, SST = False)[0]# compare against other orientation
+                if disorientation.quaternion.w >  cos_disorientation:  # within threshold ...
+                    same_flag.append([om_ind, om_ind1, True])
+                    list_avoid.append(om_ind1)
+                else:
+                    same_flag.append([om_ind, om_ind1, False])
+                    
+    average_UB = np.delete(average_UB, list_avoid, axis=0)    
+    nb_pixels = np.delete(nb_pixels, list_avoid, axis=0)
+    mat_index = np.delete(mat_index, list_avoid, axis=0)
     #############################
     ## save a average_rot_mat.txt file
     text_file = open(os.path.join(save_directory_,"average_rot_mat.txt"), "w")
     text_file.write("# ********** Average UB matrix from Misorientation computation (in Lauetools Reference Frame) *************\n")
-    
+
     for imat in range(len(average_UB)):
         local_ub = average_UB[imat,:,:].flatten()
         string_ = ",".join(map(str, local_ub))
