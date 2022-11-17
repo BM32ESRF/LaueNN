@@ -62,7 +62,7 @@ from skimage.transform import (hough_line, hough_line_peaks)
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QSettings, QTimer
-from PyQt5.QtGui import QPixmap, QMovie, QColor
+from PyQt5.QtGui import QPixmap, QColor #, QMovie
 from PyQt5.QtWidgets import QApplication, QMainWindow,\
                             QPushButton, QWidget, QFormLayout, \
                             QToolBar, QStatusBar, QSlider, \
@@ -160,7 +160,7 @@ except:
 frame_title = "Laue Neural-Network model- v3 @Ravi @Jean-Sebastien \n@author: Ravi raj purohit PURUSHOTTAM RAJ PUROHIT (purushot@esrf.fr) \n@guide: Jean-Sebastien MICHA (micha@esrf.fr)"
 Logo = resource_path("lauetoolsnn_logo_bXM_2.png",  verbose=0)
 Logo_splash = resource_path("lauetoolsnn_splash_bXM_2.png",  verbose=0)
-gif_path = resource_path("frames_medres.gif",  verbose=0)
+# gif_path = resource_path("frames_medres.gif",  verbose=0)
 
 default_initialization = True
 if default_initialization:
@@ -437,9 +437,12 @@ class Window(QMainWindow):
         QDesktopServices.openUrl(url)
     
     def concept(self):
-        w21 = gif_window()
-        w21.show()
-        self.popups.append(w21)
+        url = QUrl("https://lauenn.readthedocs.io/en/latest/idea_lauenn/installation.html")
+        QDesktopServices.openUrl(url)
+        
+        # w21 = gif_window()
+        # w21.show()
+        # self.popups.append(w21)
     
     def getfileConfig(self):
         filters = "Config file (*.lauenn)"
@@ -2587,22 +2590,22 @@ class Window(QMainWindow):
                     QApplication.processEvents()         
         text_file.close()
 
-class gif_window(QWidget):
-    def __init__(self):
-        QWidget.__init__(self)
-        app_icon = QtGui.QIcon()
-        app_icon.addFile(Logo, QtCore.QSize(16,16))
-        self.setWindowIcon(app_icon)
-        self.layout = QVBoxLayout()
-        self.setLayout(self.layout)
-        # create label
-        self.label = QtWidgets.QLabel()
-        self.label.setObjectName("label")
-        self.layout.addWidget(self.label)
-        # set qmovie as label
-        self.movie = QMovie(gif_path)
-        self.label.setMovie(self.movie)
-        self.movie.start()
+# class gif_window(QWidget):
+#     def __init__(self):
+#         QWidget.__init__(self)
+#         app_icon = QtGui.QIcon()
+#         app_icon.addFile(Logo, QtCore.QSize(16,16))
+#         self.setWindowIcon(app_icon)
+#         self.layout = QVBoxLayout()
+#         self.setLayout(self.layout)
+#         # create label
+#         self.label = QtWidgets.QLabel()
+#         self.label.setObjectName("label")
+#         self.layout.addWidget(self.label)
+#         # set qmovie as label
+#         self.movie = QMovie(gif_path)
+#         self.label.setMovie(self.movie)
+#         self.movie.start()
 
 class sample_commands(QWidget):
     def __init__(self):
