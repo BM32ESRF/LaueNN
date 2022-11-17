@@ -30,27 +30,39 @@ def model_arch_general(kernel_coeff = 0.0005,
                        weight_constraint=0):
     model = Sequential()
     # Input layer
-    model.add(keras.Input(shape=(neurons_multiplier[0],)))
+    model.add(keras.Input(shape=(int(neurons_multiplier[0]),)))
     
     if layers > 0:
         for lay in range(layers):
             ## Hidden layer n
             if kernel_coeff == None and bias_coeff == None and\
                                 weight_constraint == None and init_mode == None:
-                model.add(Dense(neurons_multiplier[lay+1],))
+                model.add(Dense(int(neurons_multiplier[lay+1]),))
                 
             elif kernel_coeff == None and bias_coeff == None and\
-                                weight_constraint == None:
-                model.add(Dense(neurons_multiplier[lay+1], 
+                                weight_constraint == None and init_mode != None:
+                model.add(Dense(int(neurons_multiplier[lay+1]), 
                                 kernel_initializer=init_mode))
                 
-            elif kernel_coeff == None and bias_coeff == None:
-                model.add(Dense(neurons_multiplier[lay+1], 
+            elif kernel_coeff == None and bias_coeff == None and\
+                                init_mode != None:
+                model.add(Dense(int(neurons_multiplier[lay+1]), 
                                 kernel_initializer=init_mode,
                                 kernel_constraint=maxnorm(weight_constraint)))
+            
+            elif weight_constraint == None and init_mode != None:
+                model.add(Dense(int(neurons_multiplier[lay+1]), 
+                                kernel_initializer=init_mode,
+                                kernel_regularizer=l2(kernel_coeff), 
+                                bias_regularizer=l2(bias_coeff),))
+            
+            elif init_mode == None and weight_constraint == None:
+                model.add(Dense(int(neurons_multiplier[lay+1]), 
+                                kernel_regularizer=l2(kernel_coeff), 
+                                bias_regularizer=l2(bias_coeff),))
                 
             else:
-                model.add(Dense(neurons_multiplier[lay+1], 
+                model.add(Dense(int(neurons_multiplier[lay+1]), 
                                 kernel_initializer=init_mode,
                                 kernel_regularizer=l2(kernel_coeff), 
                                 bias_regularizer=l2(bias_coeff), 
@@ -61,12 +73,12 @@ def model_arch_general(kernel_coeff = 0.0005,
             model.add(Activation(activation))
             model.add(Dropout(dropout_rate))
     ## Output layer 
-    model.add(Dense(neurons_multiplier[-1], activation='softmax'))
-    if optimizer == "adam":
+    model.add(Dense(int(neurons_multiplier[-1]), activation='softmax'))
+    if optimizer == "adam" and learning_rate != None:
         opt = tf.keras.optimizers.Adam(learning_rate = learning_rate)
     else:
         opt = optimizer
-    model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=["accuracy", "loss"])
+    model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=["accuracy"])
     return model
 
 

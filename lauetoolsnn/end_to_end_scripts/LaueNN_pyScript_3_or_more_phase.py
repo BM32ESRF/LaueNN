@@ -130,10 +130,10 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
                     # =============================================================================
                     # # [PEAKSEARCH]
                     # =============================================================================
-                    "intensity_threshold" : 2,## for skimage this is of image standard deviation
+                    "intensity_threshold" : 10,## for skimage this is of image standard deviation
                     "boxsize" : 10,## for skimage this is box size to fit
                     "fit_peaks_gaussian" : 1,## for skimage this is of no sense
-                    "FitPixelDev" : 15, ## for skimage this is distance between peaks to avoid
+                    "FitPixelDev" : 3, ## for skimage this is distance between peaks to avoid
                     "NumberMaxofFits" : 3000,## for skimage this is maximum leastquare attempts before giving up
                     "mode": "skimage",
 
@@ -160,6 +160,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
     train_network_MM = True
     run_prediction_MM = True
     prediction_GUI = False
+    ## GUI code for multi-mat is not updated; avoid using it for now
     
     # =============================================================================
     # END OF USER INPUT
@@ -581,6 +582,9 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
         
         
         if prediction_GUI:
+            print("The GUI of multi-Material is not updated to keep up with recent changes, a major overhaul is needed")
+            print("Avoid using it for now and visualize the results with h5 viewer or interactive plot notebook")
+            pass
             from lauetoolsnn.GUI_multi_mat_LaueNN import start
             if strain_calculation:
                 strain_label_global = "YES"

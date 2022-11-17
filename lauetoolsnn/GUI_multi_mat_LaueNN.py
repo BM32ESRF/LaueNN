@@ -225,7 +225,7 @@ class Window(QMainWindow):
                     hkl_all_class_load = cPickle.load(input_file)[0]
                 hkl_all_class0.append(hkl_all_class_load)
         except:
-            print("Couldn't load the data properly! please check")
+            print("Couldn't load the data properly! please check if the pickle file is written properly")
             return
         
         w2 = AnotherWindowLivePrediction(material_=self.material_, 
@@ -414,7 +414,7 @@ class AnotherWindowLivePrediction(QWidget):
             self.analysis_plot_tech.addItem(s)
         
         self.strain_plot_tech = QComboBox()
-        choices = ["NO", "YES"]
+        choices = ["YES", "NO"]
         for s in choices:
             self.strain_plot_tech.addItem(s)
         ### default values here

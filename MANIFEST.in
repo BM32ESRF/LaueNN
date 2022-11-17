@@ -34,19 +34,11 @@ include lauetoolsnn/end_to_end_scripts/*.md
 include lauetoolsnn/end_to_end_scripts/*.ipynb
 include lauetoolsnn/end_to_end_scripts/*.m
 
-include lauetoolsnn/example_notebook_scripts/*.ipynb
-include lauetoolsnn/example_notebook_scripts/*.md
-include lauetoolsnn/example_notebook_scripts/*.py
-include lauetoolsnn/example_notebook_scripts/py_scripts/*.py
-include lauetoolsnn/example_notebook_scripts/multi_material_LaueNN/*.py
-include lauetoolsnn/example_notebook_scripts/multi_material_LaueNN/*.md
-
 include lauetoolsnn/util_scripts/*.py
 include lauetoolsnn/util_scripts/*.md
 
 include lauetoolsnn/misc_scripts/*.py
-
-include lauetoolsnn/misc_scripts/optimization_NN_model/*.py
+include lauetoolsnn/misc_scripts/*.md
 
 include lauetoolsnn/lauetools/*.py
 include lauetoolsnn/lauetools/*.md
