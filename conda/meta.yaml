@@ -21,22 +21,22 @@ build:
   
 requirements:
   build:
-    - python {{ python }}
+    - python >=3.7,<3.11
     - pip
     - setuptools
     - setuptools_scm
-    - numpy {{ numpy }}
+    - numpy >=1.16
   host:
-    - python {{ python }}
+    - python >=3.7,<3.11
     - pip
     - setuptools
     - setuptools_scm
-    - numpy {{ numpy }}
+    - numpy >=1.16
   run:
-    - python {{ python }}
+    - python >=3.7,<3.11
     - matplotlib-base >=3.4.2
     - scipy >=1.7.0
-    - numpy {{ numpy }}
+    - numpy >=1.16
     - h5py >=3.1
     - pyqt >=5.9
     - scikit-learn >=0.24.2
