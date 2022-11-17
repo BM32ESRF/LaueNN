@@ -34,7 +34,7 @@ setuptools.setup(
                       'Keras>=2.7.0,<=2.10.0', 
                       'tensorflow>=2.7.0,<=2.10.0', 
                       'scipy>=1.7.0',
-                      'numpy>=1.18.5', 
+                      'numpy>=1.18.5,<=1.22.0', 
                       'h5py>=3.1', 
                       'PyQt5>=5.9', 
                       'scikit-learn>=0.24.2',
