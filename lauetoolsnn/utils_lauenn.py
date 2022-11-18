@@ -8929,13 +8929,13 @@ def generate_multimat_dataset(  material_=["Cu"],
         _inputs_queue.put((chunks_mp[ijk], ncpu, meta))
 
     max_progress = len(values)
-    update_progress = 0
+    # update_progress = 0
     pbar = tqdm(total=max_progress)
     while True:
-        time.sleep(2)
+        # time.sleep(2)
         if not _outputs_queue.empty():
-            _ = _outputs_queue.get()
-            update_progress = update_progress + 1
+            update_progress = _outputs_queue.get()
+            # update_progress = update_progress + 1
             pbar.update(update_progress)
             
         count = 0
@@ -8943,8 +8943,8 @@ def generate_multimat_dataset(  material_=["Cu"],
             if not _worker_process[i].is_alive():
                 _worker_process[i].join()
                 count += 1
-            else:
-                time.sleep(0.1)
+            # else:
+            #     time.sleep(0.1)
         if count == ncpu:
             pbar.close()
             return
