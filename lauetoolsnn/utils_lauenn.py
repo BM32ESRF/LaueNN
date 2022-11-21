@@ -12549,23 +12549,23 @@ def write_average_orientation(save_directory_, mat_global, rotation_matrix1,
                 nb_pixels.append(len(pixel_indices))
                 mat_index.append(val)        
     
-            fig = plt.figure(figsize=(11.69,8.27), dpi=100)
-            bottom, top = 0.1, 0.9
-            left, right = 0.1, 0.8
-            fig.subplots_adjust(top=top, bottom=bottom, left=left, right=right, hspace=0.15, wspace=0.25)
-            axs = fig.subplots(1, 1)
-            axs.set_title(r"Grain map", loc='center', fontsize=8)
-            im=axs.imshow(grain_map, origin='lower', cmap=plt.cm.jet)
-            axs.set_xticks([])
-            axs.set_yticks([])
-            divider = make_axes_locatable(axs)
-            cax = divider.append_axes('right', size='5%', pad=0.05)
-            cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-            cbar.ax.tick_params(labelsize=8) 
-            axs.label_outer()        
-            plt.savefig(save_directory_+ "//"+'figure_misorientation_'+str(val)+"_"+str(index)+'.png', 
-                        bbox_inches='tight',format='png', dpi=1000) 
-            plt.close(fig)
+            # fig = plt.figure(figsize=(11.69,8.27), dpi=100)
+            # bottom, top = 0.1, 0.9
+            # left, right = 0.1, 0.8
+            # fig.subplots_adjust(top=top, bottom=bottom, left=left, right=right, hspace=0.15, wspace=0.25)
+            # axs = fig.subplots(1, 1)
+            # axs.set_title(r"Grain map", loc='center', fontsize=8)
+            # im=axs.imshow(grain_map, origin='lower', cmap=plt.cm.jet)
+            # axs.set_xticks([])
+            # axs.set_yticks([])
+            # divider = make_axes_locatable(axs)
+            # cax = divider.append_axes('right', size='5%', pad=0.05)
+            # cbar = fig.colorbar(im, cax=cax, orientation='vertical')
+            # cbar.ax.tick_params(labelsize=8) 
+            # axs.label_outer()        
+            # plt.savefig(save_directory_+ "//"+'figure_misorientation_'+str(val)+"_"+str(index)+'.png', 
+            #             bbox_inches='tight',format='png', dpi=1000) 
+            # plt.close(fig)
             
     average_UB = np.array(average_UB)
     nb_pixels = np.array(nb_pixels)
@@ -13043,23 +13043,23 @@ def write_average_orientationMM(save_directory_, mat_global, rotation_matrix1,
                 nb_pixels.append(len(pixel_indices))
                 mat_index.append(val)        
     
-            fig = plt.figure(figsize=(11.69,8.27), dpi=100)
-            bottom, top = 0.1, 0.9
-            left, right = 0.1, 0.8
-            fig.subplots_adjust(top=top, bottom=bottom, left=left, right=right, hspace=0.15, wspace=0.25)
-            axs = fig.subplots(1, 1)
-            axs.set_title(r"Grain map", loc='center', fontsize=8)
-            im=axs.imshow(grain_map, origin='lower', cmap=plt.cm.jet)
-            axs.set_xticks([])
-            axs.set_yticks([])
-            divider = make_axes_locatable(axs)
-            cax = divider.append_axes('right', size='5%', pad=0.05)
-            cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-            cbar.ax.tick_params(labelsize=8) 
-            axs.label_outer()        
-            plt.savefig(save_directory_+ "//"+'figure_misorientation_'+str(val)+"_"+str(index)+'.png', 
-                        bbox_inches='tight',format='png', dpi=1000) 
-            plt.close(fig)
+            # fig = plt.figure(figsize=(11.69,8.27), dpi=100)
+            # bottom, top = 0.1, 0.9
+            # left, right = 0.1, 0.8
+            # fig.subplots_adjust(top=top, bottom=bottom, left=left, right=right, hspace=0.15, wspace=0.25)
+            # axs = fig.subplots(1, 1)
+            # axs.set_title(r"Grain map", loc='center', fontsize=8)
+            # im=axs.imshow(grain_map, origin='lower', cmap=plt.cm.jet)
+            # axs.set_xticks([])
+            # axs.set_yticks([])
+            # divider = make_axes_locatable(axs)
+            # cax = divider.append_axes('right', size='5%', pad=0.05)
+            # cbar = fig.colorbar(im, cax=cax, orientation='vertical')
+            # cbar.ax.tick_params(labelsize=8) 
+            # axs.label_outer()        
+            # plt.savefig(save_directory_+ "//"+'figure_misorientation_'+str(val)+"_"+str(index)+'.png', 
+            #             bbox_inches='tight',format='png', dpi=1000) 
+            # plt.close(fig)
             
     average_UB = np.array(average_UB)
     nb_pixels = np.array(nb_pixels)
