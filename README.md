@@ -45,6 +45,7 @@ For classical indexation of Laue pattern (GUI and scripts), check out the sister
 - scikit-image (used for hough based analysis of Laue patterns)
 - tqdm (required only for notebook scripts)
 - opencv (for LOG based peak search)
+- pandas and pytables (for writing pickle to h5)
 
 
 ### Installation
