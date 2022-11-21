@@ -8539,6 +8539,87 @@ def predict_preprocessMultiProcess(files, cnt,
     return strain_matrix, strain_matrixs, rotation_matrix, col, colx, coly, match_rate, \
             mat_global, cnt, files_treated, spots_len, iR_pix, fR_pix, check, best_match
 
+def new_MP_function_v1(inputs_queue, outputs_queue, proc_id):
+    print(f'Initializing worker {proc_id}')
+    break_all = True
+    while break_all:
+        time.sleep(0.01)
+        if not inputs_queue.empty(): 
+            message = inputs_queue.get()
+            num1, num2, meta = message
+            files_worked = []
+            while True:
+                if len(num1) == len(files_worked) or len(num1) == 0:
+                    print("process finished")
+                    break_all = False
+                    break
+                
+                for ijk in range(len(num1)):
+                    if ijk in files_worked:
+                        continue
+                    
+                    files, cnt, rotation_matrix, strain_matrix, strain_matrixs,\
+                    col,colx,coly,match_rate,spots_len,iR_pix,fR_pix,best_match,mat_global,\
+                    check,detectorparameters,pixelsize,angbins,\
+                    classhkl, hkl_all_class0, hkl_all_class1, emin, emax,\
+                    material_, material1_, symmetry, symmetry1,lim_x,lim_y,\
+                    strain_calculation, ind_mat, ind_mat1,\
+                    model_direc, tolerance , tolerance1,\
+                    matricies, ccd_label,\
+                    filename_bkg,intensity_threshold,\
+                    boxsize,bkg_treatment,\
+                    filenameDirec, experimental_prefix,\
+                    blacklist_file, text_file, \
+                    files_treated,try_previous1,\
+                    wb, temp_key, cor_file_directory, mode_spotCycle1,\
+                    softmax_threshold_global123,mr_threshold_global123,\
+                    cap_matchrate123, tolerance_strain123, tolerance_strain1231,\
+                    NumberMaxofFits123,fit_peaks_gaussian_global123,\
+                    FitPixelDev_global123,coeff123,coeff_overlap,\
+                    material0_limit, material1_limit, use_previous_UBmatrix_name1,\
+                    material_phase_always_present1, crystal, crystal1, strain_free_parameters = num1[ijk]
+                    
+                    if np.all(check[cnt,:]) == 1:
+                        continue
+                    
+                    strain_matrix12, strain_matrixs12, \
+                        rotation_matrix12, col12, \
+                            colx12, coly12,\
+                    match_rate12, mat_global12, cnt12,\
+                        files_treated12, spots_len12, \
+                            iR_pix12, fR_pix12, check12, best_match12 = predict_preprocessMultiProcess(files, cnt, 
+                                                               rotation_matrix,strain_matrix,strain_matrixs,
+                                                               col,colx,coly,match_rate,spots_len,iR_pix,fR_pix,best_match,
+                                                               mat_global,
+                                                               check,detectorparameters,pixelsize,angbins,
+                                                               classhkl, hkl_all_class0, hkl_all_class1, emin, emax,
+                                                               material_, material1_, symmetry, symmetry1,lim_x,lim_y,
+                                                               strain_calculation, ind_mat, ind_mat1,
+                                                               model_direc, tolerance, tolerance1,
+                                                               matricies, ccd_label,
+                                                               filename_bkg,intensity_threshold,
+                                                               boxsize,bkg_treatment,
+                                                               filenameDirec, experimental_prefix,
+                                                               blacklist_file, text_file, 
+                                                               files_treated,try_previous1,
+                                                               wb, temp_key, cor_file_directory, mode_spotCycle1,
+                                                               softmax_threshold_global123,mr_threshold_global123,
+                                                               cap_matchrate123, tolerance_strain123,
+                                                               tolerance_strain1231,NumberMaxofFits123,
+                                                               fit_peaks_gaussian_global123,
+                                                               FitPixelDev_global123, coeff123,coeff_overlap,
+                                                               material0_limit,material1_limit,
+                                                               use_previous_UBmatrix_name1,
+                                                               material_phase_always_present1,
+                                                               crystal, crystal1, strain_free_parameters)
+                    files_worked.append(ijk)
+                    meta['proc_id'] = proc_id
+                    r_message = (strain_matrix12, strain_matrixs12, rotation_matrix12, col12, \
+                                 colx12, coly12, match_rate12, mat_global12, cnt12, meta, \
+                                 files_treated12, spots_len12, iR_pix12, fR_pix12, best_match12, check12)
+                    outputs_queue.put(r_message)
+    print("broke the worker while loop")  
+    
 def new_MP_function(argu):
     
     files, cnt, rotation_matrix, strain_matrix, strain_matrixs,\
@@ -8929,22 +9010,22 @@ def generate_multimat_dataset(  material_=["Cu"],
         _inputs_queue.put((chunks_mp[ijk], ncpu, meta))
 
     max_progress = len(values)
-    # update_progress = 0
     pbar = tqdm(total=max_progress)
     while True:
-        # time.sleep(2)
         if not _outputs_queue.empty():
-            update_progress = _outputs_queue.get()
-            # update_progress = update_progress + 1
-            pbar.update(update_progress)
+            n_range = _outputs_queue.qsize()
+            for _ in range(n_range):
+                update_progress = _outputs_queue.get()
+                pbar.update(update_progress)
+        time.sleep(0.1)
             
         count = 0
         for i in range(ncpu):
             if not _worker_process[i].is_alive():
                 _worker_process[i].join()
                 count += 1
-            # else:
-            #     time.sleep(0.1)
+            else:
+                time.sleep(0.1)
         if count == ncpu:
             pbar.close()
             return

@@ -631,7 +631,7 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
             filenameDirec = input_params["experimental_directory"]
             experimental_prefix = input_params["experimental_prefix"]
             lim_x, lim_y = input_params["grid_size_x"], input_params["grid_size_y"] 
-            format_file = dictLT.dict_CCD["sCMOS"][7]
+            format_file = dictLT.dict_CCD[input_params["ccd_label"]][7]
             ## Experimental peak search parameters in case of RAW LAUE PATTERNS from detector
             intensity_threshold = input_params["intensity_threshold"]
             boxsize = input_params["boxsize"]
