@@ -22,11 +22,11 @@ def set_laue_geometry():
     from lauetoolsnn.utils_lauenn import resource_path
     parser = argparse.ArgumentParser(description="Set Laue mode geometry; either Z>0 (top reflection mode); X>0 (Transmission mode); X<0 (back reflection mode)",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-m", "--mode", required=True, nargs="*", help="User string for the mode of Laue geometry")
+    parser.add_argument("-m", "--mode", required=True, help="User string for the mode of Laue geometry (provide input with double quotes like string)")
     args = parser.parse_args()
     config = vars(args)
     print(config)
-    mode = str(config["mode"])
+    mode = config["mode"]
     filepath = resource_path('xxxx')
     filepathmat = filepath[:-4] + "lauetools//" + 'detector_geometry.json'
     print(filepathmat)
@@ -49,11 +49,11 @@ def add_detector():
     from lauetoolsnn.utils_lauenn import resource_path
     parser = argparse.ArgumentParser(description="add a new detector to the dictionary",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-n", "--name", required=True, nargs="*", help="User string for the detector")
-    parser.add_argument("-dx", "--dimx", required=True, nargs="*", help="X dimension of detector in pixels")
-    parser.add_argument("-dy", "--dimy", required=True, nargs="*", help="Y dimension of detector in pixels")
-    parser.add_argument("-p", "--pix", required=True, nargs="*", help="Detector pixel size")
-    parser.add_argument("-f", "--format", required=True, nargs="*", help="Image extension of the detector files")
+    parser.add_argument("-n", "--name", required=True, help="User string for the detector")
+    parser.add_argument("-dx", "--dimx", required=True, help="X dimension of detector in pixels")
+    parser.add_argument("-dy", "--dimy", required=True, help="Y dimension of detector in pixels")
+    parser.add_argument("-p", "--pix", required=True, help="Detector pixel size")
+    parser.add_argument("-f", "--format", required=True, help="Image extension of the detector files")
     
     args = parser.parse_args()
     config = vars(args)
@@ -72,7 +72,7 @@ def add_detector():
     with open(filepathmat,'r') as f:
         dict_detector = json.load(f)
     ## Modify/ADD the dictionary values to add new entries
-    dict_detector[name] = [[dimx, dimy], pxsize, "65535", "no", 4096, "uint16", "user defined detector", fformat]
+    dict_detector[name] = [[dimx, dimy], pxsize, 65535, "no", 4096, "uint16", "user defined detector", fformat]
     ## dump the json back with new values
     with open(filepathmat, 'w') as fp:
         json.dump(dict_detector, fp)
