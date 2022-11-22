@@ -159,6 +159,7 @@ except:
     print("adjustText library not installed")
     plot_images = False
 
+default_detector_geom = dictLT.DEFAULT_TOP_GEOMETRY
 
 default_initialization = False
 if default_initialization:
@@ -1931,12 +1932,12 @@ def predict_preprocessMP_vsingle(files, cnt,
     twicetheta, chi = Lgeo.calc_uflab(peak_XY[:,0], peak_XY[:,1], detectorparameters,
                                         returnAngles=1,
                                         pixelsize=pixelsize,
-                                        kf_direction='Z>0')
+                                        kf_direction=default_detector_geom)
     data_theta, data_chi = twicetheta/2., chi
     
     framedim = dictLT.dict_CCD[CCDLabel][0]
     dict_dp={}
-    dict_dp['kf_direction']='Z>0'
+    dict_dp['kf_direction']=default_detector_geom
     dict_dp['detectorparameters']=detectorparameters
     dict_dp['detectordistance']=detectorparameters[0]
     dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
@@ -2203,12 +2204,12 @@ def predict_preprocessMP(files, cnt,
         twicetheta, chi = Lgeo.calc_uflab(peak_XY[:,0], peak_XY[:,1], detectorparameters,
                                             returnAngles=1,
                                             pixelsize=pixelsize,
-                                            kf_direction='Z>0')
+                                            kf_direction=default_detector_geom)
         data_theta, data_chi = twicetheta/2., chi
         
         framedim = dictLT.dict_CCD[CCDLabel][0]
         dict_dp={}
-        dict_dp['kf_direction']='Z>0'
+        dict_dp['kf_direction']=default_detector_geom
         dict_dp['detectorparameters']=detectorparameters
         dict_dp['detectordistance']=detectorparameters[0]
         dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
@@ -2242,7 +2243,7 @@ def predict_preprocessMP(files, cnt,
         CCDLabel = CCDcalib['CCDLabel']
         framedim = dictLT.dict_CCD[CCDLabel][0]
         dict_dp={}
-        dict_dp['kf_direction']='Z>0'
+        dict_dp['kf_direction']=default_detector_geom
         dict_dp['detectorparameters']=detectorparameters
         dict_dp['detectordistance']=detectorparameters[0]
         dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
@@ -8345,12 +8346,12 @@ def predict_preprocessMultiProcess(files, cnt,
         twicetheta, chi = Lgeo.calc_uflab(peak_XY[:,0], peak_XY[:,1], detectorparameters,
                                             returnAngles=1,
                                             pixelsize=pixelsize,
-                                            kf_direction='Z>0')
+                                            kf_direction=default_detector_geom)
         data_theta, data_chi = twicetheta/2., chi
         
         framedim = dictLT.dict_CCD[CCDLabel][0]
         dict_dp={}
-        dict_dp['kf_direction']='Z>0'
+        dict_dp['kf_direction']=default_detector_geom
         dict_dp['detectorparameters']=detectorparameters
         dict_dp['detectordistance']=detectorparameters[0]
         dict_dp['detectordiameter']=pixelsize*framedim[0]
@@ -8388,7 +8389,7 @@ def predict_preprocessMultiProcess(files, cnt,
         CCDLabel = CCDcalib['CCDLabel']
         framedim = dictLT.dict_CCD[CCDLabel][0]
         dict_dp={}
-        dict_dp['kf_direction']='Z>0'
+        dict_dp['kf_direction']=default_detector_geom
         dict_dp['detectorparameters']=detectorparameters
         dict_dp['detectordistance']=detectorparameters[0]
         dict_dp['detectordiameter']=pixelsize*framedim[0]
@@ -9653,12 +9654,12 @@ def predict_preprocessMultiMatProcess(files, cnt,
         twicetheta, chi = Lgeo.calc_uflab(peak_XY[:,0], peak_XY[:,1], detectorparameters,
                                             returnAngles=1,
                                             pixelsize=pixelsize,
-                                            kf_direction='Z>0')
+                                            kf_direction=default_detector_geom)
         data_theta, data_chi = twicetheta/2., chi
         
         framedim = dictLT.dict_CCD[CCDLabel][0]
         dict_dp={}
-        dict_dp['kf_direction']='Z>0'
+        dict_dp['kf_direction']=default_detector_geom
         dict_dp['detectorparameters']=detectorparameters
         dict_dp['detectordistance']=detectorparameters[0]
         dict_dp['detectordiameter']=pixelsize*framedim[0]
@@ -9696,7 +9697,7 @@ def predict_preprocessMultiMatProcess(files, cnt,
         CCDLabel = CCDcalib['CCDLabel']
         framedim = dictLT.dict_CCD[CCDLabel][0]
         dict_dp={}
-        dict_dp['kf_direction']='Z>0'
+        dict_dp['kf_direction']=default_detector_geom
         dict_dp['detectorparameters']=detectorparameters
         dict_dp['detectordistance']=detectorparameters[0]
         dict_dp['detectordiameter']=pixelsize*framedim[0]

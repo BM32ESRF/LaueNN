@@ -51,6 +51,8 @@ setuptools.setup(
                                      "lauenn_mat=lauetoolsnn.util_scripts.add_material:querymat",
                                      "lauenn_maxhkl=lauetoolsnn.util_scripts.add_material:query_hklmax",
                                      "lauenn_pymatgen=lauetoolsnn.util_scripts.add_material:pymatgen_query",
+                                     "lauenn_adddet=lauetoolsnn.util_scripts.add_material:add_detector",
+                                     "lauenn_geometry=lauetoolsnn.util_scripts.add_material:set_laue_geometry",
                                      "lauenn_example=lauetoolsnn.util_scripts.add_material:example_scripts"]
                  },
                  

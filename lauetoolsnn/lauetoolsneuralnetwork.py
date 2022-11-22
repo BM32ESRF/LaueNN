@@ -162,6 +162,8 @@ Logo = resource_path("lauetoolsnn_logo_bXM_2.png",  verbose=0)
 Logo_splash = resource_path("lauetoolsnn_splash_bXM_2.png",  verbose=0)
 # gif_path = resource_path("frames_medres.gif",  verbose=0)
 
+default_detector_geom = dictLT.DEFAULT_TOP_GEOMETRY
+
 default_initialization = True
 if default_initialization:
     material_global = "GaN" ## same key as used in LaueTools
@@ -2935,7 +2937,7 @@ class MyPopup_image_v1(QWidget):
         twicetheta, chi = Lgeo.calc_uflab(self.peakXY[:,0], self.peakXY[:,1], self.detectorparameters,
                                             returnAngles=1,
                                             pixelsize=pixelsize,
-                                            kf_direction='Z>0')        
+                                            kf_direction=default_detector_geom)        
         # Classic straight-line Hough transform
         imageGNO, nbpeaks, halfdiagonal = computeGnomonicImage(twicetheta, chi)
         hough, theta_h, d_h = hough_line(imageGNO)
@@ -4781,7 +4783,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
             CCDLabel = CCDcalib['CCDLabel']
             framedim = dictLT.dict_CCD[CCDLabel][0]
             dict_dp={}
-            dict_dp['kf_direction']='Z>0'
+            dict_dp['kf_direction']=default_detector_geom
             dict_dp['detectorparameters']=detectorparameters
             dict_dp['detectordistance']=detectorparameters[0]
             dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
@@ -5107,7 +5109,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
             CCDLabel = CCDcalib['CCDLabel']
             framedim = dictLT.dict_CCD[CCDLabel][0]
             dict_dp={}
-            dict_dp['kf_direction']='Z>0'
+            dict_dp['kf_direction']=default_detector_geom
             dict_dp['detectorparameters']=detectorparameters
             dict_dp['detectordistance']=detectorparameters[0]
             dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
@@ -5127,7 +5129,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                 CCDLabel = CCDcalib['CCDLabel']
                 framedim = dictLT.dict_CCD[CCDLabel][0]
                 dict_dp={}
-                dict_dp['kf_direction']='Z>0'
+                dict_dp['kf_direction']=default_detector_geom
                 dict_dp['detectorparameters']=detectorparameters
                 dict_dp['detectordistance']=detectorparameters[0]
                 dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
@@ -5774,7 +5776,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                     CCDLabel = CCDcalib['CCDLabel']
                     framedim = dictLT.dict_CCD[CCDLabel][0]
                     dict_dp={}
-                    dict_dp['kf_direction']='Z>0'
+                    dict_dp['kf_direction']=default_detector_geom'
                     dict_dp['detectorparameters']=detectorparameters
                     dict_dp['detectordistance']=detectorparameters[0]
                     dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
@@ -6265,12 +6267,12 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                 twicetheta, chi = Lgeo.calc_uflab(peak_XY[:,0], peak_XY[:,1], detectorparameters,
                                                     returnAngles=1,
                                                     pixelsize=pixelsize,
-                                                    kf_direction='Z>0')
+                                                    kf_direction=default_detector_geom)
                 data_theta, data_chi = twicetheta/2., chi
                 
                 framedim = dictLT.dict_CCD[CCDLabel][0]
                 dict_dp={}
-                dict_dp['kf_direction']='Z>0'
+                dict_dp['kf_direction']=default_detector_geom
                 dict_dp['detectorparameters']=detectorparameters
                 dict_dp['detectordistance']=detectorparameters[0]
                 dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
@@ -6309,7 +6311,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                 CCDLabel = CCDcalib['CCDLabel']
                 framedim = dictLT.dict_CCD[CCDLabel][0]
                 dict_dp={}
-                dict_dp['kf_direction']='Z>0'
+                dict_dp['kf_direction']=default_detector_geom
                 dict_dp['detectorparameters']=detectorparameters
                 dict_dp['detectordistance']=detectorparameters[0]
                 dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2

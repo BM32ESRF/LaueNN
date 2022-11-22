@@ -16,6 +16,8 @@ build:
     - lauenn_maxhkl=lauetoolsnn.util_scripts.add_material:query_hklmax
     - lauenn_pymatgen=lauetoolsnn.util_scripts.add_material:pymatgen_query
     - lauenn_example=lauetoolsnn.util_scripts.add_material:example_scripts
+    - lauenn_adddet=lauetoolsnn.util_scripts.add_material:add_detector
+    - lauenn_geometry=lauetoolsnn.util_scripts.add_material:set_laue_geometry
   noarch: python
   script: {{ PYTHON }} -m pip install --no-deps --no-cache-dir . -vv
   number: 0

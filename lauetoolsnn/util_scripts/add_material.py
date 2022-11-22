@@ -13,6 +13,71 @@ __author__ = "Ravi raj purohit PURUSHOTTAM RAJ PUROHIT, CRG-IF BM32 @ ESRF"
 import warnings
 warnings.filterwarnings('ignore')
 
+def set_laue_geometry():
+    ## sets laue geometry
+    ## Top/side reflection
+    ## Transmission/ back reflection
+    import json
+    import argparse
+    from lauetoolsnn.utils_lauenn import resource_path
+    parser = argparse.ArgumentParser(description="Set Laue mode geometry; either Z>0 (top reflection mode); X>0 (Transmission mode); X<0 (back reflection mode)",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-m", "--mode", required=True, nargs="*", help="User string for the mode of Laue geometry")
+    args = parser.parse_args()
+    config = vars(args)
+    print(config)
+    mode = str(config["mode"])
+    filepath = resource_path('xxxx')
+    filepathmat = filepath[:-4] + "lauetools//" + 'detector_geometry.json'
+    print(filepathmat)
+    ## Load the json of dict_geometry
+    with open(filepathmat,'r') as f:
+        dict_geometry = json.load(f)
+    ## Modify/ADD the dictionary values to add new entries
+    dict_geometry["default"] = mode
+    ## dump the json back with new values
+    with open(filepathmat, 'w') as fp:
+        json.dump(dict_geometry, fp)
+    print("Laue geometry changed to ", dict_geometry[mode])
+
+def add_detector():
+    ## sets laue geometry
+    ## Top/side reflection
+    ## Transmission/ back reflection
+    import json
+    import argparse
+    from lauetoolsnn.utils_lauenn import resource_path
+    parser = argparse.ArgumentParser(description="add a new detector to the dictionary",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-n", "--name", required=True, nargs="*", help="User string for the detector")
+    parser.add_argument("-dx", "--dimx", required=True, nargs="*", help="X dimension of detector in pixels")
+    parser.add_argument("-dy", "--dimy", required=True, nargs="*", help="Y dimension of detector in pixels")
+    parser.add_argument("-p", "--pix", required=True, nargs="*", help="Detector pixel size")
+    parser.add_argument("-f", "--format", required=True, nargs="*", help="Image extension of the detector files")
+    
+    args = parser.parse_args()
+    config = vars(args)
+    print(config)
+    
+    name = config["name"]
+    dimx = int(config["dimx"])
+    dimy = int(config["dimy"])
+    pxsize = float(config["pix"])
+    fformat = config["format"]
+    
+    filepath = resource_path('xxxx')
+    filepathmat = filepath[:-4] + "lauetools//" + 'detector_config.json'
+    print(filepathmat)
+    ## Load the json of dict_geometry
+    with open(filepathmat,'r') as f:
+        dict_detector = json.load(f)
+    ## Modify/ADD the dictionary values to add new entries
+    dict_detector[name] = [[dimx, dimy], pxsize, "65535", "no", 4096, "uint16", "user defined detector", fformat]
+    ## dump the json back with new values
+    with open(filepathmat, 'w') as fp:
+        json.dump(dict_detector, fp)
+    print("New detector entry added ", dict_detector[name])
+    
 def example_scripts():
     ## Given a path from the users
     ## Transfer the example scripts there
@@ -43,24 +108,8 @@ def example_scripts():
     shutil.copy(file6, save_directory)
     shutil.copy(file7, save_directory)
     shutil.copy(file8, save_directory)
-    print("Files moved to "+save_directory+" successfully")
+    print("Files copied to "+save_directory+" successfully")
     
-    # import argparse
-    # parser = argparse.ArgumentParser(description="Place the example scripts in the current directory where the terminal is pointing to",
-    #                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    # parser.add_argument("-d", "--download_data", required=False, help="User string to download data (GaN dataset) to test with LaueNN")
-    # args = parser.parse_args()
-    # config = vars(args)
-    
-    # cat = config["download_data"]
-    # if cat in ["y", "yes", "True", True]:
-    #     print("Download of example data is requested")
-    
-    # ## Download a test dataset
-    # import requests
-    # url = 'https://cloud.esrf.fr/s/Qi7iW7aCEdM6cRS'
-    # r = requests.get(url, allow_redirects=True)
-
 def pymatgen_query():
     from pymatgen.ext.matproj import MPRester
     import argparse
