@@ -163,6 +163,7 @@ Logo_splash = resource_path("lauetoolsnn_splash_bXM_2.png",  verbose=0)
 # gif_path = resource_path("frames_medres.gif",  verbose=0)
 
 default_detector_geom = dictLT.DEFAULT_TOP_GEOMETRY
+geom_key = dictLT.DICT_LAUE_GEOMETRIES
 
 default_initialization = True
 if default_initialization:
@@ -353,7 +354,9 @@ class Window(QMainWindow):
         if version_package != latest_version:
             self.setDisplayText("New version available at PYPI (please update to Lauetoolsnn v"+ str(latest_version)+")", colormode="red")
             ##add a notification to say new update is available
-            
+        
+        self.setDisplayText("LaueNN Geometry is set to "+ geom_key[default_detector_geom]+ "(if this is not intended, please change the mode in terminal using the lauenn_geometry command)", colormode="red")
+        
         self.setDisplayText(frame_title)
         self.setDisplayText("Uses base libraries of LaueTools (micha@esrf.fr) to simulate Laue patterns for a given detector geometry \nFollows convention of BM32 beamline at ESRF")
         self.setDisplayText("Polefigure and IPF plot modules are taken and modified from PYMICRO repository; HKL multiplicity and conditions are taken from xrayutilities library")
@@ -2592,23 +2595,6 @@ class Window(QMainWindow):
                     QApplication.processEvents()         
         text_file.close()
 
-# class gif_window(QWidget):
-#     def __init__(self):
-#         QWidget.__init__(self)
-#         app_icon = QtGui.QIcon()
-#         app_icon.addFile(Logo, QtCore.QSize(16,16))
-#         self.setWindowIcon(app_icon)
-#         self.layout = QVBoxLayout()
-#         self.setLayout(self.layout)
-#         # create label
-#         self.label = QtWidgets.QLabel()
-#         self.label.setObjectName("label")
-#         self.layout.addWidget(self.label)
-#         # set qmovie as label
-#         self.movie = QMovie(gif_path)
-#         self.label.setMovie(self.movie)
-#         self.movie.start()
-
 class sample_commands(QWidget):
     def __init__(self):
         QWidget.__init__(self)
@@ -2633,6 +2619,12 @@ class sample_commands(QWidget):
         self.setDisplayText("----------")
         self.setDisplayText("lauenn_pymatgen : Query the PYMATGEN rest API for lattice parameters and spacegroup")
         self.setDisplayText("usage : lauenn_pymatgen -e Cu Si")
+        self.setDisplayText("----------")
+        self.setDisplayText("lauenn_adddet : Add user defined detectors to the library")
+        self.setDisplayText("usage : lauenn_adddet -n detector1 -dx 2048 -dy 2048 -p 0.0735 -f tif")
+        self.setDisplayText("----------")
+        self.setDisplayText("lauenn_geometry : Change the default Laue geometry (Z>0 : Top reflection mode, X<0 : Back reflection mode, X>0 : Transmission mode)")
+        self.setDisplayText("usage : lauenn_geometry -m Z>0")
         self.setDisplayText("----------")
         self.setDisplayText("lauenn_example : Copies example script of LaueNN from installation directory to current user directory (terminal cwd)")
         self.setDisplayText("usage : lauenn_example")

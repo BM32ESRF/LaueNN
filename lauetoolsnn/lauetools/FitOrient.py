@@ -32,6 +32,7 @@ except:
     
 RAD = 1.0 / DEG
 IDENTITYMATRIX = np.eye(3)
+DETECTOR_GEOM = DictLT.DEFAULT_TOP_GEOMETRY
 
 def remove_harmonic(hkl, uflab, yz):
 
@@ -70,7 +71,7 @@ def xy_from_Quat(varying_parameter_values, DATA_Q, nspots, varying_parameter_ind
                                                                         verbose=0,
                                                                         pixelsize=165.0 / 2048,
                                                                         dim=(2048, 2048),
-                                                                        kf_direction="Z>0"):
+                                                                        kf_direction=DETECTOR_GEOM):
     """
     compute x and y pixel positions of Laue spots given hkl list
 
@@ -159,7 +160,7 @@ def calc_XY_pixelpositions(calibration_parameters, DATA_Q, nspots, UBmatrix=None
                                                             verbose=0,
                                                             pixelsize=0.079,
                                                             dim=(2048, 2048),
-                                                            kf_direction="Z>0"):
+                                                            kf_direction=DETECTOR_GEOM):
     """
 
     must: len(varying_parameter_values)=len(varying_parameter_indices)
@@ -232,7 +233,7 @@ def error_function_on_demand_calibration(param_calib,
                                         dim=(2048, 2048),
                                         weights=None,
                                         allspots_info=0,
-                                        kf_direction="Z>0"):
+                                        kf_direction=DETECTOR_GEOM):
     """
     #All miller indices must be entered in DATA_Q,
     selection is done in xy_from_Quat with nspots (array of indices)
@@ -352,7 +353,7 @@ def fit_on_demand_calibration(starting_param, miller, allparameters,
                                 pixelsize=165.0 / 2048,
                                 dim=(2048, 2048),
                                 weights=None,
-                                kf_direction="Z>0",
+                                kf_direction=DETECTOR_GEOM,
                                 **kwd):
     """
     #All miller indices must be entered in miller,
@@ -471,7 +472,7 @@ def error_function_on_demand_strain(param_strain,
                                         pixelsize=165.0 / 2048.,
                                         dim=(2048, 2048),
                                         weights=None,
-                                        kf_direction="Z>0"):
+                                        kf_direction=DETECTOR_GEOM):
     """
     #All miller indices must be entered in DATA_Q, selection is done in xy_from_Quat with nspots (array of indices)
     # allparameters must contain 5 detector calibration parameters + 5 parameters of strain + 3 angles of elementary rotation
@@ -785,7 +786,7 @@ def fit_on_demand_strain(starting_param,
                                 pixelsize=165.0 / 2048,
                                 dim=(2048, 2048),
                                 weights=None,
-                                kf_direction="Z>0",
+                                kf_direction=DETECTOR_GEOM,
                                 fitycen=False,
                                 **kwd):
     """
@@ -927,7 +928,7 @@ def plot_refinement_oneparameter(starting_param,
                                 pixelsize=165.0 / 2048,
                                 dim=(2048, 2048),
                                 weights=None,
-                                kf_direction="Z>0",
+                                kf_direction=DETECTOR_GEOM,
                                 **kwd):
 
     """
@@ -1097,7 +1098,7 @@ def fit_on_demand_strain_2grains(starting_param,
                                 pixelsize=165.0 / 2048,
                                 dim=(2048, 2048),
                                 weights=None,
-                                kf_direction="Z>0",
+                                kf_direction=DETECTOR_GEOM,
                                 **kwd):
     """
     Fit a model of two grains of the same material
@@ -1409,7 +1410,7 @@ def error_function_general(varying_parameters_values_array,
                             pixelsize=165.0 / 2048,
                             dim=(2048, 2048),
                             weights=None,
-                            kf_direction="Z>0",
+                            kf_direction=DETECTOR_GEOM,
                             returnalldata=False):
     """
     q = T_LT  UzUyUz Ustart  T_c B0 G*
@@ -1662,7 +1663,7 @@ def fit_function_general(varying_parameters_values_array,
                                 pixelsize=165.0 / 2048,
                                 dim=(2048, 2048),
                                 weights=None,
-                                kf_direction="Z>0",
+                                kf_direction=DETECTOR_GEOM,
                                 **kwd):
     """
     
@@ -1784,7 +1785,7 @@ def fit_function_latticeparameters(varying_parameters_values_array,
                                     pixelsize=165.0 / 2048,
                                     dim=(2048, 2048),
                                     weights=None,
-                                    kf_direction="Z>0",
+                                    kf_direction=DETECTOR_GEOM,
                                     additional_expression="none",
                                     **kwd):
     """
@@ -1921,7 +1922,7 @@ def error_function_latticeparameters(varying_parameters_values_array,
                                         pixelsize=165.0 / 2048,
                                         dim=(2048, 2048),
                                         weights=None,
-                                        kf_direction="Z>0",
+                                        kf_direction=DETECTOR_GEOM,
                                         returnalldata=False,
                                         additional_expression="none"):
     """
@@ -2115,7 +2116,7 @@ def error_function_strain(varying_parameters_values_array,
                         pixelsize=165.0 / 2048,
                         dim=(2048, 2048),
                         weights=None,
-                        kf_direction="Z>0",
+                        kf_direction=DETECTOR_GEOM,
                         returnalldata=False):
     """
     q =   refinedStrain refinedUzUyUz Ustart   B0 G*
@@ -2302,7 +2303,7 @@ def fit_function_strain(varying_parameters_values_array,
                     pixelsize=165.0 / 2048,
                     dim=(2048, 2048),
                     weights=None,
-                    kf_direction="Z>0",
+                    kf_direction=DETECTOR_GEOM,
                     **kwd):
     """
     fit strain components in sample frame
@@ -2438,7 +2439,7 @@ def error_strain_from_elongation(varying_parameters_values_array,
                                 pixelsize=165.0 / 2048,
                                 dim=(2048, 2048),
                                 weights=None,
-                                kf_direction="Z>0",
+                                kf_direction=DETECTOR_GEOM,
                                 returnalldata=False):
     """
     calculate array of the sum of 3 distances from aligned points composing one single Laue spot

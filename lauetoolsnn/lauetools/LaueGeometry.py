@@ -92,9 +92,10 @@ except:
     import lauetoolsnn.lauetools.IOLaueTools as IOLT
     import lauetoolsnn.lauetools.CrystalParameters as CP
     import lauetoolsnn.lauetools.dict_LaueTools as DictLT
+
 # -----------  CONSTANTS ------------------
 RECTPIX = DictLT.RECTPIX  # see above  camera skewness
-
+DETECTOR_GEOM = DictLT.DEFAULT_TOP_GEOMETRY
 PI = np.pi
 DEG = PI / 180.0
 
@@ -107,7 +108,7 @@ norme = GT.norme_vec
 def calc_uflab(xcam, ycam, detectorplaneparameters, offset=0, returnAngles=1, verbose=0,
                                                                     pixelsize=165.0 / 2048,
                                                                     rectpix=RECTPIX,
-                                                                    kf_direction="Z>0",
+                                                                    kf_direction=DETECTOR_GEOM,
                                                                     version=1):
     r"""
     Computes scattered unit vector :math:`{\bf u_f}=\frac{\bf k_f}{\|k_f\|}` in laboratory frame corresponding to :math:`k_f`
@@ -1079,7 +1080,7 @@ def calc_xycam_transmission_2(uflabframe0, calib, energy=0, offset=None, verbose
 
 def calc_xycam_from2thetachi(twicetheta, chi, calib, offset=0, verbose=0,
                                                         pixelsize=165.0 / 2048,
-                                                        kf_direction="Z>0", version=1):
+                                                        kf_direction=DETECTOR_GEOM, version=1):
     r"""
     calculate spots coordinates in pixel units in detector plane
     from 2theta, chi angles (kf)
@@ -1281,7 +1282,7 @@ def qvector_from_xy_E(xcamList, ycamList, energy, detectorplaneparameters, pixel
                                                                         verbose=0,
                                                                         pixelsize=pixelsize,
                                                                         rectpix=RECTPIX,
-                                                                        kf_direction="Z>0")
+                                                                        kf_direction=DETECTOR_GEOM)
 
     thetarad = twtheta * DEG / 2.0
     chirad = chi * DEG
@@ -1793,7 +1794,7 @@ def matxmas_to_matstarlab(satocr, calib):
 
 
 def Compute_data2thetachi(filename, sorting_intensity="yes", detectorparams=None,
-                                                        kf_direction="Z>0",
+                                                        kf_direction=DETECTOR_GEOM,
                                                         verbose=1,
                                                         pixelsize=165.0 / 2048,
                                                         dim=(2048, 2048),
