@@ -5768,7 +5768,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                     CCDLabel = CCDcalib['CCDLabel']
                     framedim = dictLT.dict_CCD[CCDLabel][0]
                     dict_dp={}
-                    dict_dp['kf_direction']=default_detector_geom'
+                    dict_dp['kf_direction']=default_detector_geom
                     dict_dp['detectorparameters']=detectorparameters
                     dict_dp['detectordistance']=detectorparameters[0]
                     dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
