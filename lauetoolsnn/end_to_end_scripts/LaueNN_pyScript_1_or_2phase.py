@@ -889,6 +889,60 @@ if __name__ == '__main__':     #enclosing required because of multiprocessing
             # results = new_MP_function(valu12[0])
             # best = results[-2][0][0][0]
             
+            def chunker_list(seq, size):
+                return (seq[i::size] for i in range(size))
+            # # =============================================================================
+            # # Below code when RAM is of concern
+            # # =============================================================================
+            # from multiprocessing import Process, Queue
+            # from lauetoolsnn.utils_lauenn import  new_MP_function_v1
+            # _inputs_queue = Queue()
+            # _outputs_queue = Queue()
+            # _worker_processes = {}
+            # for i in range(ncpu):
+            #     _worker_processes[i]= Process(target=new_MP_function_v1, args=(_inputs_queue, _outputs_queue, i+1))
+            # for i in range(ncpu):
+            #     _worker_processes[i].start()
+            # chunks = chunker_list(valu12, ncpu)
+            # chunks_mp = list(chunks)
+            # meta = {'t1':time.time()}
+            # for ijk in range(int(ncpu)):
+            #     _inputs_queue.put((chunks_mp[ijk], ncpu, meta))
+            # ### Update data from multiprocessing
+            # pbar = tqdm(total=count_global)
+            # unique_count = []
+            # while True:                
+            #     if len(np.unique(unique_count)) == count_global:
+            #         print("All files have been treated")
+            #         break
+            #     if not _outputs_queue.empty():            
+            #         n_range = _outputs_queue.qsize()
+            #         for _ in range(n_range):
+            #             r_message_mpdata = _outputs_queue.get()                                    
+            #             strain_matrix_mpdata, strain_matrixs_mpdata, rotation_matrix_mpdata, col_mpdata,\
+            #             colx_mpdata, coly_mpdata, match_rate_mpdata, mat_global_mpdata,\
+            #                 cnt_mpdata, meta_mpdata, files_treated_mpdata, spots_len_mpdata, \
+            #                     iR_pixel_mpdata, fR_pixel_mpdata, best_match_mpdata, check_mpdata = r_message_mpdata
+            #             for i_mpdata in files_treated_mpdata:
+            #                 files_treated.append(i_mpdata)
+            #             for intmat_mpdata in range(int(ubmat)):
+            #                 check[cnt_mpdata,intmat_mpdata] = check_mpdata[cnt_mpdata,intmat_mpdata]
+            #                 mat_global[intmat_mpdata][0][cnt_mpdata] = mat_global_mpdata[intmat_mpdata][0][cnt_mpdata]
+            #                 strain_matrix[intmat_mpdata][0][cnt_mpdata,:,:] = strain_matrix_mpdata[intmat_mpdata][0][cnt_mpdata,:,:]
+            #                 strain_matrixs[intmat_mpdata][0][cnt_mpdata,:,:] = strain_matrixs_mpdata[intmat_mpdata][0][cnt_mpdata,:,:]
+            #                 rotation_matrix[intmat_mpdata][0][cnt_mpdata,:,:] = rotation_matrix_mpdata[intmat_mpdata][0][cnt_mpdata,:,:]
+            #                 col[intmat_mpdata][0][cnt_mpdata,:] = col_mpdata[intmat_mpdata][0][cnt_mpdata,:]
+            #                 colx[intmat_mpdata][0][cnt_mpdata,:] = colx_mpdata[intmat_mpdata][0][cnt_mpdata,:]
+            #                 coly[intmat_mpdata][0][cnt_mpdata,:] = coly_mpdata[intmat_mpdata][0][cnt_mpdata,:]
+            #                 match_rate[intmat_mpdata][0][cnt_mpdata] = match_rate_mpdata[intmat_mpdata][0][cnt_mpdata]
+            #                 spots_len[intmat_mpdata][0][cnt_mpdata] = spots_len_mpdata[intmat_mpdata][0][cnt_mpdata]
+            #                 iR_pix[intmat_mpdata][0][cnt_mpdata] = iR_pixel_mpdata[intmat_mpdata][0][cnt_mpdata]
+            #                 fR_pix[intmat_mpdata][0][cnt_mpdata] = fR_pixel_mpdata[intmat_mpdata][0][cnt_mpdata]
+            #                 best_match[intmat_mpdata][0][cnt_mpdata] = best_match_mpdata[intmat_mpdata][0][cnt_mpdata]
+            #             if cnt_mpdata not in unique_count:
+            #                 pbar.update(1)
+            #             unique_count.append(cnt_mpdata)
+                        
             args = zip(valu12)
             with multiprocessing.Pool(ncpu) as pool:
                 results = pool.starmap(new_MP_function, tqdm(args, total=len(valu12)), chunksize=1)

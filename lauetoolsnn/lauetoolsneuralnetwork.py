@@ -6293,26 +6293,43 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                     print("Error writing the cor file", path)
                     
             elif files.split(".")[-1] == "cor":
-                seednumber = "Experimental COR file"
-                allres = IOLT.readfile_cor(files, True)
-                data_theta, data_chi, peakx, peaky, intensity = allres[1:6]
-                CCDcalib = allres[-1]
-                detectorparameters = allres[-2]
-                # print('detectorparameters from file are: '+ str(detectorparameters))
-                pixelsize = CCDcalib['pixelsize']
-                CCDLabel = CCDcalib['CCDLabel']
-                framedim = dictLT.dict_CCD[CCDLabel][0]
-                dict_dp={}
-                dict_dp['kf_direction']=default_detector_geom
-                dict_dp['detectorparameters']=detectorparameters
-                dict_dp['detectordistance']=detectorparameters[0]
-                dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
-                dict_dp['pixelsize']=pixelsize
-                dict_dp['dim']=framedim
-                dict_dp['peakX']=peakx
-                dict_dp['peakY']=peaky
-                dict_dp['intensity']=intensity
-            
+                try:
+                    seednumber = "Experimental COR file"
+                    allres = IOLT.readfile_cor(files, True)
+                    data_theta, data_chi, peakx, peaky, intensity = allres[1:6]
+                    CCDcalib = allres[-1]
+                    detectorparameters = allres[-2]
+                    # print('detectorparameters from file are: '+ str(detectorparameters))
+                    pixelsize = CCDcalib['pixelsize']
+                    CCDLabel = CCDcalib['CCDLabel']
+                    framedim = dictLT.dict_CCD[CCDLabel][0]
+                    dict_dp={}
+                    dict_dp['kf_direction']=default_detector_geom
+                    dict_dp['detectorparameters']=detectorparameters
+                    dict_dp['detectordistance']=detectorparameters[0]
+                    dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
+                    dict_dp['pixelsize']=pixelsize
+                    dict_dp['dim']=framedim
+                    dict_dp['peakX']=peakx
+                    dict_dp['peakY']=peaky
+                    dict_dp['intensity']=intensity
+                except:
+                    print("No cor file found for "+ files)
+                    for intmat in range(matricies):
+                        rotation_matrix[intmat][0][self.cnt,:,:] = np.zeros((3,3))
+                        strain_matrix[intmat][0][self.cnt,:,:] = np.zeros((3,3))
+                        strain_matrixs[intmat][0][self.cnt,:,:] = np.zeros((3,3))
+                        col[intmat][0][self.cnt,:] = 0,0,0
+                        colx[intmat][0][self.cnt,:] = 0,0,0
+                        coly[intmat][0][self.cnt,:] = 0,0,0
+                        match_rate[intmat][0][self.cnt] = 0
+                        mat_global[intmat][0][self.cnt] = 0
+                    
+                    cnt += 1
+                    self.cnt += 1
+                    peak_detection_error = True
+                    continue
+                
             if peak_detection_error:
                 continue
             

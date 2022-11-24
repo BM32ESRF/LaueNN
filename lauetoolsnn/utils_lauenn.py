@@ -2234,24 +2234,43 @@ def predict_preprocessMP(files, cnt,
             print("Error writing the cor file", path)
             
     elif files.split(".")[-1] == "cor":
-        seednumber = "Experimental COR file"
-        allres = IOLT.readfile_cor(files, True)
-        data_theta, data_chi, peakx, peaky, intensity = allres[1:6]
-        CCDcalib = allres[-1]
-        detectorparameters = allres[-2]
-        pixelsize = CCDcalib['pixelsize']
-        CCDLabel = CCDcalib['CCDLabel']
-        framedim = dictLT.dict_CCD[CCDLabel][0]
-        dict_dp={}
-        dict_dp['kf_direction']=default_detector_geom
-        dict_dp['detectorparameters']=detectorparameters
-        dict_dp['detectordistance']=detectorparameters[0]
-        dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
-        dict_dp['pixelsize']=pixelsize
-        dict_dp['dim']=framedim
-        dict_dp['peakX']=peakx
-        dict_dp['peakY']=peaky
-        dict_dp['intensity']=intensity
+        try:
+            seednumber = "Experimental COR file"
+            allres = IOLT.readfile_cor(files, True)
+            data_theta, data_chi, peakx, peaky, intensity = allres[1:6]
+            CCDcalib = allres[-1]
+            detectorparameters = allres[-2]
+            pixelsize = CCDcalib['pixelsize']
+            CCDLabel = CCDcalib['CCDLabel']
+            framedim = dictLT.dict_CCD[CCDLabel][0]
+            dict_dp={}
+            dict_dp['kf_direction']=default_detector_geom
+            dict_dp['detectorparameters']=detectorparameters
+            dict_dp['detectordistance']=detectorparameters[0]
+            dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
+            dict_dp['pixelsize']=pixelsize
+            dict_dp['dim']=framedim
+            dict_dp['peakX']=peakx
+            dict_dp['peakY']=peaky
+            dict_dp['intensity']=intensity
+        except:
+            print("Error in Cor file reading for "+ files)
+            for intmat in range(matricies):
+                rotation_matrix[intmat][0][cnt,:,:] = np.zeros((3,3))
+                strain_matrix[intmat][0][cnt,:,:] = np.zeros((3,3))
+                strain_matrixs[intmat][0][cnt,:,:] = np.zeros((3,3))
+                col[intmat][0][cnt,:] = 0,0,0
+                colx[intmat][0][cnt,:] = 0,0,0
+                coly[intmat][0][cnt,:] = 0,0,0
+                match_rate[intmat][0][cnt] = 0
+                mat_global[intmat][0][cnt] = 0
+                spots_len[intmat][0][cnt] = 0
+                iR_pix[intmat][0][cnt] = 0
+                fR_pix[intmat][0][cnt] = 0
+                check[cnt,intmat] = 0
+            files_treated.append(files)
+            return strain_matrix, strain_matrixs, rotation_matrix, col, colx, coly, \
+                match_rate, mat_global, cnt, files_treated,spots_len,iR_pix,fR_pix, check, best_match, None
 
     sorted_data = np.transpose(np.array([data_theta, data_chi]))
     tabledistancerandom = np.transpose(GT.calculdist_from_thetachi(sorted_data, sorted_data))
@@ -8378,27 +8397,47 @@ def predict_preprocessMultiProcess(files, cnt,
             print("Error writing the cor file", path)
         
     elif files.split(".")[-1] == "cor":
-        # print("Entering Cor file read section")
-        seednumber = "Experimental COR file"
-        allres = IOLT.readfile_cor(files, True)
-        data_theta, data_chi, peakx, peaky, intensity = allres[1:6]
-        CCDcalib = allres[-1]
-        detectorparameters = allres[-2]
-        # print('detectorparameters from file are: '+ str(detectorparameters))
-        pixelsize = CCDcalib['pixelsize']
-        CCDLabel = CCDcalib['CCDLabel']
-        framedim = dictLT.dict_CCD[CCDLabel][0]
-        dict_dp={}
-        dict_dp['kf_direction']=default_detector_geom
-        dict_dp['detectorparameters']=detectorparameters
-        dict_dp['detectordistance']=detectorparameters[0]
-        dict_dp['detectordiameter']=pixelsize*framedim[0]
-        dict_dp['pixelsize']=pixelsize
-        dict_dp['dim']=framedim
-        dict_dp['peakX']=peakx
-        dict_dp['peakY']=peaky
-        dict_dp['intensity']=intensity
-
+        try:
+            # print("Entering Cor file read section")
+            seednumber = "Experimental COR file"
+            allres = IOLT.readfile_cor(files, True)
+            data_theta, data_chi, peakx, peaky, intensity = allres[1:6]
+            CCDcalib = allres[-1]
+            detectorparameters = allres[-2]
+            # print('detectorparameters from file are: '+ str(detectorparameters))
+            pixelsize = CCDcalib['pixelsize']
+            CCDLabel = CCDcalib['CCDLabel']
+            framedim = dictLT.dict_CCD[CCDLabel][0]
+            dict_dp={}
+            dict_dp['kf_direction']=default_detector_geom
+            dict_dp['detectorparameters']=detectorparameters
+            dict_dp['detectordistance']=detectorparameters[0]
+            dict_dp['detectordiameter']=pixelsize*framedim[0]
+            dict_dp['pixelsize']=pixelsize
+            dict_dp['dim']=framedim
+            dict_dp['peakX']=peakx
+            dict_dp['peakY']=peaky
+            dict_dp['intensity']=intensity
+        except:
+            print("Error in Cor file reading for "+ files)
+            for intmat in range(matricies):
+                rotation_matrix[intmat][0][cnt,:,:] = np.zeros((3,3))
+                strain_matrix[intmat][0][cnt,:,:] = np.zeros((3,3))
+                strain_matrixs[intmat][0][cnt,:,:] = np.zeros((3,3))
+                col[intmat][0][cnt,:] = 0,0,0
+                colx[intmat][0][cnt,:] = 0,0,0
+                coly[intmat][0][cnt,:] = 0,0,0
+                match_rate[intmat][0][cnt] = 0
+                mat_global[intmat][0][cnt] = 0
+                spots_len[intmat][0][cnt] = 0
+                iR_pix[intmat][0][cnt] = 0
+                fR_pix[intmat][0][cnt] = 0
+                check[cnt,intmat] = 0
+            # files_treated.append(files)
+            return strain_matrix, strain_matrixs, rotation_matrix, col, colx, coly, \
+                match_rate, mat_global, cnt, files_treated,spots_len,iR_pix,fR_pix, check, best_match
+        
+        
     sorted_data = np.transpose(np.array([data_theta, data_chi]))
     tabledistancerandom = np.transpose(GT.calculdist_from_thetachi(sorted_data, sorted_data))
 
@@ -9686,27 +9725,46 @@ def predict_preprocessMultiMatProcess(files, cnt,
             print("Error writing the cor file", path)
         
     elif files.split(".")[-1] == "cor":
-        # print("Entering Cor file read section")
-        seednumber = "Experimental COR file"
-        allres = IOLT.readfile_cor(files, True)
-        data_theta, data_chi, peakx, peaky, intensity = allres[1:6]
-        CCDcalib = allres[-1]
-        detectorparameters = allres[-2]
-        # print('detectorparameters from file are: '+ str(detectorparameters))
-        pixelsize = CCDcalib['pixelsize']
-        CCDLabel = CCDcalib['CCDLabel']
-        framedim = dictLT.dict_CCD[CCDLabel][0]
-        dict_dp={}
-        dict_dp['kf_direction']=default_detector_geom
-        dict_dp['detectorparameters']=detectorparameters
-        dict_dp['detectordistance']=detectorparameters[0]
-        dict_dp['detectordiameter']=pixelsize*framedim[0]
-        dict_dp['pixelsize']=pixelsize
-        dict_dp['dim']=framedim
-        dict_dp['peakX']=peakx
-        dict_dp['peakY']=peaky
-        dict_dp['intensity']=intensity
-
+        try:
+            # print("Entering Cor file read section")
+            seednumber = "Experimental COR file"
+            allres = IOLT.readfile_cor(files, True)
+            data_theta, data_chi, peakx, peaky, intensity = allres[1:6]
+            CCDcalib = allres[-1]
+            detectorparameters = allres[-2]
+            # print('detectorparameters from file are: '+ str(detectorparameters))
+            pixelsize = CCDcalib['pixelsize']
+            CCDLabel = CCDcalib['CCDLabel']
+            framedim = dictLT.dict_CCD[CCDLabel][0]
+            dict_dp={}
+            dict_dp['kf_direction']=default_detector_geom
+            dict_dp['detectorparameters']=detectorparameters
+            dict_dp['detectordistance']=detectorparameters[0]
+            dict_dp['detectordiameter']=pixelsize*framedim[0]
+            dict_dp['pixelsize']=pixelsize
+            dict_dp['dim']=framedim
+            dict_dp['peakX']=peakx
+            dict_dp['peakY']=peaky
+            dict_dp['intensity']=intensity
+        except:
+            print("Error in Cor file reading for "+ files)
+            for intmat in range(matricies):
+                rotation_matrix[intmat][0][cnt,:,:] = np.zeros((3,3))
+                strain_matrix[intmat][0][cnt,:,:] = np.zeros((3,3))
+                strain_matrixs[intmat][0][cnt,:,:] = np.zeros((3,3))
+                col[intmat][0][cnt,:] = 0,0,0
+                colx[intmat][0][cnt,:] = 0,0,0
+                coly[intmat][0][cnt,:] = 0,0,0
+                match_rate[intmat][0][cnt] = 0
+                mat_global[intmat][0][cnt] = 0
+                spots_len[intmat][0][cnt] = 0
+                iR_pix[intmat][0][cnt] = 0
+                fR_pix[intmat][0][cnt] = 0
+                check[cnt,intmat] = 0
+            # files_treated.append(files)
+            return strain_matrix, strain_matrixs, rotation_matrix, col, colx, coly, \
+                match_rate, mat_global, cnt, files_treated,spots_len,iR_pix,fR_pix, check, best_match, None
+                
     sorted_data = np.transpose(np.array([data_theta, data_chi]))
     tabledistancerandom = np.transpose(GT.calculdist_from_thetachi(sorted_data, sorted_data))
 
