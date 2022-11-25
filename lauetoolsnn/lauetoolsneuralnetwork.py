@@ -2624,7 +2624,7 @@ class sample_commands(QWidget):
         self.setDisplayText("usage : lauenn_adddet -n detector1 -dx 2048 -dy 2048 -p 0.0735 -f tif")
         self.setDisplayText("----------")
         self.setDisplayText("lauenn_geometry : Change the default Laue geometry (Z>0 : Top reflection mode, X<0 : Back reflection mode, X>0 : Transmission mode)")
-        self.setDisplayText("usage : lauenn_geometry -m Z>0")
+        self.setDisplayText('usage : lauenn_geometry -m "Z>0"')
         self.setDisplayText("----------")
         self.setDisplayText("lauenn_example : Copies example script of LaueNN from installation directory to current user directory (terminal cwd)")
         self.setDisplayText("usage : lauenn_example")
@@ -6512,7 +6512,7 @@ def start():
         print('Size: %d x %d' % (size.width(), size.height()))
         rect = screen.availableGeometry()
         print('Available: %d x %d' % (rect.width(), rect.height()))
-        win = Window(rect.width()//2.5, rect.height()//1.2)
+        win = Window(int(rect.width()//2.5), int(rect.height()//1.2))
     except:
         win = Window()
     win.show()

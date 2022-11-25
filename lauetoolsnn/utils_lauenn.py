@@ -136,10 +136,15 @@ def versions(pkg_name):
     import json
     from urllib import request
     from pkg_resources import parse_version
-    ##version control from PIP directly
-    url = f'https://pypi.python.org/pypi/{pkg_name}/json'
-    releases = json.loads(request.urlopen(url).read())['releases']
-    return sorted(releases, key=parse_version, reverse=True)
+    try:
+        ##version control from PIP directly
+        url = f'https://pypi.python.org/pypi/{pkg_name}/json'
+        releases = json.loads(request.urlopen(url).read())['releases']
+        return sorted(releases, key=parse_version, reverse=True)
+    except:
+        return_string = " : Internet not connected for version control"
+        return [return_string,]
+
 
 gui_state = np.random.randint(1e6)
 DIGITS = int(abs(np.log10(1e-08)))
