@@ -2726,8 +2726,8 @@ class MyPopup_image_v1(QWidget):
         self.layout.addWidget(self.toolbar, 0)
         self.layout.addWidget(self.canvas, 100)
 
-        self.ImaxDisplayed = 2*np.average(data)
-        self.IminDisplayed = np.average(data) - 0.2*np.average(data)
+        self.ImaxDisplayed = np.int(2*np.average(data))
+        self.IminDisplayed = np.int(np.average(data) - 0.2*np.average(data))
 
         self.slider = QSlider(QtCore.Qt.Horizontal, self)
         self.slider.setRange(0, np.max(data))
