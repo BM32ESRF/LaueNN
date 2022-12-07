@@ -5227,11 +5227,11 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
         c_time = now.strftime("%Y-%m-%d_%H-%M-%S")
         
         ###convert UB to fundamental zone, before saving the data
-        try:
-            self.rotation_matrix = self.convertUB_reduced(self.rotation_matrix,
-                                                    self.mat_global, self.symmetry, self.symmetry1)     
-        except:
-            print("problkem converting UB to fundamental zone based on symmetry")
+        # try:
+        #     self.rotation_matrix = self.convertUB_reduced(self.rotation_matrix,
+        #                                             self.mat_global, self.symmetry, self.symmetry1)     
+        # except:
+        #     print("problem converting UB to fundamental zone based on symmetry")
         
         save_directory_ = self.model_direc+"//results_"+self.material_+"_"+c_time
         if not os.path.exists(save_directory_):
