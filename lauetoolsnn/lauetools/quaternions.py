@@ -411,7 +411,6 @@ class Quaternion:
     def fromIdentity(cls):
         return cls()
 
-
     @classmethod
     def fromRandom(cls,randomSeed = None):
         if randomSeed is None:
@@ -424,7 +423,6 @@ class Quaternion:
         z = math.sin(2.0*math.pi*r[0])*math.sqrt(r[2])
         return cls([w,x,y,z])
 
-
     @classmethod
     def fromRodrigues(cls, rodrigues):
         if not isinstance(rodrigues, np.ndarray): rodrigues = np.array(rodrigues)
@@ -433,7 +431,6 @@ class Quaternion:
         w = c
         x,y,z = c*rodrigues
         return cls([w,x,y,z])
-
 
     @classmethod
     def fromAngleAxis(cls, angle, axis):
@@ -446,12 +443,9 @@ class Quaternion:
         z = axis[2] * s
         return cls([w,x,y,z])
 
-
     @classmethod
     def fromEulers(cls, eulers, type = 'Bunge'):
-
         eulers *= 0.5                                                                  # reduce to half angles
-    
         c1 = math.cos(eulers[0])
         s1 = math.sin(eulers[0])
         c2 = math.cos(eulers[1])
@@ -471,19 +465,15 @@ class Quaternion:
             z = c1 * s2 * c3 - s1 * c2 * s3
         return cls([w,x,y,z])
 
-
-# Modified Method to calculate Quaternion from Orientation Matrix,
-# Source: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
-
+    # Modified Method to calculate Quaternion from Orientation Matrix,
+    # Source: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
     @classmethod
     def fromMatrix(cls, m):
         if m.shape != (3,3) and np.prod(m.shape) == 9:
           m = m.reshape(3,3)
-    
         tr = np.trace(m)
         if tr > 1e-8:
           s = math.sqrt(tr + 1.0)*2.0
-    
           return cls(
             [ s*0.25,
               (m[2,1] - m[1,2])/s,
@@ -494,7 +484,6 @@ class Quaternion:
         elif m[0,0] > m[1,1] and m[0,0] > m[2,2]:
           t = m[0,0] - m[1,1] - m[2,2] + 1.0
           s = 2.0*math.sqrt(t)
-    
           return cls(
             [ (m[2,1] - m[1,2])/s,
               s*0.25,
@@ -505,7 +494,6 @@ class Quaternion:
         elif m[1,1] > m[2,2]:
           t = -m[0,0] + m[1,1] - m[2,2] + 1.0
           s = 2.0*math.sqrt(t)
-    
           return cls(
             [ (m[0,2] - m[2,0])/s,
               (m[0,1] + m[1,0])/s,
@@ -516,14 +504,12 @@ class Quaternion:
         else:
           t = -m[0,0] - m[1,1] + m[2,2] + 1.0
           s = 2.0*math.sqrt(t)
-    
           return cls(
             [ (m[1,0] - m[0,1])/s,
               (m[2,0] + m[0,2])/s,
               (m[1,2] + m[2,1])/s,
               s*0.25,
             ])
-
 
     @classmethod
     def new_interpolate(cls, q1, q2, t):
@@ -826,14 +812,9 @@ class Symmetry:
 
 # code derived from http://pyeuclid.googlecode.com/svn/trunk/euclid.py
 # suggested reading: http://web.mit.edu/2.998/www/QuaternionReport1.pdf
-
-
-
 # ******************************************************************************************
 class Orientation:
-
   __slots__ = ['quaternion','symmetry']
-
   def __init__(self,
                quaternion = Quaternion.fromIdentity(),
                Rodrigues  = None,
@@ -880,7 +861,6 @@ class Orientation:
   def asQuaternion(self):
     return self.quaternion.asList()
     
-  # @property
   def asEulers(self,
                type = 'bunge',
                degrees = False,
@@ -888,32 +868,26 @@ class Orientation:
     return self.quaternion.asEulers(type, degrees, standardRange)
   eulers = property(asEulers)
   
-  # @property
   def asRodrigues(self):
     return self.quaternion.asRodrigues()
   rodrigues = property(asRodrigues)
   
-  # @property
   def asAngleAxis(self, degrees = False):
     return self.quaternion.asAngleAxis(degrees)
   angleAxis = property(asAngleAxis)
 
-  # @property
   def asMatrix(self):
     return self.quaternion.asMatrix()
   matrix = property(asMatrix)
   
-  # @property
   def inFZ(self):
     return self.symmetry.inFZ(self.quaternion.asRodrigues())
   infz = property(inFZ)
 
-  def equivalentQuaternions(self,
-                            who = []):
+  def equivalentQuaternions(self, who = []):
     return self.symmetry.equivalentQuaternions(self.quaternion,who)
 
-  def equivalentOrientations(self,
-                             who = []):
+  def equivalentOrientations(self, who = []):
     return list(map(lambda q: Orientation(quaternion = q, symmetry = self.symmetry.lattice),
                self.equivalentQuaternions(who)))
 
@@ -921,9 +895,7 @@ class Orientation:
     """Transform orientation to fall into fundamental zone according to symmetry"""
     for me in self.symmetry.equivalentQuaternions(self.quaternion):
       if self.symmetry.inFZ(me.asRodrigues()): break
-
     return Orientation(quaternion=me,symmetry=self.symmetry.lattice)
-
 
   def disorientation(self,
                      other,

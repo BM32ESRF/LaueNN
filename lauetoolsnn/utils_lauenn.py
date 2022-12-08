@@ -8,10 +8,6 @@ Functions for lauetoolsneuralnetwork
 
 Credits:
 Lattice and symmetry routines are extracted and adapted from the PYMICRO and Xrayutilities repository
-
-
-TODO:
-    FIX OrientMatrix_from_2hkl call with quaternion approach
     
 """
 __author__ = "Ravi raj purohit PURUSHOTTAM RAJ PUROHIT, CRG-IF BM32 @ ESRF"
@@ -2992,7 +2988,9 @@ def predict_ubmatrix(seednumber, spots_in_center, classhkl, hkl_all_class0,
                                                                         material1_limit=material1_limit,
                                                                         igrain=igrain,
                                                                         material_phase_always_present=material_phase_always_present,
-                                                                        strain_free_parameters=strain_free_parameters)
+                                                                        strain_free_parameters=strain_free_parameters,
+                                                                        crystal=crystal,
+                                                                        crystal1=crystal1)
             elif mode_spotCycle == "graphmode":
                 # print("Fast mode of analysis")
                 first_match, max_mr, min_mr, spots, \
@@ -3730,7 +3728,8 @@ def get_orient_mat(s_tth, s_chi, material0_, material1_, classhkl, class_predict
                    tab_distance_classhkl_data0=None, tab_distance_classhkl_data1=None, spots1_global=None,
                    coeff_overlap = None, ind_mat=None, ind_mat1=None, strain_calculation=None,cap_matchrate123=None,
                    material0_count=None, material1_count=None, material0_limit=None, material1_limit=None,
-                   igrain=None, material_phase_always_present=None, strain_free_parameters=None):
+                   igrain=None, material_phase_always_present=None, strain_free_parameters=None, crystal=None,
+                   crystal1=None):
     call_global()
     
     init_mr = 0
@@ -3820,7 +3819,8 @@ def get_orient_mat(s_tth, s_chi, material0_, material1_, classhkl, class_predict
                                                     Gstar_metric, input_params, 
                                                     dist[i,j],
                                                     tth_chi_spot1, tth_chi_spot2, 
-                                                    B, method=0)
+                                                    B, method=0, crystal=crystal,
+                                                    crystal1=crystal1)
             
             if flagAM:
                 continue
@@ -3909,18 +3909,26 @@ def get_orient_mat(s_tth, s_chi, material0_, material1_, classhkl, class_predict
 def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
                       tth_chi_spot1, tth_chi_spot2, B, method=0, crystal=None,
                       crystal1=None):
-    
-    ## TODO add quaternion method to get SST OM for each proposal
     if method == 0:
         tab_angulardist_temp = CP.AngleBetweenNormals(hkl1_list, hkl2_list, Gstar_metric)
         
         if input_params["mat"] == 1:
             list_ = np.where(np.abs(tab_angulardist_temp-dist123) < input_params["tolerance"])
-            # final_crystal=crystal
+            if np.all(crystal != None):
+                symmetry_obj = crystal
+                symmetry = symmetry_obj.crystal_system.split(":")[0]
+                # print(symmetry)
+            else:
+                symmetry = None
 
         elif input_params["mat"] == 2:
             list_ = np.where(np.abs(tab_angulardist_temp-dist123) < input_params["tolerance1"])
-            # final_crystal=crystal1
+            if np.all(crystal1 != None):
+                symmetry_obj = crystal1
+                symmetry = symmetry_obj.crystal_system.split(":")[0]
+                # print(symmetry)
+            else:
+                symmetry = None
             
         if len(list_[0]) == 0:
             return None, True, 0, 0
@@ -3941,6 +3949,9 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkl1_list[ii], tth_chi_spot1, \
                                                         hkl2_list[jj], tth_chi_spot2,
                                                         B)
+                if np.all(symmetry != None):
+                    om = Orientation(matrix=rot_mat1, symmetry=symmetry).reduced()
+                    rot_mat1 = om.asMatrix()
             except:
                 continue                    
             
@@ -3986,8 +3997,9 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkls[ii][0], tth_chi_spot1, \
                                                         hkls[ii][1], tth_chi_spot2,
                                                         B)
-                ##calling the quaternion function to dela with symmetry
-                # om = Orientation(matrix=orientation_matrix, symmetry=symmetry).reduced()
+                if np.all(symmetry != None):
+                    om = Orientation(matrix=rot_mat1, symmetry=symmetry).reduced()
+                    rot_mat1 = om.asMatrix()
             except:
                 continue                    
             
@@ -4006,29 +4018,6 @@ def propose_UB_matrix(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
             actual_mat.append(rot_mat1)
             spot1_hkl.append(hkls[ii][0])
             spot2_hkl.append(hkls[ii][1])
-    
-    # ## just fixing a* to x seems ok; if not think of aligning b* to xy plane
-    # sum_sign = []
-    # for nkl in range(len(actual_mat)):
-    #     temp_mat = np.dot(actual_mat[nkl], B)
-    #     ## fix could be to choose a matrix that aligns best the b* vector to Y axis or a* to X axis
-    #     # if np.argmax(np.abs(temp_mat[:2,0])) == 0 and \
-    #     #         np.argmax(np.abs(temp_mat[:2,1])) == 1: ##a* along x, b*along y
-    #     if np.argmax(np.abs(temp_mat[:2,0])) == 0: ##a* along x
-    #         sum_sign.append(2)
-    #     elif np.argmax(np.abs(temp_mat[:2,0])) ==  np.argmax(np.abs(temp_mat[:2,1])):
-    #         sum_sign.append(0)
-    #     else:
-    #         sum_sign.append(1)
-    # ind_sort = np.argsort(sum_sign)[::-1]
-    # ## re-arrange
-    # actual_mat1 = []
-    # spot1_hkl1, spot2_hkl1 = [], []
-    # for inin in ind_sort:
-    #     actual_mat1.append(actual_mat[inin])
-    #     spot1_hkl1.append(spot1_hkl[inin])
-    #     spot2_hkl1.append(spot2_hkl[inin])
-    # actual_mat, spot1_hkl, spot2_hkl = actual_mat1, spot1_hkl1, spot2_hkl1
     return actual_mat, False, spot1_hkl, spot2_hkl
 
 def remove_spots(s_tth, s_chi, first_match123, material_, input_params, detectorparameters, dict_dp):
@@ -4118,6 +4107,7 @@ def simulate_spots(rot_mat, material_, emax, emin, detectorparameters, dict_dp, 
                                     kf_direction=kf_direction,
                                     ResolutionAngstrom=False,
                                     dictmaterials=dictLT.dict_Materials)
+    
     TwicethetaChi = LT.filterLaueSpots_full_np(spots2pi[0][0], spots2pi[1][0], onlyXYZ=False,
                                                     HarmonicsRemoval=0,
                                                     fastcompute=0,
@@ -4228,98 +4218,6 @@ def getProximityv1( TwicethetaChi, data_theta, data_chi, angtol=0.5):
             theo_index.append(closetheoindex)
             linkResidues.append(allresidues[closetheoindex])
     return listofpairs, linkResidues, theo_index
-
-def refineonce_fromUB(s_tth, s_chi, UBmat, grain, input_params, 
-                             detectorparameters, dict_dp, B_matrix):
-    # starting B0matrix corresponding to the unit cell   -----
-    B0matrix = np.copy(B_matrix)
-    if input_params["mat"] == 1:
-        AngTol = input_params["tolerance"]
-    elif input_params["mat"] == 2:
-        AngTol = input_params["tolerance1"]
-    #### Spots in first match (no refining, just simple auto links to filter spots)
-    Twicetheta, Chi, Miller_ind, posx, posy, _ = LT.SimulateLaue(grain,
-                                                             input_params["emin"], 
-                                                             input_params["emax"], 
-                                                             detectorparameters,
-                                                             kf_direction=dict_dp['kf_direction'],
-                                                             removeharmonics=1,
-                                                             pixelsize=dict_dp['pixelsize'],
-                                                             dim=dict_dp['dim'],
-                                                             ResolutionAngstrom=False,
-                                                             detectordiameter=dict_dp['detectordiameter'],
-                                                             dictmaterials=dictLT.dict_Materials)
-    ## get proximity for exp and theo spots
-    linkedspots_link, linkExpMiller_link, \
-        linkResidues_link = getProximityv0(np.array([Twicetheta, Chi]),  # warning array(2theta, chi)
-                                                                            s_tth/2.0, s_chi, Miller_ind,  # warning theta, chi for exp
-                                                                            angtol=float(AngTol))
-    if len(linkedspots_link) < 8:
-        return UBmat
-    
-    linkedspots_fit = linkedspots_link
-    linkExpMiller_fit = linkExpMiller_link
-    
-    arraycouples = np.array(linkedspots_fit)
-    exp_indices = np.array(arraycouples[:, 0], dtype=np.int)
-    sim_indices = np.array(arraycouples[:, 1], dtype=np.int)
-
-    nb_pairs = len(exp_indices)
-    Data_Q = np.array(linkExpMiller_fit)[:, 1:]
-    sim_indices = np.arange(nb_pairs)  # for fitting function this must be an arange...
-
-    pixX = np.take(dict_dp['peakX'], exp_indices)
-    pixY = np.take(dict_dp['peakY'], exp_indices)
-    weights = None #np.take(dict_dp['intensity'], exp_indices)
-    
-    starting_orientmatrix = np.copy(UBmat)
-
-    results = None
-    # ----------------------------------
-    #  refinement model
-    # ----------------------------------
-    # -------------------------------------------------------
-    allparameters = np.array(detectorparameters + [1, 1, 0, 0, 0] + [0, 0, 0])
-    # strain & orient
-    initial_values = np.array([1.0, 1.0, 0.0, 0.0, 0.0, 0, 0.0, 0.0])
-    arr_indexvaryingparameters = np.arange(5, 13)
-
-    results = FitO.fit_on_demand_strain(initial_values,
-                                            Data_Q,
-                                            allparameters,
-                                            FitO.error_function_on_demand_strain,
-                                            arr_indexvaryingparameters,
-                                            sim_indices,
-                                            pixX,
-                                            pixY,
-                                            initrot=starting_orientmatrix,
-                                            Bmat=B0matrix,
-                                            pixelsize=dict_dp['pixelsize'],
-                                            dim=dict_dp['dim'],
-                                            verbose=0,
-                                            weights=weights,
-                                            kf_direction=dict_dp['kf_direction'])
-
-    if results is None:
-        return UBmat
-    residues, deltamat, newmatrix = FitO.error_function_on_demand_strain(
-                                                                        results,
-                                                                        Data_Q,
-                                                                        allparameters,
-                                                                        arr_indexvaryingparameters,
-                                                                        sim_indices,
-                                                                        pixX,
-                                                                        pixY,
-                                                                        initrot=starting_orientmatrix,
-                                                                        Bmat=B0matrix,
-                                                                        pureRotation=0,
-                                                                        verbose=1,
-                                                                        pixelsize=dict_dp['pixelsize'],
-                                                                        dim=dict_dp['dim'],
-                                                                        weights=weights,
-                                                                        kf_direction=dict_dp['kf_direction'])
-    UBmat = np.copy(newmatrix) 
-    return UBmat
 
 def calculate_strains_fromUB(s_tth, s_chi, UBmat, material_, input_params, 
                              detectorparameters, dict_dp, spots, B_matrix, strain_free_parameters):
@@ -10681,7 +10579,8 @@ def predict_ub_MM(seednumber, spots_in_center, classhkl, hkl_all_class0,
                                                                       material0_limit=material0_limit,
                                                                       igrain=igrain,
                                                                       material_phase_always_present=material_phase_always_present,
-                                                                      strain_free_parameters=strain_free_parameters)
+                                                                      strain_free_parameters=strain_free_parameters,
+                                                                      crystal=crystal)
             elif mode_spotCycle == "graphmode":
                 # print("Fast mode of analysis")
                 first_match, max_mr, min_mr, spots, \
@@ -10714,7 +10613,8 @@ def predict_ub_MM(seednumber, spots_in_center, classhkl, hkl_all_class0,
                                                                      igrain=igrain,
                                                                      material_phase_always_present=material_phase_always_present,
                                                                      objective_function= objective_function1,
-                                                                     strain_free_parameters=strain_free_parameters)
+                                                                     strain_free_parameters=strain_free_parameters,
+                                                                     crystal=crystal)
             elif mode_spotCycle == "update_reupdate":
                 # print("Fast mode of analysis")
                 first_match, max_mr, min_mr, spots, \
@@ -11089,7 +10989,7 @@ def get_orient_mat_graphv1_MM(s_tth, s_chi, material0_, classhkl, class_predicte
                                tab_distance_classhkl_data0=None, spots1_global=None,
                                coeff_overlap = None, ind_mat=None, strain_calculation=None, cap_matchrate123=None,
                                material0_count=None, material0_limit=None, igrain=None, material_phase_always_present=None,
-                               strain_free_parameters=None, objective_function=None):
+                               strain_free_parameters=None, objective_function=None, crystal=None):
     
     if objective_function == None:
         call_global()
@@ -11237,7 +11137,7 @@ def get_orient_mat_graphv1_MM(s_tth, s_chi, material0_, classhkl, class_predicte
                                                             Gstar_metric, input_params, 
                                                             dist[i,j],
                                                             tth_chi_spot1, tth_chi_spot2, 
-                                                            B, method=0)
+                                                            B, method=0, crystal=crystal)
 
                     if flagAM:
                         continue
@@ -11346,7 +11246,7 @@ def get_orient_matMM(s_tth, s_chi, material0_, classhkl, class_predicted, predic
                    tab_distance_classhkl_data0=None, spots1_global=None,
                    coeff_overlap = None, ind_mat=None, strain_calculation=None,cap_matchrate123=None,
                    material0_count=None, material0_limit=None,
-                   igrain=None, material_phase_always_present=None, strain_free_parameters=None):
+                   igrain=None, material_phase_always_present=None, strain_free_parameters=None, crystal=None):
     call_global()
     
     init_mr = 0
@@ -11430,7 +11330,7 @@ def get_orient_matMM(s_tth, s_chi, material0_, classhkl, class_predicted, predic
                                                     Gstar_metric, input_params, 
                                                     dist[i,j],
                                                     tth_chi_spot1, tth_chi_spot2, 
-                                                    B, method=0)
+                                                    B, method=0, crystal=crystal)
             
             if flagAM:
                 continue
@@ -11519,15 +11419,16 @@ def get_orient_matMM(s_tth, s_chi, material0_, classhkl, class_predicted, predic
 def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist123,
                       tth_chi_spot1, tth_chi_spot2, B, method=0, crystal=None):
     
+    if np.all(crystal != None):
+        symmetry_obj = crystal[input_params["mat"]-1]
+        symmetry = symmetry_obj.crystal_system.split(":")[0]
+        # print(symmetry)
+    else:
+        symmetry = None
+        
     if method == 0:
         tab_angulardist_temp = CP.AngleBetweenNormals(hkl1_list, hkl2_list, Gstar_metric)
         list_ = np.where(np.abs(tab_angulardist_temp-dist123) < input_params["tolerance"][input_params["mat"]-1])
-        
-        # if crystal != None:
-        #     symmetry_obj = crystal[input_params["mat"]-1]
-        #     symmetry = symmetry_obj.crystal_system
-        # else:
-        #     symmetry = None
         
         if len(list_[0]) == 0:
             return None, True, 0, 0
@@ -11548,8 +11449,9 @@ def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist12
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkl1_list[ii], tth_chi_spot1, \
                                                         hkl2_list[jj], tth_chi_spot2,
                                                         B)
-                # om = Orientation(matrix=rot_mat1, symmetry=symmetry).reduced()
-                # rot_mat1 = om.asMatrix()
+                if np.all(symmetry != None):
+                    om = Orientation(matrix=rot_mat1, symmetry=symmetry).reduced()
+                    rot_mat1 = om.asMatrix()
             except:
                 continue                    
             
@@ -11592,8 +11494,9 @@ def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist12
                 rot_mat1 = FindO.OrientMatrix_from_2hkl(hkls[ii][0], tth_chi_spot1, \
                                                         hkls[ii][1], tth_chi_spot2,
                                                         B)
-                # om = Orientation(matrix=rot_mat1, symmetry=symmetry).reduced()
-                # rot_mat1 = om.asMatrix()
+                if np.all(symmetry != None):
+                    om = Orientation(matrix=rot_mat1, symmetry=symmetry).reduced()
+                    rot_mat1 = om.asMatrix()
             except:
                 continue                    
             
@@ -11612,29 +11515,6 @@ def propose_UB_matrixMM(hkl1_list, hkl2_list, Gstar_metric, input_params, dist12
             actual_mat.append(rot_mat1)
             spot1_hkl.append(hkls[ii][0])
             spot2_hkl.append(hkls[ii][1])
-    
-    # ## just fixing a* to x seems ok; if not think of aligning b* to xy plane
-    # sum_sign = []
-    # for nkl in range(len(actual_mat)):
-    #     temp_mat = np.dot(actual_mat[nkl], B)
-    #     ## fix could be to choose a matrix that aligns best the b* vector to Y axis or a* to X axis
-    #     # if np.argmax(np.abs(temp_mat[:2,0])) == 0 and \
-    #     #         np.argmax(np.abs(temp_mat[:2,1])) == 1: ##a* along x, b*along y
-    #     if np.argmax(np.abs(temp_mat[:2,0])) == 0: ##a* along x
-    #         sum_sign.append(2)
-    #     elif np.argmax(np.abs(temp_mat[:2,0])) ==  np.argmax(np.abs(temp_mat[:2,1])):
-    #         sum_sign.append(0)
-    #     else:
-    #         sum_sign.append(1)
-    # ind_sort = np.argsort(sum_sign)[::-1]
-    # ## re-arrange
-    # actual_mat1 = []
-    # spot1_hkl1, spot2_hkl1 = [], []
-    # for inin in ind_sort:
-    #     actual_mat1.append(actual_mat[inin])
-    #     spot1_hkl1.append(spot1_hkl[inin])
-    #     spot2_hkl1.append(spot2_hkl[inin])
-    # actual_mat, spot1_hkl, spot2_hkl = actual_mat1, spot1_hkl1, spot2_hkl1
     return actual_mat, False, spot1_hkl, spot2_hkl
 
 
@@ -11649,9 +11529,7 @@ def remove_spotsMM(s_tth, s_chi, first_match123, material_, input_params, detect
         call_global()
     except:
         return [], 100
-    
-    # print(grain)
-    
+        
     #### Perhaps better than SimulateResult function
     kf_direction = dict_dp["kf_direction"]
     detectordistance = dict_dp["detectorparameters"][0]
@@ -11668,7 +11546,6 @@ def remove_spotsMM(s_tth, s_chi, first_match123, material_, input_params, detect
                                     ResolutionAngstrom=False,
                                     dictmaterials=dictLT.dict_Materials)
     
-    # print(spots2pi)
     TwicethetaChi = LT.filterLaueSpots_full_np(spots2pi[0][0], None, onlyXYZ=False,
                                                     HarmonicsRemoval=0,
                                                     fastcompute=1,
@@ -12531,8 +12408,7 @@ def write_average_orientation(save_directory_, mat_global, rotation_matrix1,
                 ## UB matrix in Laue reference frame (or crystal reference frame?)
                 orientation_matrix = rotation_matrix1[index][0][om_ind]
                 ##b convert to orientation object to inherit all properties of Orientation class
-                om = Orientation(matrix=orientation_matrix, symmetry=symmetry).reduced()
-                # reduced() return the FZ OM
+                om = Orientation(matrix=orientation_matrix, symmetry=symmetry)#.reduced() #reduced() return the FZ OM
                 om_object.append(om)
             mr = match_rate[index][0]
             mr = mr.flatten()
@@ -12592,10 +12468,8 @@ def write_average_orientation(save_directory_, mat_global, rotation_matrix1,
                     g += 1               # increment grain counter
                 grainID[p] = matchedID    # remember grain index assigned to point
                 p += 1       # increment point
-                
             # print("step 3")
-            grain_map = grainID.reshape((lim_x,lim_y))
-            
+            # grain_map = grainID.reshape((lim_x,lim_y))
             # print('step 4')
             # =============================================================================
             # Let us compute the average orientation of grain definition
@@ -13025,7 +12899,7 @@ def write_average_orientationMM(save_directory_, mat_global, rotation_matrix1,
                 ## UB matrix in Laue reference frame (or crystal reference frame?)
                 orientation_matrix = rotation_matrix1[index][0][om_ind]
                 ##b convert to orientation object to inherit all properties of Orientation class
-                om = Orientation(matrix=orientation_matrix, symmetry=symmetry).reduced()
+                om = Orientation(matrix=orientation_matrix, symmetry=symmetry)#.reduced()
                 # reduced() return the FZ OM
                 om_object.append(om)
             mr = match_rate[index][0]
@@ -13086,11 +12960,6 @@ def write_average_orientationMM(save_directory_, mat_global, rotation_matrix1,
                     g += 1               # increment grain counter
                 grainID[p] = matchedID    # remember grain index assigned to point
                 p += 1       # increment point
-                
-            # print("step 3")
-            grain_map = grainID.reshape((lim_x,lim_y))
-            
-            # print('step 4')
             # =============================================================================
             # Let us compute the average orientation of grain definition
             # =============================================================================
@@ -13106,25 +12975,7 @@ def write_average_orientationMM(save_directory_, mat_global, rotation_matrix1,
                 average_UB.append(avg_om_object.asMatrix())
                 nb_pixels.append(len(pixel_indices))
                 mat_index.append(val)        
-    
-            # fig = plt.figure(figsize=(11.69,8.27), dpi=100)
-            # bottom, top = 0.1, 0.9
-            # left, right = 0.1, 0.8
-            # fig.subplots_adjust(top=top, bottom=bottom, left=left, right=right, hspace=0.15, wspace=0.25)
-            # axs = fig.subplots(1, 1)
-            # axs.set_title(r"Grain map", loc='center', fontsize=8)
-            # im=axs.imshow(grain_map, origin='lower', cmap=plt.cm.jet)
-            # axs.set_xticks([])
-            # axs.set_yticks([])
-            # divider = make_axes_locatable(axs)
-            # cax = divider.append_axes('right', size='5%', pad=0.05)
-            # cbar = fig.colorbar(im, cax=cax, orientation='vertical')
-            # cbar.ax.tick_params(labelsize=8) 
-            # axs.label_outer()        
-            # plt.savefig(save_directory_+ "//"+'figure_misorientation_'+str(val)+"_"+str(index)+'.png', 
-            #             bbox_inches='tight',format='png', dpi=1000) 
-            # plt.close(fig)
-            
+
     average_UB = np.array(average_UB)
     nb_pixels = np.array(nb_pixels)
     mat_index = np.array(mat_index)

@@ -4,7 +4,7 @@ Created on Mon Mar 21 19:04:03 2022
 
 @author: PURUSHOT
 
-Script to test misorientation functions
+Script to test orientation functions
 
 """
 import numpy as np
@@ -13,12 +13,15 @@ import _pickle as cPickle
 from tqdm import trange
 from itertools import compress
 from lauetoolsnn.lauetools.quaternions import Orientation, Quaternion
+from lauetoolsnn.utils_lauenn import Lattice, HklPlane
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy import spatial
 
+
+#### Load some results
 folder = os.getcwd()
-with open(r"C:\Users\purushot\Desktop\SiC\results_triangle_5UBs\results.pickle", "rb") as input_file:
+with open(r"D:\some_projects\GaN\Si_GaN_nanowires\results_Si_2022-12-07_23-57-29\results.pickle", "rb") as input_file:
     best_match, \
     mat_global, rotation_matrix1, strain_matrix, strain_matrixs,\
         col, colx, coly, match_rate, files_treated,\
@@ -27,28 +30,64 @@ with open(r"C:\Users\purushot\Desktop\SiC\results_triangle_5UBs\results.pickle",
                     crystal, crystal1 = cPickle.load(input_file)
 
 material_id = [material_, material1_]
-#%% convert UB to proper convention
-new_rot_mat = [[np.zeros_like(rotation_matrix1[0][0])] for _ in range(len(rotation_matrix1))]
 
+
+#%% convert UB to proper convention (verify if this does not change the UB components and only their permutations)
+transformed_rotation_matrix = [[np.zeros_like(rotation_matrix1[0][0])] for _ in range(len(rotation_matrix1))]
+new_rot_mat = [[np.zeros_like(rotation_matrix1[0][0])] for _ in range(len(rotation_matrix1))]
 for index in range(len(rotation_matrix1)):
     for om_ind in trange(len(rotation_matrix1[index][0])):
         ## UB matrix in Laue reference frame (or crystal reference frame?)
         orientation_matrix = rotation_matrix1[index][0][om_ind]
-        val = mat_global[index][0][om_ind]
-        if val == 0 or np.all(orientation_matrix==0):
-            continue
-        if val == 1:
-            symmetry = symmetry0.name
-        elif val == 2:
-            symmetry = symmetry1.name
-        ## convert to orientation object to inherit all properties of Orientation class
-        om = Orientation(matrix=orientation_matrix, symmetry=symmetry).reduced()
-        new_rot_mat[index][0][om_ind] = om.asMatrix()
+        
+        if np.all(orientation_matrix!=0):
+            val = mat_global[index][0][om_ind]
+            if val == 0 or np.all(orientation_matrix==0):
+                continue
+            if val == 1:
+                symmetry = symmetry0.name
+            elif val == 2:
+                symmetry = symmetry1.name
+            
+            omega = np.deg2rad(-40.0)
+            # rotation de -omega autour de l'axe x (or Y?) pour repasser dans Rsample
+            cw = np.cos(omega)
+            sw = np.sin(omega)
+            mat_from_lab_to_sample_frame = np.array([[cw, 0.0, sw], [0.0, 1.0, 0.0], [-sw, 0, cw]])
+            orientation_matrix_temp = np.dot(mat_from_lab_to_sample_frame.T, orientation_matrix)
+            if np.linalg.det(orientation_matrix_temp) < 0:
+                orientation_matrix_temp = -orientation_matrix_temp
+            transformed_rotation_matrix[index][0][om_ind] = orientation_matrix_temp
+            ## convert to orientation object to inherit all properties of Orientation class
+            om = Orientation(matrix=orientation_matrix_temp, symmetry=symmetry).reduced()
+            new_rot_mat[index][0][om_ind] = om.asMatrix()
 
-#%%
+#%% Test
+from scipy.spatial.transform import Rotation as R
+r = R.from_matrix(transformed_rotation_matrix[0][0][0])
+transformed_rotation_matrix[0][0][0]
+r.as_quat()
+
+r.as_matrix()
 
 
+#%% Some other checks 
+from lauetools import dict_LaueTools as dictLT
+from lauetools import CrystalParameters as CP
+from lauetools import findorient as FindO
+from lauetools.quaternions import Orientation, Quaternion
+lattice_params0 = dictLT.dict_Materials["Si"][1]
+B = CP.calc_B_RR(lattice_params0)
+pureU = FindO.OrientMatrix_from_2hkl([ 1, -3,  0], [ 51.84038168128769,  -11.376240528268882], \
+                                        [ 0, -3 , 1], [54.57004855052002, 17.55246093908536],
+                                        B)
+    
+    
+np.trace(pureU)    
 
+quats = Quaternion.fromMatrix(pureU)
+quats.asMatrix()
+#%% Computing misorientations and then segmenting grains
 print("Number of Phases present (includes non indexed phase zero also)", len(np.unique(np.array(mat_global))))
 
 average_UB = []

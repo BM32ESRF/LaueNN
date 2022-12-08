@@ -581,6 +581,7 @@ class Window(QMainWindow):
             dim1_global = detectorfile2[6]
             dim2_global = detectorfile2[7]
             ccd_label_global = detectorfile2[8]
+            ccd_label_global = ccd_label_global.strip()
         try:
             emax_global = float(config.get('DETECTOR', 'emax'))
             emin_global = float(config.get('DETECTOR', 'emin'))
@@ -2881,7 +2882,10 @@ class MyPopup_image_v1(QWidget):
             
         if len(self.pix_x)!=0:
             self.canvas.axes.set_title("Laue pattern of pixel x=%d, y=%d (peaks: %d) (file: %s)"%(self.iy,self.ix,len(self.pix_x),self.file), loc='center', fontsize=8)
-            self.scatter.set_offsets(np.vstack((self.pix_x,self.pix_y)).T)
+            if self.peaksearch_mode.currentText() in ["lauetools", "skimage", "skimage_relaxed", "skimage_nobounds", "skimage_nofit"]:
+                self.scatter.set_offsets(np.vstack((self.pix_x-1,self.pix_y-1)).T)
+            else:
+                self.scatter.set_offsets(np.vstack((self.pix_x,self.pix_y)).T)
         self.canvas.draw()
         
     def refresh_plots(self):
@@ -3311,7 +3315,7 @@ class MyPopup_image(QWidget):
             self.setDisplayText(texttstr)  
             texttstr = "# Total experimental spots : "+str(len(th_exp))
             self.setDisplayText(texttstr)
-            texttstr = "# Average residues : "+str(np.average(residues))
+            texttstr = "# Average residues (angular): "+str(np.average(residues))
             self.setDisplayText(texttstr)
             texttstr = "# Total linked spots : "+str(len(exp_linkspots))
             self.setDisplayText(texttstr)
@@ -3592,7 +3596,7 @@ class MyPopup(QWidget):
         for ijk in range(len(match_rate12)):
             if len(tth_sim[ijk]) != 0:
                 self.setDisplayText("--------------- Matrix "+str(ijk+1)+" \n")
-                texttstr = "# Average residues : "+str(np.average(residues[ijk]))
+                texttstr = "# Average residues (angular): "+str(np.average(residues[ijk]))
                 self.setDisplayText(texttstr)
                 texttstr = "# Total linked spots : "+str(len(exp_linkspots[ijk]))
                 self.setDisplayText(texttstr)
@@ -5227,6 +5231,8 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
         c_time = now.strftime("%Y-%m-%d_%H-%M-%S")
         
         ###convert UB to fundamental zone, before saving the data
+        ## Seems to be not correct, verify with independent scripts
+        ## The error is because UB is not pure rotation matrix (no longer needed)
         # try:
         #     self.rotation_matrix = self.convertUB_reduced(self.rotation_matrix,
         #                                             self.mat_global, self.symmetry, self.symmetry1)     
@@ -5924,7 +5930,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
         if len(list_of_files) == count_global:
             for ii in range(len(list_of_files)):
                 grid_files[ii] = ii
-                self.filenm[ii] = list_of_files[ii]               
+                self.filenm[ii] = list_of_files[ii]
         else:
             print("expected "+str(count_global)+" files based on the XY grid ("+str(self.lim_x)+","+str(self.lim_y)+") defined by user")
             print("But found "+str(len(list_of_files))+" files (either all data is not written yet or maybe XY grid definition is not proper)")

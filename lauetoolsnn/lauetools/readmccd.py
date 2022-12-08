@@ -867,8 +867,8 @@ def peaksearch_skimage(filename, min_dist, pkid_threshold, bs, fit_peaks_gaussia
         # all peaks list building
         tabpeak = np.zeros((len(peak_coords),10))
         for ii in range(len(peak_coords)):
-            tabpeak[ii,0] = peak_coords[ii,0]#+1
-            tabpeak[ii,1] = peak_coords[ii,1]#+1
+            tabpeak[ii,0] = peak_coords[ii,0]+1
+            tabpeak[ii,1] = peak_coords[ii,1]+1
             tabpeak[ii,2] = peak_coords[ii,2]
             tabpeak[ii,3] = 0
             tabpeak[ii,4] = 0
@@ -909,8 +909,8 @@ def peaksearch_skimage(filename, min_dist, pkid_threshold, bs, fit_peaks_gaussia
         tabpeak = np.zeros((len(poptimized),10))
         for ii in range(len(poptimized)):
             px0, py0, _, bs = peak_coords[ii]
-            tabpeak[ii,0] = poptimized[ii,1]+px0-bs#+1
-            tabpeak[ii,1] = poptimized[ii,2]+py0-bs#+1
+            tabpeak[ii,0] = poptimized[ii,1]+px0-bs+1
+            tabpeak[ii,1] = poptimized[ii,2]+py0-bs+1
             tabpeak[ii,2] = poptimized[ii,0]
             tabpeak[ii,3] = poptimized[ii,4]
             tabpeak[ii,4] = poptimized[ii,5]
