@@ -162,6 +162,9 @@ except:
 
 default_detector_geom = dictLT.DEFAULT_TOP_GEOMETRY
 
+## Multiplication factor to Laue detector diameter
+diameter_factor = 1
+
 default_initialization = False
 if default_initialization:
     ##Default Global Parameters
@@ -1484,7 +1487,7 @@ def simulatemultiplepatterns(nbUBs, nbUBs1, seed=123, key_material=None, key_mat
                              odf_data=None, odf_data1=None, mode="random", misorientation_angle = 1,
                              phase_always_present=None):
     
-    detectordiameter = pixelsize * dim1 #TODO * 2.0
+    detectordiameter = pixelsize * dim1 *diameter_factor
     # UBelemagnles = np.random.random((3,nbUBs))*360-180
     np.random.seed(seed)
     orientation_send = []
@@ -1941,7 +1944,7 @@ def predict_preprocessMP_vsingle(files, cnt,
     dict_dp['kf_direction']=default_detector_geom
     dict_dp['detectorparameters']=detectorparameters
     dict_dp['detectordistance']=detectorparameters[0]
-    dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
+    dict_dp['detectordiameter']=pixelsize*framedim[0]*diameter_factor
     dict_dp['pixelsize']=pixelsize
     dict_dp['dim']=framedim
     dict_dp['peakX']=peak_XY[:,0]
@@ -2213,7 +2216,7 @@ def predict_preprocessMP(files, cnt,
         dict_dp['kf_direction']=default_detector_geom
         dict_dp['detectorparameters']=detectorparameters
         dict_dp['detectordistance']=detectorparameters[0]
-        dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
+        dict_dp['detectordiameter']=pixelsize*framedim[0]*diameter_factor
         dict_dp['pixelsize']=pixelsize
         dict_dp['dim']=framedim
         dict_dp['peakX']=peak_XY[:,0]
@@ -2248,7 +2251,7 @@ def predict_preprocessMP(files, cnt,
             dict_dp['kf_direction']=default_detector_geom
             dict_dp['detectorparameters']=detectorparameters
             dict_dp['detectordistance']=detectorparameters[0]
-            dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
+            dict_dp['detectordiameter']=pixelsize*framedim[0]*diameter_factor
             dict_dp['pixelsize']=pixelsize
             dict_dp['dim']=framedim
             dict_dp['peakX']=peakx
@@ -4641,7 +4644,7 @@ def get_ipf_colour(orientation_matrix, axis=np.array([0., 0., 1.]), symmetry=Non
                 orientation_matrix_temp = np.dot(mat_from_lab_to_sample_frame.T, orientation_matrix[ii,:,:])
                 if np.linalg.det(orientation_matrix_temp) < 0:
                     orientation_matrix_temp = -orientation_matrix_temp
-                om = Orientation(matrix=orientation_matrix_temp, symmetry=symmetry.name).reduced()
+                om = Orientation(matrix=orientation_matrix_temp, symmetry=symmetry.name)#.reduced()
                 col.append(om.IPFcolor(axis=axis))
         return np.array(col)
     else:
@@ -4656,7 +4659,7 @@ def get_ipf_colour(orientation_matrix, axis=np.array([0., 0., 1.]), symmetry=Non
         orientation_matrix = np.dot(mat_from_lab_to_sample_frame.T, orientation_matrix)
         if np.linalg.det(orientation_matrix) < 0:
             orientation_matrix = -orientation_matrix
-        om = Orientation(matrix=orientation_matrix, symmetry=symmetry.name).reduced()
+        om = Orientation(matrix=orientation_matrix, symmetry=symmetry.name)#.reduced()
         return om.IPFcolor(axis=axis)
 
 class Symmetry(enum.Enum):
@@ -8276,7 +8279,7 @@ def predict_preprocessMultiProcess(files, cnt,
         dict_dp['kf_direction']=default_detector_geom
         dict_dp['detectorparameters']=detectorparameters
         dict_dp['detectordistance']=detectorparameters[0]
-        dict_dp['detectordiameter']=pixelsize*framedim[0]
+        dict_dp['detectordiameter']=pixelsize*framedim[0]*diameter_factor
         dict_dp['pixelsize']=pixelsize
         dict_dp['dim']=framedim
         dict_dp['peakX']=peak_XY[:,0]
@@ -8315,7 +8318,7 @@ def predict_preprocessMultiProcess(files, cnt,
             dict_dp['kf_direction']=default_detector_geom
             dict_dp['detectorparameters']=detectorparameters
             dict_dp['detectordistance']=detectorparameters[0]
-            dict_dp['detectordiameter']=pixelsize*framedim[0]
+            dict_dp['detectordiameter']=pixelsize*framedim[0]*diameter_factor
             dict_dp['pixelsize']=pixelsize
             dict_dp['dim']=framedim
             dict_dp['peakX']=peakx
@@ -8683,7 +8686,7 @@ def prepare_LP_NB(nbgrains, nbgrains1, material_, verbose, material1_=None, seed
 def simulatemultiplepatterns_NB(nbUBs, nbUBs1, seed=123, key_material=None, key_material1=None, emin=5, emax=23,
                              detectorparameters=None, pixelsize=None,
                              sortintensity = False, dim1=2048, dim2=2048, flag=0):
-    detectordiameter = pixelsize * dim1
+    detectordiameter = pixelsize * dim1*diameter_factor
     g = np.zeros((nbUBs, 3, 3))
     g1 = np.zeros((nbUBs1, 3, 3))
     for igr in range(nbUBs):
@@ -9129,7 +9132,7 @@ def simulatemultimatpatterns(nbUBs, seed=123, key_material=None,
                              sortintensity = False, dim1=2048, dim2=2048, removeharmonics=1, flag = 0,
                              mode="random", data_odf_data=None):
     l_tth, l_chi, l_miller_ind, l_posx, l_posy, l_E, l_intensity = [],[],[],[],[],[],[]
-    detectordiameter = pixelsize * dim1
+    detectordiameter = pixelsize * dim1*diameter_factor
     np.random.seed(seed)
     if flag == 0:
         for no, i in enumerate(nbUBs):
@@ -9604,7 +9607,7 @@ def predict_preprocessMultiMatProcess(files, cnt,
         dict_dp['kf_direction']=default_detector_geom
         dict_dp['detectorparameters']=detectorparameters
         dict_dp['detectordistance']=detectorparameters[0]
-        dict_dp['detectordiameter']=pixelsize*framedim[0]
+        dict_dp['detectordiameter']=pixelsize*framedim[0]*diameter_factor
         dict_dp['pixelsize']=pixelsize
         dict_dp['dim']=framedim
         dict_dp['peakX']=peak_XY[:,0]
@@ -9643,7 +9646,7 @@ def predict_preprocessMultiMatProcess(files, cnt,
             dict_dp['kf_direction']=default_detector_geom
             dict_dp['detectorparameters']=detectorparameters
             dict_dp['detectordistance']=detectorparameters[0]
-            dict_dp['detectordiameter']=pixelsize*framedim[0]
+            dict_dp['detectordiameter']=pixelsize*framedim[0]*diameter_factor
             dict_dp['pixelsize']=pixelsize
             dict_dp['dim']=framedim
             dict_dp['peakX']=peakx
@@ -10781,8 +10784,7 @@ def get_orient_mat_repredict_MM(s_tth, s_chi, material0_, classhkl, class_predic
                     
                     if j in tried_spots and i in tried_spots:
                         continue
-                    
-                    #TODO replace by simpler step
+
                     mat = 0
                     case = "None"
                     input_params["mat"] = mat
@@ -11085,7 +11087,6 @@ def get_orient_mat_graphv1_MM(s_tth, s_chi, material0_, classhkl, class_predicte
                     if j in tried_spots and i in tried_spots:
                         continue
                     
-                    #TODO replace by simpler step
                     mat = 0
                     case = "None"
                     input_params["mat"] = mat

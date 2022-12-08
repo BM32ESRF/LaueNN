@@ -90,7 +90,7 @@ try:
         write_training_testing_dataMTEX, SGLattice, simulate_spots, mse_images, \
         generate_classHKL, rmv_freq_class, array_generator, vali_array, array_generator_verify,\
         worker, predict_preprocessMP_vsingle,write_average_orientation,\
-        computeGnomonicImage, OrientationMatrix2Euler, versions, convert_pickle_to_hdf5
+        computeGnomonicImage, OrientationMatrix2Euler, versions, convert_pickle_to_hdf5, diameter_factor
 except:
     from utils_lauenn import Symmetry,Lattice,\
         simulatemultiplepatterns, worker_generation, chunker_list,call_global,\
@@ -99,7 +99,7 @@ except:
         write_training_testing_dataMTEX, SGLattice, simulate_spots, mse_images, \
         generate_classHKL, rmv_freq_class, array_generator, vali_array, array_generator_verify,\
         worker, predict_preprocessMP_vsingle,write_average_orientation,\
-        computeGnomonicImage, OrientationMatrix2Euler, versions, convert_pickle_to_hdf5
+        computeGnomonicImage, OrientationMatrix2Euler, versions, convert_pickle_to_hdf5, diameter_factor
 
 try:
     from lauetoolsnn.NNmodels import read_hdf5, model_arch_general, \
@@ -4782,7 +4782,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
             dict_dp['kf_direction']=default_detector_geom
             dict_dp['detectorparameters']=detectorparameters
             dict_dp['detectordistance']=detectorparameters[0]
-            dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
+            dict_dp['detectordiameter']=pixelsize*framedim[0]*diameter_factor
             dict_dp['pixelsize']=pixelsize
             dict_dp['dim']=framedim
             dict_dp['peakX']=peakx
@@ -5108,7 +5108,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
             dict_dp['kf_direction']=default_detector_geom
             dict_dp['detectorparameters']=detectorparameters
             dict_dp['detectordistance']=detectorparameters[0]
-            dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
+            dict_dp['detectordiameter']=pixelsize*framedim[0]*diameter_factor
             dict_dp['pixelsize']=pixelsize
             dict_dp['dim']=framedim
             dict_dp['peakX']=peakx
@@ -5344,7 +5344,10 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
             text_file.close()
             print("prediction statistics are generated") 
         except:
-            # text_file.close()
+            try:
+                text_file.close()
+            except:
+                print()
             print("Errors with writing prediction output text file; could be the prediction was stopped midway")
 
         try:
@@ -5777,7 +5780,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                     dict_dp['kf_direction']=default_detector_geom
                     dict_dp['detectorparameters']=detectorparameters
                     dict_dp['detectordistance']=detectorparameters[0]
-                    dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
+                    dict_dp['detectordiameter']=pixelsize*framedim[0]*diameter_factor
                     dict_dp['pixelsize']=pixelsize
                     dict_dp['dim']=framedim
                     dict_dp['peakX']=peakx
@@ -6273,7 +6276,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                 dict_dp['kf_direction']=default_detector_geom
                 dict_dp['detectorparameters']=detectorparameters
                 dict_dp['detectordistance']=detectorparameters[0]
-                dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
+                dict_dp['detectordiameter']=pixelsize*framedim[0]*diameter_factor
                 dict_dp['pixelsize']=pixelsize
                 dict_dp['dim']=framedim
                 #print(framedim)
@@ -6313,7 +6316,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
                     dict_dp['kf_direction']=default_detector_geom
                     dict_dp['detectorparameters']=detectorparameters
                     dict_dp['detectordistance']=detectorparameters[0]
-                    dict_dp['detectordiameter']=pixelsize*framedim[0]#TODO*2
+                    dict_dp['detectordiameter']=pixelsize*framedim[0]*diameter_factor
                     dict_dp['pixelsize']=pixelsize
                     dict_dp['dim']=framedim
                     dict_dp['peakX']=peakx
