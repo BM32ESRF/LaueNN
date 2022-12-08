@@ -154,7 +154,7 @@ try:
     version_package = pkg_resources.require("lauetoolsnn")[0].version
     latest_version = versions("lauetoolsnn")[0]
 except:
-    version_package = "3.0.0"
+    version_package = "3 (Error reading version)"
     latest_version = versions("lauetoolsnn")[0]
 
 frame_title = "Laue Neural-Network model- v3 @Ravi @Jean-Sebastien \n@author: Ravi raj purohit PURUSHOTTAM RAJ PUROHIT (purushot@esrf.fr) \n@guide: Jean-Sebastien MICHA (micha@esrf.fr)"
@@ -303,7 +303,7 @@ class Window(QMainWindow):
         else:
             self.setFixedSize(winx, winy)
         
-        self.setWindowTitle("Laue Neural-Network v3")
+        self.setWindowTitle("LaueNN v3")
         self._createMenu()
         self._createToolBar()
         self._createStatusBar()
