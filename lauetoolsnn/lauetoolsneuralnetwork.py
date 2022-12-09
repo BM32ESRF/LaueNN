@@ -879,7 +879,7 @@ class Window(QMainWindow):
         except:
             material_phase_always_present = "none"
             self.write_to_console("material_phase_always_present not defined, default is NONE")
-        if material_phase_always_present == "none":
+        if material_phase_always_present == "none" or material_phase_always_present == "None":
             material_phase_always_present = None
         else:
             material_phase_always_present = int(material_phase_always_present)    
