@@ -27,7 +27,7 @@ diameter_factor = 1
 
 def simulatemultimatpatterns(nbUBs, key_material, seed=10, 
                              emin=5, emax=23, detectorparameters=[79.51, 977.9, 931.9, 0.36, 0.44], 
-                             pixelsize=0.0734, dim1=2018, dim2=2016, 
+                             pixelsize=0.0734, dim1=2018, dim2=2016, kf_dir="Z>0",
                              removeharmonics=1):
     """
     Parameters
@@ -85,6 +85,7 @@ def simulatemultimatpatterns(nbUBs, key_material, seed=10,
             s_tth, s_chi, s_miller_ind, \
                 s_posx, s_posy, s_E= LT.SimulateLaue_full_np(grain, emin, emax,
                                                             detectorparameters,
+                                                            kf_direction=kf_dir,
                                                             pixelsize=pixelsize,
                                                             dim=(dim1, dim2),
                                                             detectordiameter=detectordiameter,
@@ -120,7 +121,7 @@ def simulatemultimatpatterns(nbUBs, key_material, seed=10,
 
 def getMMpatterns_(nb, material_, 
                    emin=5, emax=23, detectorparameters=[79.51, 977.9, 931.9, 0.36, 0.44], pixelsize=0.0734, 
-                   dim1=2018, dim2=2016,
+                   dim1=2018, dim2=2016,kf_dir="Z>0",
                    ang_maxx = 45, step = 0.5, 
                    seed = 10, noisy_data=False, remove_peaks=False, user_augmentation=False, 
                    normal_hkl=None, index_hkl=None,
@@ -136,6 +137,7 @@ def getMMpatterns_(nb, material_,
                                                                 detectorparameters=detectorparameters,
                                                                 pixelsize=pixelsize,
                                                                 dim1=dim1, dim2=dim2, 
+                                                                kf_dir=kf_dir,
                                                                 removeharmonics=removeharmonics
                                                                  )
     # =============================================================================
@@ -323,6 +325,7 @@ dim1=2018
 dim2=2016
 emin=5
 emax=23
+kf_dir="Z>0"
 # =============================================================================
 # Material and simulation definition
 # =============================================================================
@@ -366,7 +369,7 @@ for ino, imat in enumerate(material_):
 file_identifier = 50 
 
 getMMpatterns_(nb_grains, material_, 
-                emin, emax, detectorparameters, pixelsize, dim1, dim2,
+                emin, emax, detectorparameters, pixelsize, dim1, dim2, kf_dir,
                 maximum_angle_to_search, step_for_binning, 
                 seed = 100,#np.random.randint(1e6), 
                 noisy_data=True, remove_peaks=True, user_augmentation=True,

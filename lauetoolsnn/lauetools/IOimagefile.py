@@ -523,7 +523,27 @@ def readCCDimage(filename, CCDLabel="MARCCD165", dirname=None, stackimageindex=-
         print('PIL_EXISTS',PIL_EXISTS)
     #    if extension != extension:
     #        print "warning : file extension does not match CCD type set in Set CCD File Parameters"
-    if FABIO_EXISTS:
+    if MLAB_EXISTS:
+        try:
+            if verbose > 1:
+                print('----> Using matplotlib ... to open %s\n'%filename)
+            # warning import Image  # for well read of header only
+
+            if dirname is not None:
+                dataimage = plt.imread(os.path.join(dirname, filename))
+            else:
+                dataimage = plt.imread(filename)
+            framedim = dataimage.shape
+            # pythonic way to change immutable tuple...
+            initframedim = list(DictLT.dict_CCD[CCDLabel][0])
+            initframedim[0] = framedim[0]
+            initframedim[1] = framedim[1]
+            initframedim = tuple(initframedim)
+        except:
+            print("Matplotlib reading failed")
+            USE_RAW_METHOD = True
+            
+    elif FABIO_EXISTS:
         if CCDLabel in ('MARCCD165', "EDF", "EIGER_4M", "EIGER_1M",
                         "sCMOS", "sCMOS_fliplr", "sCMOS_fliplr_16M", "sCMOS_16M",
                         "Rayonix MX170-HS", 'psl_weiwei', 'ImageStar_dia_2021'):
@@ -540,28 +560,6 @@ def readCCDimage(filename, CCDLabel="MARCCD165", dirname=None, stackimageindex=-
             dataimage = img.data
             framedim = dataimage.shape
 
-            # pythonic way to change immutable tuple...
-            initframedim = list(DictLT.dict_CCD[CCDLabel][0])
-            initframedim[0] = framedim[0]
-            initframedim[1] = framedim[1]
-            initframedim = tuple(initframedim)
-        else:
-            USE_RAW_METHOD = True
-    
-    elif MLAB_EXISTS:
-        if CCDLabel in ('MARCCD165', "EDF", "EIGER_4M", "EIGER_1M",
-                        "sCMOS", "sCMOS_fliplr", "sCMOS_fliplr_16M", "sCMOS_16M",
-                        "Rayonix MX170-HS", 'psl_weiwei', 'ImageStar_dia_2021'):
-
-            if verbose > 1:
-                print('----> Using matplotlib ... to open %s\n'%filename)
-            # warning import Image  # for well read of header only
-
-            if dirname is not None:
-                dataimage = plt.imread(os.path.join(dirname, filename))
-            else:
-                dataimage = plt.imread(filename)
-            framedim = dataimage.shape
             # pythonic way to change immutable tuple...
             initframedim = list(DictLT.dict_CCD[CCDLabel][0])
             initframedim[0] = framedim[0]
