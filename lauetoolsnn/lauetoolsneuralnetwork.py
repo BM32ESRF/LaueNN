@@ -1291,25 +1291,25 @@ class Window(QMainWindow):
             self.symmetry = Symmetry.cubic
             self.lattice_material = Lattice.cubic(a)
         elif self.input_params["symmetry"] =="monoclinic":
-            self.crystal = SGLattice(int(self.SG),a, b, c, beta)
+            self.crystal = SGLattice(int(self.SG), a, b, c, beta)
             self.symmetry = Symmetry.monoclinic
             self.lattice_material = Lattice.monoclinic(a, b, c, beta)
         elif self.input_params["symmetry"] == "hexagonal":
-            self.crystal = SGLattice(int(self.SG),a, c)
+            self.crystal = SGLattice(int(self.SG), a, c)
             self.symmetry = Symmetry.hexagonal
             self.lattice_material = Lattice.hexagonal(a, c)
         elif self.input_params["symmetry"] == "orthorhombic":
-            self.crystal = SGLattice(int(self.SG),a, b, c)
+            self.crystal = SGLattice(int(self.SG), a, b, c)
             self.symmetry = Symmetry.orthorhombic
             self.lattice_material = Lattice.orthorhombic(a, b, c)
         elif self.input_params["symmetry"] == "tetragonal":
-            self.crystal = SGLattice(int(self.SG),a, c)
+            self.crystal = SGLattice(int(self.SG), a, c)
             self.symmetry = Symmetry.tetragonal
             self.lattice_material = Lattice.tetragonal(a, c)
         elif self.input_params["symmetry"] == "trigonal":
-            self.crystal = SGLattice(int(self.SG),a, alpha)
+            self.crystal = SGLattice(int(self.SG), a, c)
             self.symmetry = Symmetry.trigonal
-            self.lattice_material = Lattice.rhombohedral(a, alpha)
+            self.lattice_material = Lattice.hexagonal(a, c)
         elif self.input_params["symmetry"] == "triclinic":
             self.crystal = SGLattice(int(self.SG),a, b, c, alpha, beta, gamma)
             self.symmetry = Symmetry.triclinic
@@ -1357,9 +1357,9 @@ class Window(QMainWindow):
                 self.symmetry1 = Symmetry.tetragonal
                 self.lattice_material1 = Lattice.tetragonal(a1, c1)
             elif self.input_params["symmetry1"] == "trigonal":
-                self.crystal1 = SGLattice(int(self.SG1),a1, alpha1)
+                self.crystal1 = SGLattice(int(self.SG1), a1, c1)
                 self.symmetry1 = Symmetry.trigonal
-                self.lattice_material1 = Lattice.rhombohedral(a1, alpha1)
+                self.lattice_material1 = Lattice.hexagonal(a1, c1)
             elif self.input_params["symmetry1"] == "triclinic":
                 self.crystal1 = SGLattice(int(self.SG1),a1, b1, c1, alpha1, beta1, gamma1)
                 self.symmetry1 = Symmetry.triclinic

@@ -1098,13 +1098,17 @@ def write_training_testing_dataMTEX(save_directory,material_, material1_, lattic
 def get_material_data(material_="Cu", ang_maxx = 45, step = 0.5, hkl_ref=13, classhkl = None):
     a, b, c, alpha, beta, gamma = dictLT.dict_Materials[material_][1]
     Gstar = CP.Gstar_from_directlatticeparams(a, b, c, alpha, beta, gamma)
+    rules = dictLT.dict_Materials[material_][-1]
+    
+    hkl2 = GT.threeindices_up_to(int(hkl_ref))
+    hkl2 = CP.ApplyExtinctionrules(hkl2,rules)
+    hkl2 = hkl2.astype(np.int16)
 
     query_angle = ang_maxx/2.
     angle_tol = ang_maxx/2.
     metrics = Gstar
 
-    hkl1 = np.copy(classhkl)
-    hkl2 = np.copy(classhkl)
+    hkl1 = classhkl
     H1 = hkl1
     n1 = hkl1.shape[0]
     H2 = hkl2
@@ -1120,9 +1124,7 @@ def get_material_data(material_="Cu", ang_maxx = 45, step = 0.5, hkl_ref=13, cla
     ratio = np.round(ratio, decimals=7)
     tab_angulardist = np.arccos(ratio) / (np.pi / 180.0)
     np.putmask(tab_angulardist, np.abs(tab_angulardist) < 0.001, 400)
-    
-    # self.write_to_console("Calculating Mutual angular distances")
-    # self.progress.setMaximum(len(tab_angulardist))
+
     closest_angles_values = []
     for ang_ in range(len(tab_angulardist)):
         tab_angulardist_ = tab_angulardist[ang_,:]
@@ -1146,25 +1148,17 @@ def get_material_data(material_="Cu", ang_maxx = 45, step = 0.5, hkl_ref=13, cla
         condition = array_angledist <= angle_tol
         closest_index_in_sorted_angles_raw = np.where(condition)[0]
         closest_angles_values.append(np.take(sorted_angles, closest_index_in_sorted_angles_raw))
-        # self.progress.setValue(ang_+1)
-        # QApplication.processEvents() 
-    
-    # self.write_to_console("Constructing histograms")
-    # self.progress.setMaximum(len(closest_angles_values))
+
     codebars = []
     angbins = np.arange(0, ang_maxx+step, step)
     for i in range(len(closest_angles_values)):
         angles = closest_angles_values[i]
         fingerprint = np.histogram(angles, bins=angbins)[0]
-        # fingerprint = histogram1d(angles, range=[min(angbins),max(angbins)], bins=len(angbins)-1)
         ## Normalize the histogram by its maximum: simple way 
         ## Maybe better normalization is possible.. to be seen
         max_codebars = np.max(fingerprint)
         fingerprint = fingerprint/ max_codebars
         codebars.append(fingerprint)
-        # self.progress.setValue(i+1)
-        # QApplication.processEvents() 
-    # self.progress.setValue(0)
     return codebars, angbins
 
 def Euler2OrientationMatrix(euler):
@@ -8085,10 +8079,10 @@ def get_material_detail(material_=None, SG=None, symm_=None,
         crystal = SGLattice(int(SG),a, c)
     elif symm_ == "trigonal":
         symmetry = Symmetry.trigonal
-        lattice_material = Lattice.rhombohedral(a, alpha)
+        lattice_material = Lattice.hexagonal(a, c)
         if SG == None:
             SG = 162
-        crystal = SGLattice(int(SG),a, alpha)
+        crystal = SGLattice(int(SG), a, c)
     elif symm_ == "triclinic":
         symmetry = Symmetry.triclinic
         lattice_material = Lattice.triclinic(a, b, c, alpha, beta, gamma)
@@ -8136,10 +8130,10 @@ def get_material_detail(material_=None, SG=None, symm_=None,
             crystal1 = SGLattice(int(SG1),a1, c1)
         elif symm1_ == "trigonal":
             symmetry1 = Symmetry.trigonal
-            lattice_material1 = Lattice.rhombohedral(a1, alpha1)
+            lattice_material1 = Lattice.hexagonal(a1, c1)
             if SG1 == None:
                 SG1 = 162
-            crystal1 = SGLattice(int(SG1),a1, alpha1)
+            crystal1 = SGLattice(int(SG1),a1, c1)
         elif symm1_ == "triclinic":
             symmetry1 = Symmetry.triclinic
             lattice_material1 = Lattice.triclinic(a1, b1, c1, alpha1, beta1, gamma1)
@@ -9233,7 +9227,7 @@ def get_crystal(SG_mat=None, symm_=None, lattice_params=None):
     elif symm_ == "tetragonal":
         crystal = SGLattice(int(SG_mat),a, c)
     elif symm_ == "trigonal":
-        crystal = SGLattice(int(SG_mat),a, alpha)
+        crystal = SGLattice(int(SG_mat),a, c)
     elif symm_ == "triclinic":
         crystal = SGLattice(int(SG_mat),a, b, c, alpha, beta, gamma)
     return crystal
@@ -9296,13 +9290,13 @@ def get_multimaterial_detail(material_=None, SG_mat=None, symm_mat=None):
             crystal.append(SGLattice(int(SG_mat[ino]),a, c))
         elif symm_ == "trigonal":
             symmetry.append(Symmetry.trigonal)
-            lattice_material.append(Lattice.rhombohedral(a, alpha))
+            lattice_material.append(Lattice.hexagonal(a, c))
             if SG_mat[ino] == None:
                 SG.append(162)
                 SG_mat[ino] = 162
             else:
                 SG.append(SG_mat[ino])
-            crystal.append(SGLattice(int(SG_mat[ino]),a, alpha))
+            crystal.append(SGLattice(int(SG_mat[ino]),a, c))
         elif symm_ == "triclinic":
             symmetry.append(Symmetry.triclinic)
             lattice_material.append(Lattice.triclinic(a, b, c, alpha, beta, gamma))
