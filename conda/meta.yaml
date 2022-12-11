@@ -49,20 +49,20 @@ requirements:
     - keras >=2.7.0,<=2.10.0
     - tensorflow >=2.7.0,<=2.10.0
 
-test:
-  imports:
-    - lauetoolsnn
-    - keras
-    - scipy
-    - numpy
-    - h5py
-    - tensorflow
-    - PyQt5
-    - sklearn
-    - skimage
-    - fabio
-    - networkx
-    - tqdm
+#test:
+#  imports:
+#    - lauetoolsnn
+#    - keras
+#    - scipy
+#    - numpy
+#    - h5py
+#    - tensorflow
+#    - PyQt5
+#    - sklearn
+#    - skimage
+#    - fabio
+#    - networkx
+#    - tqdm
     
 about:
   home: https://github.com/BM32ESRF/LaueNN
