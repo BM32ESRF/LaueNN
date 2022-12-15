@@ -73,13 +73,14 @@ def simulatemultimatpatterns(nbUBs, key_material, seed=10,
             # =============================================================================
             # ## random Euler angles
             # =============================================================================
-            phi1 = np.random.rand() * 360.
-            phi = 180. * math.acos(2 * np.random.rand() - 1) / np.pi
-            phi2 = np.random.rand() * 360.
-            UBmatrix = Euler2OrientationMatrix((phi1, phi, phi2))
+            # phi1 = np.random.rand() * 360.
+            # phi = 180. * math.acos(2 * np.random.rand() - 1) / np.pi
+            # phi2 = np.random.rand() * 360.
+            # UBmatrix = Euler2OrientationMatrix((phi1, phi, phi2))
             # =============================================================================
             #     ## or define your own UB matrix here
             # =============================================================================
+            UBmatrix = np.eye(3)
             
             grain = CP.Prepare_Grain(key_material[no], UBmatrix)
             s_tth, s_chi, s_miller_ind, \
@@ -335,10 +336,10 @@ nb_grains = [1, 1]
 # Training histogram generation setting
 # this has to be the same as the original training dataset, other shape mismatch error
 # =============================================================================
-maximum_angle_to_search = 120
+maximum_angle_to_search = 90
 step_for_binning = 0.1
 
-model_directory_ = r"D:\some_projects\GaN\Si_GaN_nanowires"
+model_directory_ = r"C:\Users\purushot\Anaconda3\envs\py310\Lib\site-packages\lauetoolsnn\models\GaN_Si"
 
 training_data_directory = os.path.join(model_directory_, "training_data")
 # =============================================================================
