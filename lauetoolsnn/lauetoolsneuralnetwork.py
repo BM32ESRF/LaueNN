@@ -5642,14 +5642,16 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
             self.im_axes3 = None
             
         toggle_selector.RS = RectangleSelector(self.canvas.axes, self.box_select_callback,
-                                               drawtype='box', useblit=True,
+                                               #drawtype='box',
+                                               useblit=True,
                                                button=[1],  # don't use middle/right button
                                                minspanx=5, minspany=5,
                                                spancoords='pixels',
                                                interactive=True)
         
         toggle_selector1.RS = RectangleSelector(self.canvas.axes1, self.line_select_callback,
-                                               drawtype='line', useblit=True,
+                                               #drawtype='line',
+                                               useblit=True,
                                                button=[1],  # don't use middle/right button
                                                minspanx=5, minspany=5,
                                                spancoords='pixels',
