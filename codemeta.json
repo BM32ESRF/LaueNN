@@ -1,0 +1,85 @@
+{
+    "@context": "https://w3id.org/codemeta/3.0",
+    "type": "SoftwareSourceCode",
+    "applicationCategory": "Crystallography",
+    "author": [
+        {
+            "id": "https://orcid.org/0000-0002-1232-6716",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "Université Grenoble Alpes, CEA-Grenoble/IRIG/MEM"
+            },
+            "email": "rpurushottam@xnovotech.com",
+            "familyName": "Purushottam Raj Purohit",
+            "givenName": "Ravi Raj Purohit"
+        },
+        {
+            "type": "Role",
+            "schema:author": "https://orcid.org/0000-0002-1232-6716"
+        },
+        {
+            "id": "https://orcid.org/ 0000-0002-2027-8283",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "Université Grenoble Alpes, UMR SyMMES CNRS/CEA-Grenoble/IRIG"
+            },
+            "email": "micha@esrf.fr",
+            "familyName": "MICHA",
+            "givenName": "Jean-Sébastien"
+        },
+        {
+            "id": "https://orcid.org/0000-0003-2738-7279",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "Université Grenoble Alpes, CEA-Grenoble/IRIG/MEM"
+            },
+            "email": "odile.robach@esrf.fr",
+            "familyName": "Robach",
+            "givenName": "Odile"
+        },
+        {
+            "id": "https://orcid.org/0000-0002-1786-8581",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "Université Grenoble Alpes, CEA-Grenoble/IRIG/MEM"
+            },
+            "email": "samuel.tardif@cea.fr",
+            "familyName": "Tardif",
+            "givenName": "Samuel"
+        }
+    ],
+    "codeRepository": "https://github.com/BM32ESRF/LaueNN",
+    "dateCreated": "2021-08-15",
+    "dateModified": "2023-03-24",
+    "datePublished": "2021-10-18",
+    "description": "LaueNN allows the crystallographic indexing of data from X-ray Laue microdiffraction using Neural Network Classifier.",
+    "identifier": "https://doi.org/10.1107/S1600576722004198  ",
+    "isPartOf": "https://github.com/BM32ESRF/",
+    "keywords": [
+        "X-ray scattering",
+        "Laue diffraction",
+        "Laue microscopy",
+        "microstructure",
+        "crystal orientation",
+        "crystal strain",
+        "crystallography",
+        "crystal lattice parameters",
+        "Machine Learning",
+        "Deep Learning",
+        "Neural Network"
+    ],
+    "license": "https://spdx.org/licenses/CECILL-B",
+    "name": "LaueNN",
+    "operatingSystem": [
+        "Linux",
+        "MacOS",
+        "windows"
+    ],
+    "programmingLanguage": "Python 3",
+    "relatedLink": "https://github.com/BM32ESRF/LaueTools",
+    "version": "3.1.19"
+}
