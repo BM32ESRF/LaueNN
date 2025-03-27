@@ -8,7 +8,7 @@
             "type": "Person",
             "affiliation": {
                 "type": "Organization",
-                "name": "Université Grenoble Alpes, CEA-Grenoble/IRIG/MEM"
+                "name": "CEA-Grenoble/IRIG/MEM/NRX"
             },
             "email": "rpurushottam@xnovotech.com",
             "familyName": "Purushottam Raj Purohit",
@@ -23,7 +23,7 @@
             "type": "Person",
             "affiliation": {
                 "type": "Organization",
-                "name": "Université Grenoble Alpes, UMR SyMMES CNRS/CEA-Grenoble/IRIG"
+                "name": "UMR SyMMES CNRS/CEA-Grenoble/IRIG"
             },
             "email": "micha@esrf.fr",
             "familyName": "MICHA",
@@ -34,7 +34,7 @@
             "type": "Person",
             "affiliation": {
                 "type": "Organization",
-                "name": "Université Grenoble Alpes, CEA-Grenoble/IRIG/MEM"
+                "name": "CEA-Grenoble/IRIG/MEM/NRX"
             },
             "email": "odile.robach@esrf.fr",
             "familyName": "Robach",
@@ -45,7 +45,7 @@
             "type": "Person",
             "affiliation": {
                 "type": "Organization",
-                "name": "Université Grenoble Alpes, CEA-Grenoble/IRIG/MEM"
+                "name": "CEA-Grenoble/IRIG/MEM/NRX"
             },
             "email": "samuel.tardif@cea.fr",
             "familyName": "Tardif",
