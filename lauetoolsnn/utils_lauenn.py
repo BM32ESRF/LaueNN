@@ -188,7 +188,7 @@ if default_initialization:
 # =============================================================================
 def call_global():
     """
-    Generates global variables from the settings.ini file to be used in the code
+    Generates global variables from the settings.ini file to be used in the following code
 
     Returns
     -------
