@@ -1604,7 +1604,6 @@ def simulatemultiplepatterns(nbUBs, nbUBs1, seed=123, key_material=None, key_mat
                              odf_data=None, odf_data1=None, mode="random", misorientation_angle = 1,
                              phase_always_present=None):
     
-/*************  ✨ Windsurf Command ⭐  *************/
     """
     Simulates multiple Laue patterns for a given number of grains made of 1 or optionally 2 materials.
 
@@ -1668,7 +1667,6 @@ def simulatemultiplepatterns(nbUBs, nbUBs1, seed=123, key_material=None, key_mat
     orientation_send1 : array_like
         Grain orientations for second phase material
     """
-/*******  f73a55f3-ade9-449d-8abf-99cc2eeaad49  *******/
     detectordiameter = pixelsize * dim1 *diameter_factor
     # UBelemagnles = np.random.random((3,nbUBs))*360-180
     np.random.seed(seed)
