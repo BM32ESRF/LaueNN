@@ -239,7 +239,7 @@ plt.show()
 # plt.show()
 
 #%% Gnemonic image
-imageGNO, nbpeaks, halfdiagonal = computeGnomonicImage(l_tth, l_chi)
+imageGNO, nbpeaks, _ = computeGnomonicImage(l_tth, l_chi)
 plt.imshow(imageGNO)
 plt.show()
 

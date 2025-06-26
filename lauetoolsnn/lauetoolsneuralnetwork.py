@@ -2935,7 +2935,7 @@ class MyPopup_image_v1(QWidget):
                                             pixelsize=pixelsize,
                                             kf_direction=default_detector_geom)        
         # Classic straight-line Hough transform
-        imageGNO, nbpeaks, halfdiagonal = computeGnomonicImage(twicetheta, chi)
+        imageGNO, nbpeaks, _ = computeGnomonicImage(twicetheta, chi)
         hough, theta_h, d_h = hough_line(imageGNO)
         
         # Generating figure 1

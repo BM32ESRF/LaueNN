@@ -171,7 +171,7 @@ if default_initialization:
     residues_threshold = 0.5
     nb_spots_global_threshold = 8
     option_global = "v2"
-    use_om_user = False
+    use_om_user = False  # # not use orientation matrix ub given by user
     nb_spots_consider = 500
     path_user_OM = ""
     intensity_threshold = 150
@@ -206,7 +206,7 @@ def call_global():
     residues_threshold = float(config_setting.get('CALLER', 'residues_threshold'))
     nb_spots_global_threshold = int(float(config_setting.get('CALLER', 'nb_spots_global_threshold')))
     option_global = config_setting.get('CALLER', 'option_global')
-    use_om_user = config_setting.get('CALLER', 'use_om_user') == "true"
+    use_om_user = config_setting.get('CALLER', 'use_om_user') == "true"  # # use orientation matrix ub given by user
     nb_spots_consider = int(float(config_setting.get('CALLER', 'nb_spots_consider')))
     path_user_OM = config_setting.get('CALLER', 'path_user_OM')
     intensity_threshold = int(float(config_setting.get('CALLER', 'intensity')))
@@ -228,9 +228,9 @@ def rmv_freq_class(freq_rmv = 0, elements="all", freq_rmv1 = 0, elements1="all",
                    progress=None, qapp=None, list_hkl_keep=None, list_hkl_keep1=None):
     """
     This module takes in the classification of training data and removes the 
-    classes which have very low occurances. The removal occurs 1. if the frequency
+    classes which have very low occurences. The removal occurs 1. if the frequency
     of a class is less than a specified percentage [default is 0.0%] or 2. if the 
-    number of occurances of a class is less than a specified value.
+    number of occurences of a class is less than a specified value.
 
     The input to the module is the path of the save directory, the material being
     considered and various other parameters. 
@@ -710,6 +710,26 @@ def create_additional_data(path_, write_to_console=None, material=None, material
     pass #TODO
 
 def array_generatorV2(path_, ver=1, progress=None, qapp=None):
+    """
+    Generates an array by loading and concatenating data from a specified path.
+
+    Parameters
+    ----------
+    path_ : str
+        The directory path where data files are located.
+    ver : int, optional
+        The version number used in the get_path function to fetch file paths (default is 1).
+    progress : QObject, optional
+        A progress object to update the progress bar as data files are loaded (default is None).
+    qapp : QApplication, optional
+        A Qt application object to process events for a responsive UI (default is None).
+
+    Returns
+    -------
+    trainY1 : np.ndarray
+        An array containing concatenated data from all loaded files.
+    """
+
     array_pairs = get_path(path_, ver=ver)
     random.shuffle(array_pairs)
     if progress !=None:
@@ -728,6 +748,20 @@ def array_generatorV2(path_, ver=1, progress=None, qapp=None):
 
 def printProgressBar(iteration, total, prefix = '', suffix = 'Complete', 
                       decimals = 1, length = 50, fill = '█', printEnd = "\r"):
+    """
+    Call in a loop to create terminal progress bar
+
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filledLength = int(length * iteration // total)
     bar = fill * filledLength + '-' * (length - filledLength)
@@ -737,9 +771,42 @@ def printProgressBar(iteration, total, prefix = '', suffix = 'Complete',
         print()
         
 def mse_images(pathA, pathB, ix, iy, ccd_label, progressbar=False, iteration=None, total=None):
-   	# the 'Mean Squared Error' between the two images is the
-   	# sum of the squared difference between the two images;
-   	# NOTE: the two images must have the same dimension
+    """
+    Calculate the Mean Squared Error (MSE) between two images.
+
+    This function computes the MSE by subtracting the background from each image,
+    then calculating the squared differences between corresponding pixel values
+    of the two processed images. The images must have the same dimensions.
+
+    Parameters
+    ----------
+    pathA : str
+        The file path to the first image.
+    pathB : str
+        The file path to the second image.
+    ix : int
+        The x-index for identifying specific conditions (used for debugging/printing only).
+    iy : int
+        The y-index for identifying specific conditions (used for debugging/printing only).
+    ccd_label : str
+        The label for the CCD detector used to read the images.
+    progressbar : bool, optional
+        If True, a progress bar will be printed (default is False).
+    iteration : int, optional
+        The current iteration number for the progress bar (default is None).
+    total : int, optional
+        The total number of iterations for the progress bar (default is None).
+
+    Returns
+    -------
+    err : float
+        The calculated MSE between the two images. Returns -1 if an error occurs.
+    ix : int
+        The provided x-index.
+    iy : int
+        The provided y-index.
+    """
+
     if progressbar:
         printProgressBar(iteration, total-1)
         
@@ -777,12 +844,11 @@ def mse_images(pathA, pathB, ix, iy, ccd_label, progressbar=False, iteration=Non
 # =============================================================================
 # Data generation functions
 # =============================================================================
-def generate_classHKL(n, rules, lattice_material, symmetry, material_, crystal=None, SG=None, general_diff_cond=False,
-         save_directory="", write_to_console=None, progress=None, qapp=None, ang_maxx = None, step = None, 
-         mat_listHKl=None):
+def generate_classHKL(n, rules, lattice_material, symmetry, material_, crystal=None, SG=None, general_diff_cond=False, save_directory="", write_to_console=None, progress=None, qapp=None, ang_maxx = None, step = None, mat_listHKl=None):
     """
-    Generate all the hkl's for the material symmetry.
-    Return a dictionary with keys the hkl's and values in the family list.
+    write files containing a dictionary with keys the hkl's and values in the family list.
+    Generate all the hkl's for the material symmetry, unless mat_listHKl is specified
+
     
     Parameters
     ----------
@@ -810,6 +876,10 @@ def generate_classHKL(n, rules, lattice_material, symmetry, material_, crystal=N
         progress bar
     qapp: qt object, optional
         qt object to handle the thread
+
+    ang_maxx: float, default None, corresponding to 90 degrees
+    step: float, default None, corresponding to 0.1 degree
+    mat_listHKl: optional user defined list of HKL
     
     Returns
     -------
@@ -964,6 +1034,40 @@ def generate_classHKL(n, rules, lattice_material, symmetry, material_, crystal=N
     
 def write_training_testing_dataMTEX(save_directory,material_, material1_, lattice_material, lattice_material1,
                                     material0_lauegroup, material1_lauegroup):
+    """
+    Writes orientation data for training and testing datasets in a format
+    compatible with MTEX software. The function processes orientation matrices
+    from files in the specified save directory and constructs a CTF file with
+    the computed Euler angles and phase information.
+
+    Parameters
+    ----------
+    save_directory : str
+        Path to the directory containing the training and testing data.
+    material_ : str
+        Name of the primary material.
+    material1_ : str
+        Name of the secondary material (can be the same as the primary).
+    lattice_material : object
+        Lattice parameters of the primary material.
+    lattice_material1 : object
+        Lattice parameters of the secondary material.
+    material0_lauegroup : str
+        Laue group designation for the primary material.
+    material1_lauegroup : str
+        Laue group designation for the secondary material.
+
+    Notes
+    -----
+    - The function assumes that the input files are in acceptable formats and
+      contain specific arrays ('arr_2', 'arr_3', 'arr_4') used for orientation
+      and flag determination.
+    - Euler angles are computed and adjusted to align with the sample
+      coordinate system, rotated by 40 degrees.
+    - The resulting CTF file includes headers with phase and lattice
+      information, and records for each orientation matrix.
+    """
+
     for imh in ["training_data", "testing_data"]:
         image_files = []
         path_ = save_directory+"//"+imh
@@ -1096,6 +1200,25 @@ def write_training_testing_dataMTEX(save_directory,material_, material1_, lattic
         f.close()
         
 def get_material_data(material_="Cu", ang_maxx = 45, step = 0.5, hkl_ref=13, classhkl = None):
+    """
+    Compute a set of fingerprints for a given material
+    The fingerprints are given as a set of histograms of closest angles
+    between all possible hkl combinations of the material
+    The histograms are computed on a given angular range (ang_maxx)
+    with a given step (step)
+    The fingerprints are normalized by the maximum of the histogram
+    Parameters:
+    - material_ (str): material label
+    - ang_maxx (float): maximum angular range
+    - step (float): step for the angular range
+    - hkl_ref (int): maximum Miller index
+    - classhkl (list or array): list of hkl indices for the material,
+        if None, use all hkl up to hkl_ref
+    Returns:
+    - codebars (list of arrays): list of fingerprints (histograms)
+    - angbins (array): array of angular values (bins)
+    """
+    """"""
     a, b, c, alpha, beta, gamma = dictLT.dict_Materials[material_][1]
     Gstar = CP.Gstar_from_directlatticeparams(a, b, c, alpha, beta, gamma)
     rules = dictLT.dict_Materials[material_][-1]
@@ -1481,6 +1604,71 @@ def simulatemultiplepatterns(nbUBs, nbUBs1, seed=123, key_material=None, key_mat
                              odf_data=None, odf_data1=None, mode="random", misorientation_angle = 1,
                              phase_always_present=None):
     
+/*************  ✨ Windsurf Command ⭐  *************/
+    """
+    Simulates multiple Laue patterns for a given number of grains made of 1 or optionally 2 materials.
+
+    Parameters
+    ----------
+    nbUBs : int
+        Number of grains
+    nbUBs1 : int
+        Number of grains for second phase material
+    seed : int, optional
+        Random seed for grain orientation
+    key_material : str
+        Key for material in LaueTools dictionary of materials
+    key_material1 : str, optional
+        Key for second phase material in LaueTools dictionary of materials
+    emin : float, optional
+        Minimum energy (in keV)
+    emax : float, optional
+        Maximum energy (in keV)
+    detectorparameters : tuple, optional
+        Detector parameters (detector distance, pixel size, etc.)
+    pixelsize : float, optional
+        Pixel size (in mm)
+    sortintensity : bool, optional
+        Sort the simulated patterns by intensity
+    dim1 : int, optional
+        Detector dimension 1
+    dim2 : int, optional
+        Detector dimension 2
+    removeharmonics : int, optional
+        Flag to remove harmonics and keep only lowest indices Miller indices spotsom simulated patterns
+    flag : int, optional
+        Flag to simulate either single phase material (flag = 0) or two phase materials (flag = 1, 2 or 3)
+    odf_data : array_like, optional
+        Orientation distribution function (ODF) data
+    odf_data1 : array_like, optional
+        Orientation distribution function (ODF) data for second phase material
+    mode : str, optional
+        Mode to simulate the Laue patterns (random, uniform, etc.)
+    misorientation_angle : float, optional
+        Misorientation angle (in deg) for two phase material
+    phase_always_present : str, optional
+        Phase that is always present in the simulated data
+    
+    Returns
+    -------
+    s_tth : array_like
+        Two theta angles
+    s_chi : array_like
+        Chi angles
+    s_miller_ind : array_like
+        Miller indices
+    s_posx : array_like
+        X pixel positions
+    s_posy : array_like
+        Y pixel positions
+    s_intensity : array_like
+        Intensities
+    orientation_send : array_like
+        Grain orientations
+    orientation_send1 : array_like
+        Grain orientations for second phase material
+    """
+/*******  f73a55f3-ade9-449d-8abf-99cc2eeaad49  *******/
     detectordiameter = pixelsize * dim1 *diameter_factor
     # UBelemagnles = np.random.random((3,nbUBs))*360-180
     np.random.seed(seed)
@@ -1516,7 +1704,7 @@ def simulatemultiplepatterns(nbUBs, nbUBs1, seed=123, key_material=None, key_mat
             for igr in range(len(g)):
                 orientation_send.append(g[igr])
             
-    elif flag == 1 or flag == 2 or flag == 3:
+    elif flag in [1, 2, 3]:
         nbUBs = 2
         g = np.zeros((nbUBs, 3, 3))
         for igr in range(nbUBs):
@@ -1703,7 +1891,6 @@ def worker_generation(inputs_queue, outputs_queue, proc_id):
     This code is a parallel version of the getpatterns_ code, using several 
     processors.
     """
-
     while True:
         time.sleep(0.01)
         if not inputs_queue.empty():
@@ -1736,6 +1923,27 @@ def worker_generation(inputs_queue, outputs_queue, proc_id):
                 break
             
 def ComputeGnomon_singledata(tth, chi, CenterProjection=(45 * DEG, 0 * DEG)):
+    """
+    Compute gnomonic projection coordinates (x, y) from a Laue diffraction pattern
+    given in (2theta, chi) coordinates.
+
+    Parameters
+    ----------
+    tth : float or array_like
+        2theta angle in degrees.
+    chi : float or array_like
+        chi angle in degrees.
+    CenterProjection : tuple, optional
+        (latitude == theta, longitude == chi) in degrees of the projection center. Defaults to
+        (45, 0).
+
+    Returns
+    -------
+    x : float or array_like
+        x coordinate of the gnomonic projection.
+    y : float or array_like
+        y coordinate of the gnomonic projection.
+    """
     data_theta = tth / 2.0
     data_chi = chi
     lat = np.arcsin(np.cos(data_theta * DEG) * np.cos(data_chi * DEG))  # in rads
@@ -1776,7 +1984,29 @@ def ComputeGnomon_2(TwiceTheta_Chi, CenterProjection=(45 * DEG, 0 * DEG)):
     return _gnomonx, _gnomony
 
 def computeGnomonicImage(TwiceTheta,Chi):
+    """
+    Compute gnomonic image from a Laue diffraction pattern given by (2theta, chi) coordinates of Laue spots.
+
+    Parameters
+    ----------
+    TwiceTheta : array_like
+        2theta angles in degrees.
+    Chi : array_like
+        chi angles in degrees.
+
+    Returns
+    -------
+    imageGNO : array_like, 2D 
+        gnomonic image.
+    nbpeaks : int
+        number of peaks (Laue spots)
+    halfdiagonal : float
+        half diagonal of the gnomonic image 
+    """
     DEG = np.pi/180.
+    if len(TwiceTheta)!=len(Chi):
+        raise ValueError("TwiceTheta and Chi must have the same length")
+        
     # CenterProjectionAngleTheta = 50#45
     TwiceTheta_Chi = TwiceTheta,Chi
     Xgno,Ygno = ComputeGnomon_2(TwiceTheta_Chi, CenterProjection=(45 * DEG, 0 * DEG))
@@ -1784,10 +2014,10 @@ def computeGnomonicImage(TwiceTheta,Chi):
     nbpeaks=len(pts)
     NbptsGno = 300
     maxsize = max(Xgno.max(),Ygno.max(),-Xgno.min(),-Ygno.min())+.0
-    xgnomin,xgnomax,ygnomin,ygnomax=(-0.8,0.8,-0.5,0.5)
+    #xgnomin,xgnomax,ygnomin,ygnomax=(-0.8,0.8,-0.5,0.5)
     xgnomin,xgnomax,ygnomin,ygnomax=(-maxsize,maxsize,-maxsize,maxsize)
     
-    halfdiagonal = np.sqrt(xgnomax**2+ygnomax**2)*NbptsGno
+    halfdiagonal = np.sqrt(xgnomax**2+ygnomax**2)
     XGNO = np.array((Xgno-xgnomin)/(xgnomax-xgnomin)*NbptsGno, dtype=np.int)
     YGNO = np.array((Ygno-ygnomin)/(ygnomax-ygnomin)*NbptsGno, dtype=np.int)
     imageGNO=np.zeros((NbptsGno+1,NbptsGno+1))
@@ -2294,7 +2524,7 @@ def predict_preprocessMP(files, cnt,
         return strain_matrix, strain_matrixs, rotation_matrix, col, colx, coly, \
                 match_rate, mat_global, cnt, files_treated,spots_len,iR_pix,fR_pix, check, best_match, None
     
-    if not use_om_user:
+    if not use_om_user: # not use orientation matrix ub given by user
         spots_in_center = np.arange(0,len(data_theta))
         spots_in_center = spots_in_center[:nb_spots_consider]
         
@@ -2445,7 +2675,7 @@ def predict_ubmatrix(seednumber, spots_in_center, classhkl, hkl_all_class0,
     spots1 = []
     spots1_global = [[] for i in range(matricies)]
     
-    if not use_om_user: 
+    if not use_om_user: # not use orientation matrix ub given by user
         dist = tabledistancerandom        
         ## one time calculations
         lattice_params0 = dictLT.dict_Materials[material_][1]
@@ -2508,7 +2738,7 @@ def predict_ubmatrix(seednumber, spots_in_center, classhkl, hkl_all_class0,
         iR, fR= 0, 0
         case = "None"
         
-        if use_om_user:
+        if use_om_user:  # om =  ub  !!!
             use_previous_UBmatrix_name = False
             try_previous = False
             
@@ -3082,26 +3312,44 @@ def predict_ubmatrix(seednumber, spots_in_center, classhkl, hkl_all_class0,
     return best_matrix, mr_highest, mat_highest, strain_matrix, strain_matrixs, ir_pixels, fr_pixels, spots_len, best_match, check
 
 
-def get_material_dataP(Gstar, classhkl = None):
-    hkl2 = np.copy(classhkl)
-    hkl1 = np.copy(classhkl)
-    # compute square matrix containing angles
-    metrics = Gstar
-    H1 = hkl1
-    n1 = hkl1.shape[0]
-    H2 = hkl2
-    n2 = hkl2.shape[0]
-    dstar_square_1 = np.diag(np.inner(np.inner(H1, metrics), H1))
-    dstar_square_2 = np.diag(np.inner(np.inner(H2, metrics), H2))
-    scalar_product = np.inner(np.inner(H1, metrics), H2) * 1.0
-    d1 = np.sqrt(dstar_square_1.reshape((n1, 1))) * 1.0
-    d2 = np.sqrt(dstar_square_2.reshape((n2, 1))) * 1.0
-    outy = np.outer(d1, d2)
-    ratio = scalar_product / outy
+def get_material_dataP(Gstar, classhkl=None):
+    """
+    Calculate the angular distances between all pairs of hkl directions.
+
+    Parameters:
+    - Gstar (array): A 3x3 array representing the reciprocal metric tensor.
+    - classhkl (array, optional): An array of hkl indices. Defaults to None.
+
+    Returns:
+    - angular_distances (array): A matrix containing the angular distances
+      between all pairs of hkl directions, with angles in degrees.
+    """
+    if classhkl is None:
+        raise ValueError("classhkl cannot be None")
+
+    EXTREME_ANGLE = 400  # Unreachable largest angle in degrees
+
+    hkl_array = np.copy(classhkl)
+    
+    metric_tensor = Gstar
+    num_hkl = hkl_array.shape[0]
+    
+    dstar_square_1 = np.diag(np.inner(np.inner(hkl_array, metric_tensor), hkl_array))
+    dstar_square_2 = np.diag(np.inner(np.inner(hkl_array, metric_tensor), hkl_array))
+    scalar_product = np.inner(np.inner(hkl_array, metric_tensor), hkl_array) * 1.0
+    
+    d1 = np.sqrt(dstar_square_1.reshape((num_hkl, 1))) * 1.0
+    d2 = np.sqrt(dstar_square_2.reshape((num_hkl, 1))) * 1.0
+    outer_product = np.outer(d1, d2)
+    
+    ratio = scalar_product / outer_product
     ratio = np.round(ratio, decimals=7)
-    tab_angulardist = np.arccos(ratio) / (np.pi / 180.0)
-    np.putmask(tab_angulardist, np.abs(tab_angulardist) < 0.001, 400)
-    return tab_angulardist
+    
+    angular_distances = np.arccos(ratio) * (180.0 / np.pi)
+    np.putmask(angular_distances, np.abs(angular_distances) < 0.001, EXTREME_ANGLE)
+    
+    return angular_distances
+
 
 def get_orient_mat_repredict(s_tth, s_chi, material0_, material1_, classhkl, class_predicted, predicted_hkl,
                        input_params, hkl_all_class0, hkl_all_class1, max_pred, dict_dp, spots, 
@@ -4461,6 +4709,8 @@ def calculate_strains_fromUB(s_tth, s_chi, UBmat, material_, input_params,
                     fitting_parameters_values.append(latticeparams[5])
                     
             pureUmatrix, _ = GT.UBdecomposition_RRPP(starting_orientmatrix)
+            initrot = pureUmatrix
+            #initrot = starting_orientmatrix
             absolutespotsindices = np.arange(len(pixX))
             
             (residues, _, _,
@@ -4471,7 +4721,7 @@ def calculate_strains_fromUB(s_tth, s_chi, UBmat, material_, input_params,
                                                                 absolutespotsindices,
                                                                 pixX,
                                                                 pixY,
-                                                                initrot=pureUmatrix,
+                                                                initrot=initrot,
                                                                 pureRotation=0,
                                                                 verbose=0,
                                                                 pixelsize=dict_dp['pixelsize'],
@@ -4491,7 +4741,7 @@ def calculate_strains_fromUB(s_tth, s_chi, UBmat, material_, input_params,
                                                             absolutespotsindices,
                                                             pixX,
                                                             pixY,
-                                                            UBmatrix_start=pureUmatrix,
+                                                            UBmatrix_start=initrot,
                                                             nb_grains=1,
                                                             pureRotation=0,
                                                             verbose=0,
@@ -4511,7 +4761,7 @@ def calculate_strains_fromUB(s_tth, s_chi, UBmat, material_, input_params,
                                                                 absolutespotsindices,
                                                                 pixX,
                                                                 pixY,
-                                                                initrot=pureUmatrix,
+                                                                initrot=initrot,
                                                                 pureRotation=0,
                                                                 verbose=0,
                                                                 pixelsize=dict_dp['pixelsize'],
@@ -5381,7 +5631,7 @@ class HklPlane(HklObject):
 # =============================================================================
 def OrientationMatrix2Euler(g):
     """
-    Compute the Euler angles from the orientation matrix.
+    Compute the Euler angles from the orientation PURE matrix.
     This conversion follows the paper of Rowenhorst et al. :cite:`Rowenhorst2015`.
     In particular when :math:`g_{33} = 1` within the machine precision,
     there is no way to determine the values of :math:`\phi_1` and :math:`\phi_2`
@@ -9517,9 +9767,8 @@ def predict_preprocessMultiMatProcess(files, cnt,
             bkg_treatment = "A-B"
 
         try:
-            ### Max space = space betzeen pixles
-            peak_XY = RMCCD.PeakSearch(
-                                        files,
+            ### Max space = space betzeen pixels
+            peak_XY = RMCCD.PeakSearch(files,
                                         stackimageindex = -1,
                                         CCDLabel=CCDLabel,
                                         NumberMaxofFits=NumberMaxofFits123,
@@ -10097,7 +10346,7 @@ def predict_ub_MM(seednumber, spots_in_center, classhkl, hkl_all_class0,
         iR, fR= 0, 0
         case = "None"
         
-        if use_om_user:
+        if use_om_user: # use orientation matrix ub given by user
             use_previous_UBmatrix_name = False
             try_previous = False
 
@@ -11818,6 +12067,8 @@ def calculate_strains_fromUBMM(s_tth, s_chi, UBmat, material_, input_params,
                     fitting_parameters_values.append(latticeparams[5])
                     
             pureUmatrix, _ = GT.UBdecomposition_RRPP(starting_orientmatrix)
+            initrot = pureUmatrix
+            #initrot = starting_orientmatrix
             absolutespotsindices = np.arange(len(pixX))
             
             (residues, _, _,
@@ -11828,7 +12079,7 @@ def calculate_strains_fromUBMM(s_tth, s_chi, UBmat, material_, input_params,
                                                                 absolutespotsindices,
                                                                 pixX,
                                                                 pixY,
-                                                                initrot=pureUmatrix,
+                                                                initrot=initrot,
                                                                 pureRotation=0,
                                                                 verbose=0,
                                                                 pixelsize=dict_dp['pixelsize'],
@@ -11848,7 +12099,7 @@ def calculate_strains_fromUBMM(s_tth, s_chi, UBmat, material_, input_params,
                                                             absolutespotsindices,
                                                             pixX,
                                                             pixY,
-                                                            UBmatrix_start=pureUmatrix,
+                                                            UBmatrix_start=initrot,
                                                             nb_grains=1,
                                                             pureRotation=0,
                                                             verbose=0,
@@ -11868,7 +12119,7 @@ def calculate_strains_fromUBMM(s_tth, s_chi, UBmat, material_, input_params,
                                                                 absolutespotsindices,
                                                                 pixX,
                                                                 pixY,
-                                                                initrot=pureUmatrix,
+                                                                initrot=initrot,
                                                                 pureRotation=0,
                                                                 verbose=0,
                                                                 pixelsize=dict_dp['pixelsize'],
@@ -12645,16 +12896,16 @@ def convert_pickle_to_hdf5(save_directory_, files_treated, rotation_matrix1, str
             out_df = pd.DataFrame(temp_)
             dtype_ = columnstype[columns[ij]]
             out_df = out_df.astype(dtype=dtype_)
-            out_df.to_hdf(os.path.join(save_directory_,"grain_all.h5"), key='grain'+str(i)+"/"+columns[ij])
+            out_df.to_hdf(os.path.join(save_directory_, "grain_all.h5"), key=f'grain{i}/{columns[ij]}')
 
 def write_prediction_stats(save_directory_, material_, material1_, files_treated,\
                            lim_x, lim_y, best_match, strain_matrixs, strain_matrix, iR_pix,\
                               fR_pix,  mat_global):    
     ## Write global text file with all results
     if material_ != material1_:
-        text_file = open(save_directory_+"//prediction_stats_"+material_+"_"+material1_+".txt", "w")
+        text_file = open(os.path.join(save_directory_, f"prediction_stats_{material_}_{material1_}.txt"), "w")
     else:
-        text_file = open(save_directory_+"//prediction_stats_"+material_+".txt", "w")
+        text_file = open(os.path.join(save_directory_, f"prediction_stats_{material_}.txt"), "w")
 
     filenames = list(np.unique(files_treated))
     filenames.sort(key=lambda var:[int(x) if x.isdigit() else x for x in re.findall(r'[^0-9]|[0-9]+', var)])
@@ -12836,9 +13087,11 @@ def write_MTEXdata(save_directory_, material_, material1_, rotation_matrix1,\
         
         a = euler_angles
         if material_ != material1_:
-            filename125 = save_directory_+ "//"+material_+"_"+material1_+"_MTEX_UBmat_"+str(index)+"_LT.ctf"
+            # filename125 = save_directory_+ "//"+material_+"_"+material1_+"_MTEX_UBmat_"+str(index)+"_LT.ctf"
+            filename125 = os.path.join(save_directory_,f"{material_}_{material1_}_MTEX_UBmat_{index}_LT.ctf")
         else:
-            filename125 = save_directory_+ "//"+material_+"_MTEX_UBmat_"+str(index)+"_LT.ctf"
+            #filename125 = save_directory_+ "//"+material_+"_MTEX_UBmat_"+str(index)+"_LT.ctf"
+            filename125 = os.path.join(save_directory_,f"{material_}_MTEX_UBmat_{index}_LT.ctf")
             
         f = open(filename125, "w")
         for ij in range(len(header)):
@@ -12888,7 +13141,7 @@ def write_average_orientationMM(save_directory_, mat_global, rotation_matrix1,
 
             mat_index1 = mat_global[index][0]
             mask_ = np.where(mat_index1 != val)[0]
-            om_object = []
+            om_object = []  # orientation matrix object
             # print("step 1")
             for om_ind in range(len(rotation_matrix1[index][0])):
                 ## UB matrix in Laue reference frame (or crystal reference frame?)
@@ -13105,7 +13358,7 @@ def write_prediction_statsMM(save_directory_, material_, files_treated,\
     else:
         prefix_mat = material_[0]
         
-    text_file = open(save_directory_+"//prediction_stats_"+prefix_mat+".txt", "w")
+    text_file = open(os.path.join(save_directory_, "prediction_stats_" + prefix_mat + ".txt"), "w")
 
     filenames = list(np.unique(files_treated))
     filenames.sort(key=lambda var:[int(x) if x.isdigit() else x for x in re.findall(r'[^0-9]|[0-9]+', var)])
@@ -13279,7 +13532,7 @@ def write_MTEXdataMM(save_directory_, material_, rotation_matrix1,\
         else:
             prefix_mat = material_[0]
 
-        filename125 = save_directory_+ "//"+prefix_mat+"_MTEX_UBmat_"+str(index)+"_LT.ctf"
+        filename125 = os.path.join(save_directory_, prefix_mat+"_MTEX_UBmat_"+str(index)+"_LT.ctf")
             
         f = open(filename125, "w")
         for ij in range(len(header)):
