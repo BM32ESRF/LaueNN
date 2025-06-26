@@ -180,8 +180,8 @@ if default_initialization:
     emax_global = 22
     emin_global = 5
     UB_matrix_global = 1
-    image_grid_globalx = 10
-    image_grid_globaly = 10
+    image_grid_globalx = 10  # SLOW AXIS
+    image_grid_globaly = 10  # fast axis
     intensity_threshold_global = 5 #75 800
     boxsize_global = 10
     fit_peaks_gaussian_global = 1
@@ -622,11 +622,11 @@ class Window(QMainWindow):
             self.write_to_console("UB matrix to identify not defined, can be set in the Prediction window (setting default to 2)", colormode='red')
         
         try:
-            image_grid_globalx = int(config.get('EXPERIMENT', 'image_grid_x'))
-            image_grid_globaly = int(config.get('EXPERIMENT', 'image_grid_y'))
+            image_grid_globalx = int(config.get('EXPERIMENT', 'image_grid_x'))  # SLOW AXIS
+            image_grid_globaly = int(config.get('EXPERIMENT', 'image_grid_y'))  # FAST AXIS
         except:
-            image_grid_globalx = 10
-            image_grid_globaly = 10
+            image_grid_globalx = 10 # SLOW AXIS
+            image_grid_globaly = 10 # FAST AXIS
             self.write_to_console("Scan grid not defined, can be set in the Prediction window", colormode='red')
         
         try:
@@ -3412,7 +3412,7 @@ class Window_allmap(QWidget):
         self.layout.addWidget(self.canvas, 100)
         
         self.image_grid = QLineEdit()
-        self.image_grid.setText("10,10")
+        self.image_grid.setText("10,10")  # slow, fast axes dimensions
         
         self.path_folder = QLineEdit()
         self.path_folder.setText("")
@@ -4176,7 +4176,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
         self.tolerance1.setText("0.5")
         
         self.image_grid = QLineEdit()
-        self.image_grid.setText("10,10")
+        self.image_grid.setText("10,10") # slow, fast axes dimensions
         
         self.ubmat = QLineEdit()
         self.ubmat.setText("1")
@@ -4250,7 +4250,7 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
             self.tolerance.setText(str(tolerance_global))
         if tolerance_global1 != None:
             self.tolerance1.setText(str(tolerance_global1))
-        if image_grid_globalx != None:
+        if image_grid_globalx != None:  #slow axis
             self.image_grid.setText(str(image_grid_globalx)+","+str(image_grid_globaly))
         if exp_prefix_global != None:
             self.experimental_prefix.setText(exp_prefix_global)
@@ -4303,10 +4303,10 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
         self.layout.addWidget(self.canvas, 100)
 
         formLayout = QFormLayout()
-        formLayout.addRow('Image XY grid size',self.image_grid)
+        formLayout.addRow('2D Map dimensions: slow, fast axis (in graph resp. vertical, horizontal)',self.image_grid)
         formLayout.addRow('IPF axis (Cubic and HCP system)', self.ipf_axis)
-        formLayout.addRow('Matricies to predict (sequential)', self.ubmat)       
-        formLayout.addRow('Matrix to plot', self.matrix_plot) 
+        formLayout.addRow('Nb Matrices to predict (sequential)', self.ubmat)       
+        formLayout.addRow('Matrix index to plot (from 1 to ...)', self.matrix_plot) 
         formLayout.addRow('Strain component to plot', self.strain_plot) 
         formLayout.addRow('CPU mode', self.matrix_plot_tech) 
         formLayout.addRow('Analysis mode', self.analysis_plot_tech) 
@@ -4498,8 +4498,11 @@ class AnotherWindowLivePrediction(QWidget):#QWidget QScrollArea
     
     def initialize_params(self):
         self.model_direc = self.modelDirec
-        
-        self.lim_x, self.lim_y = int(self.image_grid.text().split(",")[0]), int(self.image_grid.text().split(",")[1])
+        # slow axis  , fast axis
+        # from BLISS: dmesh fastaxis -## +## self.lim_y-1 slowaxis -## +## self.lim_y-1 expotime counters
+        self.lim_x, self.lim_y = map(int, self.image_grid.text().split(","))
+
+
         if self.cnt == 0:
             self.col = [[] for i in range(int(self.ubmat.text()))]
             self.colx = [[] for i in range(int(self.ubmat.text()))]
